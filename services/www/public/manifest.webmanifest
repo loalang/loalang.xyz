@@ -1,0 +1,56 @@
+{
+  "name": "Loa Programming Language",
+  "short_name": "Loa",
+  "description": "The Loa Programming Language website.",
+  "lang": "en-US",
+  "categories": ["documentation", "technology"],
+  "dir": "ltr",
+  "orientation": "portrait-primary",
+  "display": "standalone",
+  "background_color": "#FFD7E2",
+  "theme_color": "#1111ff",
+  "images": [
+    {
+      "src": "%PUBLIC_URL%/images/Logo-16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "%PUBLIC_URL%/images/Logo-32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "%PUBLIC_URL%/images/Logo-64.png",
+      "sizes": "64x64",
+      "type": "image/png"
+    },
+    {
+      "src": "%PUBLIC_URL%/images/Logo-128.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    },
+    {
+      "src": "%PUBLIC_URL%/images/Logo-256.png",
+      "sizes": "256x256",
+      "type": "image/png"
+    },
+    {
+      "src": "%PUBLIC_URL%/images/Logo-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "%PUBLIC_URL%/images/Screenshot1.png",
+      "sizes": "1280x720",
+      "type": "image/png"
+    },
+    {
+      "src": "%PUBLIC_URL%/images/Screenshot2.png",
+      "sizes": "1280x720",
+      "type": "image/png"
+    }
+  ]
+}

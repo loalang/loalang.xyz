@@ -1,0 +1,20 @@
+build:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+  script:
+    - sh infra/build.sh
+
+deploy-production:
+  only:
+    - master
+  stage: deploy
+  image: dtzar/helm-kubectl:latest
+  script:
+    - sh infra/deploy.sh
+  environment:
+    name: Production
+    url: https://loalang.xyz
