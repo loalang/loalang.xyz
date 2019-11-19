@@ -31,16 +31,14 @@ deploy-staging:
   environment:
     name: $CI_COMMIT_REF_NAME
     url: https://$CI_ENVIRONMENT_SLUG.loalang.xyz
+    on_stop: clean-staging
 
 clean-staging:
-  only:
-    - branches
-  except:
-    - master
-  stage: cleanup
+  stage: deploy
   image: dtzar/helm-kubectl:latest
   script:
     - sh infra/undeploy.sh $CI_ENVIRONMENT_SLUG
   environment:
     name: $CI_COMMIT_REF_NAME
-    url: https://$CI_ENVIRONMENT_SLUG.loalang.xyz
+    action: stop
+  when: manual
