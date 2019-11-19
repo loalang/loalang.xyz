@@ -1,7 +1,5 @@
 #!/usr/bin/env sh
 
-export DOCKER_BUILDKIT=1
-
 build() {
     set -e
 
@@ -17,7 +15,6 @@ build() {
     docker build \
         --cache-from "registry.gitlab.com/loalang/loalang.xyz/$SERVICE-builder:latest" \
         -t "registry.gitlab.com/loalang/loalang.xyz/$SERVICE-builder:latest" \
-        "$@" \
         -f infra/docker/services/$SERVICE/builder.dockerfile .
 
     # Push new builder
@@ -35,7 +32,6 @@ build() {
         --cache-from "registry.gitlab.com/loalang/loalang.xyz/$SERVICE:latest" \
         -t "registry.gitlab.com/loalang/loalang.xyz/$SERVICE:latest" \
         -t "registry.gitlab.com/loalang/loalang.xyz/$SERVICE:$VERSION" \
-        "$@" \
         -f infra/docker/services/$SERVICE/app.dockerfile .
 
     # Push new version
@@ -44,4 +40,4 @@ build() {
 }
 
 build api
-build www --build-arg "API_URL=${API_URL:-https://api.loalang.xyz}"
+build www

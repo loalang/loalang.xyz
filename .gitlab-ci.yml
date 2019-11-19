@@ -21,8 +21,6 @@ build-staging:
     - docker:dind
   before_script:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
-  variables:
-    API_URL: https://$CI_ENVIRONMENT_SLUG.staging.api.loalang.xyz
   script:
     - sh infra/build.sh
 
