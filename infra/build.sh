@@ -6,6 +6,8 @@ build() {
     set -e
 
     SERVICE=$1
+    shift
+
     VERSION="$(sh ./infra/id-of.sh $SERVICE)"
 
     # Pull latest builder version
@@ -15,6 +17,7 @@ build() {
     docker build \
         --cache-from "registry.gitlab.com/loalang/loalang.xyz/$SERVICE-builder:latest" \
         -t "registry.gitlab.com/loalang/loalang.xyz/$SERVICE-builder:latest" \
+        "$@" \
         -f infra/docker/services/$SERVICE/builder.dockerfile .
 
     # Push new builder
@@ -32,6 +35,7 @@ build() {
         --cache-from "registry.gitlab.com/loalang/loalang.xyz/$SERVICE:latest" \
         -t "registry.gitlab.com/loalang/loalang.xyz/$SERVICE:latest" \
         -t "registry.gitlab.com/loalang/loalang.xyz/$SERVICE:$VERSION" \
+        "$@" \
         -f infra/docker/services/$SERVICE/app.dockerfile .
 
     # Push new version
@@ -39,5 +43,5 @@ build() {
     docker push "registry.gitlab.com/loalang/loalang.xyz/$SERVICE:$VERSION"
 }
 
-build api
-build www
+echo build api
+echo build www --build-arg "API_HOST=${API_HOST:-https://api.loalang.xyz}"
