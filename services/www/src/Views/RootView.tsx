@@ -42,11 +42,14 @@ function Home(_props: RouteComponentProps) {
         {loading || data == null ? (
           "Loading..."
         ) : (
-          <ul>
-            {data.books.map(book => (
-              <li key={book.title}>{book.title}</li>
-            ))}
-          </ul>
+          <>
+            <h1>Books</h1>
+            <ul>
+              {data.books.map(book => (
+                <li key={book.title}>{book.title}</li>
+              ))}
+            </ul>
+          </>
         )}
       </main>
     </>
