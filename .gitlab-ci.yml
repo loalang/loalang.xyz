@@ -29,7 +29,7 @@ deploy-staging:
   script:
     - sh infra/deploy.sh $CI_ENVIRONMENT_SLUG
   variables:
-    API_HOST: https://$CI_ENVIRONMENT_SLUG.staging.api.loalang.xyz
+    API_URL: https://$CI_ENVIRONMENT_SLUG.staging.api.loalang.xyz
   environment:
     name: $CI_COMMIT_REF_NAME
     url: https://$CI_ENVIRONMENT_SLUG.staging.loalang.xyz
@@ -41,7 +41,7 @@ clean-staging:
   variables:
     GIT_STRATEGY: none
   script:
-    - helm delete --purge loalang-$CI_ENVIRONMENT_SLUG
+    - helm delete loalang-$CI_ENVIRONMENT_SLUG
   environment:
     name: $CI_COMMIT_REF_NAME
     action: stop
