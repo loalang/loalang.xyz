@@ -18,3 +18,16 @@ deploy-production:
   environment:
     name: Production
     url: https://loalang.xyz
+
+deploy-staging:
+  only:
+    - branches
+  except:
+    - master
+  stage: deploy
+  image: dtzar/helm-kubectl:latest
+  script:
+    - sh infra/deploy.sh $CI_ENVIRONMENT_SLUG
+  environment:
+    name: $CI_COMMIT_REF_NAME
+    url: https://$CI_ENVIRONMENT_SLUG.loalang.xyz

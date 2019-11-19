@@ -15,17 +15,4 @@ service:
   type: LoadBalancer
   port: 80
 
-ingress:
-  enabled: true
-  annotations:
-    kubernetes.io/ingress.class: nginx
-    kubernetes.io/tls-acme: "true"
-  hosts:
-    - host: loalang.xyz
-      paths:
-        - /
-
-  tls:
-    - secretName: www-cert
-      hosts:
-        - loalang.xyz
+host: loalang.xyz

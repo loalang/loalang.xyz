@@ -1,17 +1,9 @@
-{{/* vim: set filetype=mustache: */}}
-{{/*
-Expand the name of the chart.
-*/}}
-{{- define "www.name" -}}
-{{- .Chart.Name | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
 {{/*
 Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "www.fullname" -}}
+{{- define "loalang.fullname" -}}
 {{- $name := .Chart.Name -}}
 {{- if contains $name .Release.Name -}}
 {{- .Release.Name | trunc 63 | trimSuffix "-" -}}
@@ -23,19 +15,34 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "www.chart" -}}
+{{- define "loalang.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
 Common labels
 */}}
-{{- define "www.labels" -}}
-app.kubernetes.io/name: {{ include "www.name" . }}
-helm.sh/chart: {{ include "www.chart" . }}
+{{- define "loalang.labels" -}}
+app.kubernetes.io/name: {{ .Chart.Name }}
+helm.sh/chart: {{ include "loalang.chart" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end -}}
+
+{{/*
+Host name for the current service
+*/}}
+{{- define "loalang.host" -}}
+{{- $subdomain := "" -}}
+{{- with .Values.global -}}
+{{- if .slug -}}
+{{- $subdomain = printf "%s." .slug -}}
+{{- end }}
+{{- end }}
+{{- with .Values.host -}}
+{{ printf "%s%s" $subdomain . -}}
+{{- end -}}
 {{- end -}}
