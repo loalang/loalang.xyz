@@ -44,4 +44,4 @@ build() {
 }
 
 build api
-build www --build-arg "API_HOST=${API_HOST:-https://api.loalang.xyz}"
+build www --build-arg "API_URL=${API_URL:-https://api.loalang.xyz}"
