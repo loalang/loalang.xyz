@@ -43,5 +43,5 @@ build() {
     docker push "registry.gitlab.com/loalang/loalang.xyz/$SERVICE:$VERSION"
 }
 
-echo build api
-echo build www --build-arg "API_HOST=${API_HOST:-https://api.loalang.xyz}"
+build api
+build www --build-arg "API_HOST=${API_HOST:-https://api.loalang.xyz}"
