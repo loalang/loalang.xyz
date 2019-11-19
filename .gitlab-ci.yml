@@ -32,14 +32,16 @@ deploy-staging:
     API_HOST: https://$CI_ENVIRONMENT_SLUG.staging.api.loalang.xyz
   environment:
     name: $CI_COMMIT_REF_NAME
-    url: https://$CI_ENVIRONMENT_SLUG.loalang.xyz
+    url: https://$CI_ENVIRONMENT_SLUG.staging.loalang.xyz
     on_stop: clean-staging
 
 clean-staging:
   stage: deploy
   image: dtzar/helm-kubectl:latest
+  variables:
+    GIT_STRATEGY: none
   script:
-    - sh infra/undeploy.sh $CI_ENVIRONMENT_SLUG
+    - helm delete --purge loalang-$CI_ENVIRONMENT_SLUG
   environment:
     name: $CI_COMMIT_REF_NAME
     action: stop
