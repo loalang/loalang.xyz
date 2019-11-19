@@ -6,7 +6,7 @@ build() {
     set -e
 
     SERVICE=$1
-    VERSION="$(find services/$SERVICE -type f -exec md5sum {} \; | md5sum | awk '{print $1}')"
+    VERSION="$(sh ./infra/id-of.sh $SERVICE)"
 
     # Pull latest builder version
     docker pull "registry.gitlab.com/loalang/loalang.xyz/$SERVICE-builder:latest" || true

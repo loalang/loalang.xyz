@@ -12,8 +12,8 @@ fi
 
 helm upgrade \
   --set=global.slug="$SLUG" \
-  --set=www.image.tag=$(find services/www -type f -exec md5sum {} \; | md5sum | awk '{print $1}') \
-  --set=api.image.tag=$(find services/api -type f -exec md5sum {} \; | md5sum | awk '{print $1}') \
+  --set=www.image.tag=$(sh ./infra/id-of.sh www) \
+  --set=api.image.tag=$(sh ./infra/id-of.sh api) \
   --namespace=$NAMESPACE \
   --install \
   "$RELEASE_NAME" \
