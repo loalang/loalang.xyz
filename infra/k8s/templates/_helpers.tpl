@@ -39,7 +39,7 @@ Host name for the current service
 {{- $subdomain := "" -}}
 {{- with .Values.global -}}
 {{- if .slug -}}
-{{- $subdomain = printf "%s." .slug -}}
+{{- $subdomain = printf "%s.staging." .slug -}}
 {{- end }}
 {{- end }}
 {{- with .Values.host -}}
