@@ -40,7 +40,7 @@ function Home(_props: RouteComponentProps) {
 
       <main>
         {loading || data == null ? (
-          "Loading..."
+          "Loading here..."
         ) : (
           <>
             <h1>Books</h1>
