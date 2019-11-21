@@ -30,7 +30,7 @@ deploy-production:
   stage: deploy
   image: dtzar/helm-kubectl:latest
   before_script:
-    - kubectl create secret docker-registry regcred --namespace=$KUBE_NAMESPACE --docker-server=$CI_REGISTRY --docker-username=$CI_REGISTRY_USER --docker-password=$CI_REGISTRY_PASSWORD || true
+    - kubectl create secret docker-registry regcred --namespace="$KUBE_NAMESPACE" --docker-server="$CI_REGISTRY" --docker-username="$CI_REGISTRY_USER" --docker-password="$CI_REGISTRY_PASSWORD" --docker-email="$GITLAB_USER_EMAIL" || true
   script:
     - sh infra/deploy.sh
   environment:
@@ -45,7 +45,7 @@ deploy-staging:
   stage: deploy
   image: dtzar/helm-kubectl:latest
   before_script:
-    - kubectl create secret docker-registry regcred --namespace=$KUBE_NAMESPACE --docker-server=$CI_REGISTRY --docker-username=$CI_REGISTRY_USER --docker-password=$CI_REGISTRY_PASSWORD || true
+    - kubectl create secret docker-registry regcred --namespace="$KUBE_NAMESPACE" --docker-server="$CI_REGISTRY" --docker-username="$CI_REGISTRY_USER" --docker-password="$CI_REGISTRY_PASSWORD" --docker-email="$GITLAB_USER_EMAIL" || true
   script:
     - sh infra/deploy.sh $CI_ENVIRONMENT_SLUG
   environment:
