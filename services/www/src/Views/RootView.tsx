@@ -1,10 +1,9 @@
 import "styled-components/macro";
 import React from "react";
 import { Helmet } from "react-helmet";
-import { Router, RouteComponentProps } from "@reach/router";
-import Header from "../Components/Header";
-import { useQuery } from "react-apollo";
-import gql from "graphql-tag";
+import TopRouter from "../Components/TopRouter";
+import { Home as HomeIcon, Info } from "../Components/Icons/Icon";
+import { PageTitle } from "../Components/Header";
 
 export default function RootView() {
   return (
@@ -13,75 +12,29 @@ export default function RootView() {
         <title>Loa Programming Language</title>
       </Helmet>
 
-      <Router>
-        <Home path="/" />
-        <About path="/about" />
-        <Contact path="/contact" />
-        <NotFound default />
-      </Router>
+      <TopRouter>
+        <Home name="Home" path="/" icon={HomeIcon} />
+        <About name="About" path="/about" icon={Info} />
+      </TopRouter>
     </>
   );
 }
 
-const QUERY = gql`
-  query HomeQuery {
-    books {
-      title
-    }
-  }
-`;
-
-function Home(_props: RouteComponentProps) {
-  const { loading, data } = useQuery<{ books: { title: string }[] }>(QUERY);
-
+function Home() {
   return (
     <>
-      <Header>Home</Header>
-
-      <main>
-        {loading || data == null ? (
-          "Loading here..."
-        ) : (
-          <>
-            <h1>Books</h1>
-            <ul>
-              {data.books.map(book => (
-                <li key={book.title}>{book.title}</li>
-              ))}
-            </ul>
-          </>
-        )}
-      </main>
+      <PageTitle>Home</PageTitle>
+      Home!
+      <div style={{ height: 3000 }}></div>
     </>
   );
 }
 
-function About(_props: RouteComponentProps) {
+function About() {
   return (
     <>
-      <Header>About</Header>
-
-      <main>About</main>
-    </>
-  );
-}
-
-function Contact(_props: RouteComponentProps) {
-  return (
-    <>
-      <Header>Contact</Header>
-
-      <main>Contact</main>
-    </>
-  );
-}
-
-function NotFound(_props: RouteComponentProps) {
-  return (
-    <>
-      <Header>Not Found!</Header>
-
-      <main>Not Found!</main>
+      <PageTitle>About</PageTitle>
+      About!
     </>
   );
 }

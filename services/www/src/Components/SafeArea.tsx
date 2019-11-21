@@ -15,7 +15,10 @@ export default function SafeArea({
   left,
   children
 }: Props) {
-  const style: CSSProperties = {};
+  const style: CSSProperties = {
+    maxWidth: 900,
+    margin: "auto"
+  };
 
   if (top) {
     style.paddingTop = "env(safe-area-inset-top)";

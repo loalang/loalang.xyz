@@ -1,13 +1,70 @@
 import "styled-components/macro";
-import React, { ReactNode } from "react";
+import React, { ReactNode, useContext } from "react";
 import SafeArea from "./SafeArea";
 import Menu from "./Menu";
+import { TopNavigationContext } from "./TopNavigation";
+import Helmet from "react-helmet";
+import useMediaQuery from "./useMediaQuery";
 
-const height = 50;
+const HEIGHT = 45;
 
-export default function Header({ children }: { children: ReactNode }) {
+export function PageTitle({ children: name }: { children: string }) {
+  const isInline = useMediaQuery("(min-width: 500px)");
+
   return (
-    <div>
+    <>
+      <Helmet>
+        <title>{name} | Loa Programming Language</title>
+      </Helmet>
+
+      {isInline ? (
+        <h1
+          css={`
+            font-weight: bold;
+            font-size: 24px;
+            line-height: 1.1;
+          `}
+        >
+          {name}
+        </h1>
+      ) : (
+        <h1
+          css={`
+            position: fixed;
+            top: 0;
+            left: 50px;
+            width: calc(100% - 100px);
+            height: ${HEIGHT}px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #fff;
+          `}
+        >
+          <div
+            css={`
+              text-overflow: ellipsis;
+              white-space: nowrap;
+              overflow: hidden;
+              line-height: 1.3;
+            `}
+          >
+            {name}
+          </div>
+        </h1>
+      )}
+    </>
+  );
+}
+
+export default function Header() {
+  const topNavigation = useContext(TopNavigationContext);
+  if (topNavigation == null) {
+    throw new Error("The header is only valid within a TopNavigationContext");
+  }
+  return (
+    <>
       <ContentWrapper />
 
       <header
@@ -23,14 +80,15 @@ export default function Header({ children }: { children: ReactNode }) {
           <div
             css={`
               padding: 7px 10px;
+              height: 100%;
+              box-sizing: border-box;
             `}
           >
-            <Menu />
-            {children}
+            <Menu items={topNavigation.menuItems} />
           </div>
         </ContentWrapper>
       </header>
-    </div>
+    </>
   );
 }
 
@@ -39,7 +97,7 @@ function ContentWrapper({ children }: { children?: ReactNode }) {
     <SafeArea top left right>
       <div
         css={`
-          height: ${height}px;
+          height: ${HEIGHT}px;
         `}
       >
         {children}

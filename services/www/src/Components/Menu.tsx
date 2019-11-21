@@ -4,28 +4,42 @@ import useMediaQuery from "./useMediaQuery";
 import usePortal from "../usePortal";
 import { root } from "../dom";
 import { Link } from "@reach/router";
-import SafeArea from "./SafeArea";
+import { MenuItem } from "./MenuItem";
+import MenuButton from "./MenuButton";
+import Dropdown from "./Dropdown";
+import Logo from "./Icons/Logo";
 
-export default function Menu() {
+export interface MenuProps {
+  items: MenuItem[];
+}
+
+export default function Menu(props: MenuProps) {
   const isInline = useMediaQuery("(min-width: 500px)");
   if (isInline) {
-    return <InlineMenu />;
+    return <InlineMenu {...props} />;
   } else {
-    return <MenuButton />;
+    return <DropdownMenu {...props} />;
   }
 }
 
-function MenuButton() {
+function DropdownMenu({ items }: MenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const createPortal = usePortal();
   const focusedRef = useRef<Element | null>(null);
-  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const activeLinkRef = useRef<HTMLAnchorElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const menuButtonRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     if (isOpen) {
       focusedRef.current = document.activeElement;
-      closeButtonRef.current!.focus();
+      root.setAttribute("inert", "inert");
+      const timeout = setTimeout(() => {
+        if (activeLinkRef.current != null) {
+          activeLinkRef.current.focus();
+        }
+      }, 1);
+      return () => clearTimeout(timeout);
     } else if (
       focusedRef.current != null &&
       focusedRef.current instanceof HTMLElement
@@ -39,55 +53,114 @@ function MenuButton() {
     <>
       {createPortal(
         <div
-          ref={menuRef}
           css={`
-            display: ${isOpen ? "block" : "none"};
             position: fixed;
-            left: 0;
-            top: 0;
-
-            height: 100vh;
-            width: 100vh;
-            background: white;
+            left: 5px;
+            top: calc(env(safe-area-inset-top) + 45px + 2px);
           `}
+          ref={menuRef}
           onBlur={({ relatedTarget }) => {
             if (
-              relatedTarget &&
-              !menuRef.current!.contains(relatedTarget as Node)
+              !relatedTarget ||
+              (relatedTarget &&
+                !menuRef.current!.contains(relatedTarget as Node) &&
+                menuButtonRef.current! !== relatedTarget)
             ) {
               setIsOpen(false);
             }
           }}
         >
-          <SafeArea top left right bottom>
+          <Dropdown isOpen={isOpen}>
             <ul
               css={`
-                padding: 7px 10px;
+                padding: 5px 0;
               `}
             >
-              <li>
-                <button ref={closeButtonRef} onClick={() => setIsOpen(false)}>
-                  Close
-                </button>
-              </li>
-              <li>
-                <Link to="/">Home</Link>
-              </li>
-              <li>
-                <Link to="/about">About</Link>
-              </li>
-              <li>
-                <Link to="/contact">Contact</Link>
-              </li>
+              {items.map(({ name, path, icon: Icon }) => (
+                <li key={path}>
+                  <Link
+                    css={`
+                      display: inline-block;
+                      padding: 3px 8px 3px 5px;
+                    `}
+                    to={path}
+                    getProps={p => ({
+                      ref:
+                        p.isPartiallyCurrent || p.isCurrent
+                          ? activeLinkRef
+                          : undefined
+                    })}
+                  >
+                    <Icon /> {name}
+                  </Link>
+                </li>
+              ))}
             </ul>
-          </SafeArea>
+          </Dropdown>
         </div>
       )}
-      <button onClick={() => setIsOpen(true)}>Menu</button>
+      <div
+        css={`
+          display: flex;
+          height: 100%;
+          align-items: center;
+        `}
+      >
+        <MenuButton
+          ref={menuButtonRef}
+          intent={isOpen ? "will-close" : "will-open"}
+          onClick={() => setIsOpen(!isOpen)}
+        />
+      </div>
     </>
   );
 }
 
-function InlineMenu() {
-  return <div>Menu</div>;
+function InlineMenu({ items }: MenuProps) {
+  return (
+    <ul
+      css={`
+        display: flex;
+        height: 100%;
+        align-items: center;
+      `}
+    >
+      <li>
+        <Link
+          css={`
+            display: flex;
+            align-items: center;
+            margin-right: 30px;
+          `}
+          to="/"
+        >
+          <Logo />
+          <em
+            css={`
+              font-weight: 600;
+              margin: 5px;
+            `}
+          >
+            Loa
+          </em>
+        </Link>
+      </li>
+      {items.map(({ name, path, icon: Icon }) => (
+        <li key={path}>
+          <Link
+            to={path}
+            css={`
+              margin-right: 15px;
+              transition: opacity 150ms;
+            `}
+            getProps={({ isCurrent }) => ({
+              style: { opacity: isCurrent ? 1 : 0.6 }
+            })}
+          >
+            <Icon /> {name}
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
 }

@@ -1,0 +1,27 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0)">
+<circle cx="248" cy="272" r="216" fill="#FF0048"/>
+<circle cx="264" cy="248" r="216" fill="url(#paint0_linear)"/>
+<mask id="mask0" mask-type="alpha" maskUnits="userSpaceOnUse" x="-42" y="-58" width="612" height="612">
+<circle cx="264" cy="248" r="216" transform="rotate(45 264 248)" fill="white"/>
+</mask>
+<g mask="url(#mask0)">
+<line x1="552.5" y1="229.615" x2="246.322" y2="535.792" stroke="#1111F8" stroke-width="16"/>
+<line x1="507.245" y1="184.36" x2="201.067" y2="490.538" stroke="#1111F8" stroke-width="16"/>
+<line x1="461.99" y1="139.106" x2="155.813" y2="445.283" stroke="#1111F8" stroke-width="16"/>
+<line x1="416.735" y1="93.8507" x2="110.558" y2="400.028" stroke="#1111F8" stroke-width="16"/>
+<line x1="371.48" y1="48.5959" x2="65.303" y2="354.773" stroke="#1111F8" stroke-width="16"/>
+<line x1="326.225" y1="3.34107" x2="20.0481" y2="309.518" stroke="#1111F8" stroke-width="16"/>
+<line x1="280.971" y1="-41.9138" x2="-25.2067" y2="264.263" stroke="#1111F8" stroke-width="16"/>
+</g>
+</g>
+<defs>
+<linearGradient id="paint0_linear" x1="48" y1="248" x2="480" y2="248" gradientUnits="userSpaceOnUse">
+<stop stop-color="#FAE4EA"/>
+<stop offset="1" stop-color="#F5F5FF"/>
+</linearGradient>
+<clipPath id="clip0">
+<rect width="512" height="512" fill="white"/>
+</clipPath>
+</defs>
+</svg>
