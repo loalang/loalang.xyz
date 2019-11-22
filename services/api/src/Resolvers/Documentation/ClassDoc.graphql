@@ -1,0 +1,4 @@
+type ClassDoc {
+  qualifiedName: String!
+  simpleName: String!
+}

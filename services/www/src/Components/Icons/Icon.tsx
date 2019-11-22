@@ -7,6 +7,7 @@ export const ArrowDownwards = withProps(
 );
 export const Home = withProps(toReactComponent("./svg/home-outline.svg"));
 export const Info = withProps(toReactComponent("./svg/info-outline.svg"));
+export const Archive = withProps(toReactComponent("./svg/archive-outline.svg"));
 
 export type Icon = (props: IconProps) => ReactElement;
 

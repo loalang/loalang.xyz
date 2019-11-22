@@ -2,8 +2,9 @@ import "styled-components/macro";
 import React from "react";
 import { Helmet } from "react-helmet";
 import TopRouter from "../Components/TopRouter";
-import { Home as HomeIcon, Info } from "../Components/Icons/Icon";
-import { PageTitle } from "../Components/Header";
+import { Home, Archive } from "../Components/Icons/Icon";
+import DocsView from "./DocsView";
+import HomeView from "./HomeView";
 
 export default function RootView() {
   return (
@@ -13,28 +14,9 @@ export default function RootView() {
       </Helmet>
 
       <TopRouter>
-        <Home name="Home" path="/" icon={HomeIcon} />
-        <About name="About" path="/about" icon={Info} />
+        <HomeView name="Home" path="/" icon={Home} />
+        <DocsView name="Documentation" path="/docs" icon={Archive} />
       </TopRouter>
-    </>
-  );
-}
-
-function Home() {
-  return (
-    <>
-      <PageTitle>Home</PageTitle>
-      Home!
-      <div style={{ height: 3000 }}></div>
-    </>
-  );
-}
-
-function About() {
-  return (
-    <>
-      <PageTitle>About</PageTitle>
-      About!
     </>
   );
 }

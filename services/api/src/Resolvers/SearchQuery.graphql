@@ -1,0 +1,10 @@
+type Query {
+  search(term: String!, limit: Int!, offset: Int = 0): SearchResults!
+}
+
+type SearchResults {
+  count: Int!
+  results: [SearchResult!]!
+}
+
+union SearchResult = Package | ClassDoc

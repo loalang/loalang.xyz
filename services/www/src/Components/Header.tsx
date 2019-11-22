@@ -7,6 +7,7 @@ import Helmet from "react-helmet";
 import useMediaQuery from "./useMediaQuery";
 
 const HEIGHT = 45;
+const Z_INDEX = 10;
 
 export function PageTitle({ children: name }: { children: string }) {
   const isInline = useMediaQuery("(min-width: 500px)");
@@ -28,7 +29,7 @@ export function PageTitle({ children: name }: { children: string }) {
           {name}
         </h1>
       ) : (
-        <h1
+        <div
           css={`
             position: fixed;
             top: 0;
@@ -40,19 +41,22 @@ export function PageTitle({ children: name }: { children: string }) {
             justify-content: center;
             text-align: center;
             color: #fff;
+            z-index: ${Z_INDEX + 1};
           `}
         >
-          <div
-            css={`
-              text-overflow: ellipsis;
-              white-space: nowrap;
-              overflow: hidden;
-              line-height: 1.3;
-            `}
-          >
-            {name}
-          </div>
-        </h1>
+          <SafeArea top left right>
+            <h1
+              css={`
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                overflow: hidden;
+                line-height: 1.3;
+              `}
+            >
+              {name}
+            </h1>
+          </SafeArea>
+        </div>
       )}
     </>
   );
@@ -74,6 +78,7 @@ export default function Header() {
           position: fixed;
           top: 0;
           width: 100%;
+          z-index: ${Z_INDEX};
         `}
       >
         <ContentWrapper>
