@@ -5,7 +5,7 @@ metadata:
   labels:
 {{ include "loalang.labels" . | indent 4 }}
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: 1
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ .Chart.Name }}
@@ -16,26 +16,31 @@ spec:
         app.kubernetes.io/name: {{ .Chart.Name }}
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
-    {{- with .Values.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-    {{- end }}
       containers:
         - name: {{ .Chart.Name }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          image: elasticsearch:7.4.2
           env:
             - name: ELASTIC_HOST
               value: http://loalang-elastic:9200
+            - name: discovery.type
+              values: single-node
+            - name: bootstrap.memory_lock
+              values: "true"
+            - name: ES_JAVA_OPTS
+              values: -Xms750m -Xmx750m
           ports:
-            - name: http
-              containerPort: 80
-              protocol: TCP
+            - containerPort: 9200
+              name: http
+            - containerPort: 9300
+              name: transport
           livenessProbe:
-            httpGet:
-              path: /.well-known/apollo/server-health
-              port: http
+            tcpSocket:
+              port: transport
+            initialDelaySeconds: 20
+            periodSeconds: 10
           readinessProbe:
             httpGet:
-              path: /.well-known/apollo/server-health
+              path: /_cluster/health
               port: http
+            initialDelaySeconds: 20
+            timeoutSeconds: 5
