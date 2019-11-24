@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "build": "tsc --outDir build",
+    "start": "nodemon --watch 'src/**/*.ts' --ignore 'src/**/*.test.ts' --exec 'ts-node' src/index.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^12.12.8",
+    "nodemon": "^2.0.0",
+    "ts-node": "^8.5.2",
+    "typescript": "^3.7.2"
+  },
+  "dependencies": {}
+}

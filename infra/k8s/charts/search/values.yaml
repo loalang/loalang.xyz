@@ -1,0 +1,12 @@
+replicaCount: 1
+
+image:
+  repository: registry.gitlab.com/loalang/loalang.xyz/api
+  pullPolicy: Always
+
+imagePullSecrets:
+  - name: regcred
+
+service:
+  type: LoadBalancer
+  port: 80

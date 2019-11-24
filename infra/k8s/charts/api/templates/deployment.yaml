@@ -25,8 +25,8 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
-            - name: ELASTIC_HOST
-              value: http://loalang-elastic:9200
+            - name: SEARCH_HOST
+              value: http://{{ .Release.Name }}-search
           ports:
             - name: http
               containerPort: 80

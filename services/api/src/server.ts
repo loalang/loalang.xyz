@@ -2,7 +2,7 @@ import path from "path";
 import { fileLoader, mergeResolvers, mergeTypes } from "merge-graphql-schemas";
 import { ApolloServer } from "apollo-server";
 import { makeExecutableSchema } from "graphql-tools";
-import ElasticSearch from "./ElasticSearch/ElasticSearch";
+import Search from "./Search/Search";
 
 const typesArray = fileLoader(
   path.join(__dirname, "Resolvers", "**", "*.graphql")
@@ -40,6 +40,6 @@ export default new ApolloServer({
   playground: true,
   introspection: true,
   context: {
-    elastic: ElasticSearch.create()
+    search: Search.create()
   }
 });

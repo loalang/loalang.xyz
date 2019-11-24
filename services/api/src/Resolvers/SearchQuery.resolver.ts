@@ -1,7 +1,7 @@
-import ElasticSearch from "../ElasticSearch/ElasticSearch";
-import ElasticPackage from "../ElasticSearch/ElasticPackage";
+import Search from "../Search/Search";
+import SearchPackage from "../Search/SearchPackage";
 import Package from "./Package";
-import ElasticClassDoc from "../ElasticSearch/ElasticClassDoc";
+import SearchClassDoc from "../Search/SearchClassDoc";
 import ClassDoc from "./Documentation/ClassDoc";
 
 export default {
@@ -9,31 +9,18 @@ export default {
     async search(
       _: any,
       { term, limit, offset }: { term: string; limit: number; offset: number },
-      { elastic }: { elastic: ElasticSearch }
+      { search }: { search: Search }
     ): Promise<{ count: number; results: object[] }> {
-      const response = await elastic.search<
-        | {
-            __type: "PACKAGE";
-            name: string;
-          }
-        | {
-            __type: "CLASS_DOC";
-            simpleName: string;
-            qualifiedName: string;
-          }
-      >({
-        q: term,
-        index: "global-search"
-      });
+      const response = await search.search(term, limit, offset);
 
       return {
-        count: response.total,
-        results: response.hits.map(s => {
+        count: response.count,
+        results: response.results.map(s => {
           switch (s.__type) {
             case "PACKAGE":
-              return new ElasticPackage(s);
+              return new SearchPackage(s);
             case "CLASS_DOC":
-              return new ElasticClassDoc(s);
+              return new SearchClassDoc(s);
           }
         })
       };

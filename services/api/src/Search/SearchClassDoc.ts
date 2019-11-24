@@ -1,6 +1,6 @@
 import ClassDoc from "../Resolvers/Documentation/ClassDoc";
 
-export default class ElasticClassDoc extends ClassDoc {
+export default class SearchClassDoc extends ClassDoc {
   readonly qualifiedName: string;
   readonly simpleName: string;
 
