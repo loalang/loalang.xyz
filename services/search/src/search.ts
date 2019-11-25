@@ -28,6 +28,6 @@ export default async function search(
   });
   return {
     count: response.total,
-    results: response.hits
+    results: response.hits.slice(offset, offset + limit)
   };
 }

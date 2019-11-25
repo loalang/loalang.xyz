@@ -1,19 +1,25 @@
 import { compare } from "semver";
+import Context from "../Context";
 
 export default abstract class Package {
   abstract name(): Promise<string>;
-  abstract versions(): Promise<PackageVersion[]>;
+  abstract versions(_: {}, context: Context): Promise<PackageVersion[]>;
 
-  async version({
-    exact
-  }: {
-    exact: string;
-  }): Promise<PackageVersion | undefined> {
-    return (await this.versions()).find(version => version.version === exact);
+  async version(
+    {
+      exact
+    }: {
+      exact: string;
+    },
+    context: Context
+  ): Promise<PackageVersion | undefined> {
+    return (await this.versions({}, context)).find(
+      version => version.version === exact
+    );
   }
 
-  async latestVersion(): Promise<PackageVersion> {
-    const versions = await this.versions();
+  async latestVersion(_: {}, context: Context): Promise<PackageVersion> {
+    const versions = await this.versions({}, context);
 
     versions.sort((a, b) => compare(a.version, b.version)).reverse();
 

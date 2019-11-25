@@ -4,6 +4,7 @@ import { ApolloServer } from "apollo-server";
 import { makeExecutableSchema } from "graphql-tools";
 import Search from "./Search/Search";
 import PackageManager from "./PackageManager/PackageManager";
+import Context from "./Context";
 
 const typesArray = fileLoader(
   path.join(__dirname, "Resolvers", "**", "*.graphql")
@@ -43,5 +44,5 @@ export default new ApolloServer({
   context: {
     search: Search.create(),
     pkg: PackageManager.create()
-  }
+  } as Context
 });
