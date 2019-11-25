@@ -15,6 +15,7 @@ fi
 
 helm upgrade \
   --set=global.slug="$SLUG" \
+  --set=pkg.image.tag=${LATEST_TAG:-$(sh ./infra/id-of.sh pkg)} \
   --set=search.image.tag=${LATEST_TAG:-$(sh ./infra/id-of.sh search)} \
   --set=api.image.tag=${LATEST_TAG:-$(sh ./infra/id-of.sh api)} \
   --set=www.image.tag=${LATEST_TAG:-$(sh ./infra/id-of.sh www)} \

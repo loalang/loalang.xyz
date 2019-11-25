@@ -39,6 +39,7 @@ build() {
     docker push "registry.gitlab.com/loalang/loalang.xyz/$SERVICE:$VERSION"
 }
 
+build pkg
 build search
 build api
 build www
