@@ -5,6 +5,7 @@ import Menu from "./Menu";
 import { TopNavigationContext } from "./TopNavigation";
 import Helmet from "react-helmet";
 import useMediaQuery from "./useMediaQuery";
+import Search from "./Search";
 
 const HEIGHT = 45;
 const Z_INDEX = 10;
@@ -32,7 +33,7 @@ export function PageTitle({ children: name }: { children: string }) {
         <div
           css={`
             position: fixed;
-            top: 0;
+            top: env(safe-area-inset-top);
             left: 50px;
             width: calc(100% - 100px);
             height: ${HEIGHT}px;
@@ -44,18 +45,16 @@ export function PageTitle({ children: name }: { children: string }) {
             z-index: ${Z_INDEX + 1};
           `}
         >
-          <SafeArea top left right>
-            <h1
-              css={`
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                overflow: hidden;
-                line-height: 1.3;
-              `}
-            >
-              {name}
-            </h1>
-          </SafeArea>
+          <h1
+            css={`
+              text-overflow: ellipsis;
+              white-space: nowrap;
+              overflow: hidden;
+              line-height: 1.3;
+            `}
+          >
+            {name}
+          </h1>
         </div>
       )}
     </>
@@ -87,9 +86,24 @@ export default function Header() {
               padding: 7px 10px;
               height: 100%;
               box-sizing: border-box;
+              display: flex;
             `}
           >
-            <Menu items={topNavigation.menuItems} />
+            <div
+              css={`
+                flex: 1;
+              `}
+            >
+              <Menu items={topNavigation.menuItems} />
+            </div>
+            <div
+              css={`
+                display: flex;
+                align-items: center;
+              `}
+            >
+              <Search />
+            </div>
           </div>
         </ContentWrapper>
       </header>

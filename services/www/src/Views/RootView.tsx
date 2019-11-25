@@ -13,10 +13,16 @@ export default function RootView() {
         <title>Loa Programming Language</title>
       </Helmet>
 
-      <TopRouter>
-        <HomeView name="Home" path="/" icon={Home} />
-        <DocsView name="Documentation" path="/docs" icon={Archive} />
-      </TopRouter>
+      <div
+        css={`
+          min-height: 70vh;
+        `}
+      >
+        <TopRouter>
+          <HomeView name="Home" path="/" icon={Home} />
+          <DocsView name="Documentation" path="/docs" icon={Archive} />
+        </TopRouter>
+      </div>
     </>
   );
 }

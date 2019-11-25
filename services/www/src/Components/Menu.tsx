@@ -1,13 +1,11 @@
 import "styled-components/macro";
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useState } from "react";
 import useMediaQuery from "./useMediaQuery";
-import usePortal from "../usePortal";
-import { root } from "../dom";
 import { Link } from "@reach/router";
 import { MenuItem } from "./MenuItem";
 import MenuButton from "./MenuButton";
-import Dropdown from "./Dropdown";
 import Logo from "./Icons/Logo";
+import ModalDropdown from "./ModalDropdown";
 
 export interface MenuProps {
   items: MenuItem[];
@@ -24,81 +22,37 @@ export default function Menu(props: MenuProps) {
 
 function DropdownMenu({ items }: MenuProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const createPortal = usePortal();
-  const focusedRef = useRef<Element | null>(null);
-  const activeLinkRef = useRef<HTMLAnchorElement | null>(null);
-  const menuRef = useRef<HTMLDivElement | null>(null);
-  const menuButtonRef = useRef<HTMLButtonElement | null>(null);
-
-  useEffect(() => {
-    if (isOpen) {
-      focusedRef.current = document.activeElement;
-      root.setAttribute("inert", "inert");
-      const timeout = setTimeout(() => {
-        if (activeLinkRef.current != null) {
-          activeLinkRef.current.focus();
-        }
-      }, 1);
-      return () => clearTimeout(timeout);
-    } else if (
-      focusedRef.current != null &&
-      focusedRef.current instanceof HTMLElement
-    ) {
-      focusedRef.current.focus();
-      root.removeAttribute("inert");
-    }
-  }, [isOpen]);
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
 
   return (
     <>
-      {createPortal(
-        <div
+      <ModalDropdown
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        top="calc(env(safe-area-inset-top) + 50px)"
+        alignment="left"
+        toggleButtonRef={buttonRef}
+      >
+        <ul
           css={`
-            position: fixed;
-            left: 5px;
-            top: calc(env(safe-area-inset-top) + 45px + 2px);
+            padding: 5px 0;
           `}
-          ref={menuRef}
-          onBlur={({ relatedTarget }) => {
-            if (
-              !relatedTarget ||
-              (relatedTarget &&
-                !menuRef.current!.contains(relatedTarget as Node) &&
-                menuButtonRef.current! !== relatedTarget)
-            ) {
-              setIsOpen(false);
-            }
-          }}
         >
-          <Dropdown isOpen={isOpen}>
-            <ul
-              css={`
-                padding: 5px 0;
-              `}
-            >
-              {items.map(({ name, path, icon: Icon }) => (
-                <li key={path}>
-                  <Link
-                    css={`
-                      display: inline-block;
-                      padding: 3px 8px 3px 5px;
-                    `}
-                    to={path}
-                    getProps={p => ({
-                      ref:
-                        p.isPartiallyCurrent || p.isCurrent
-                          ? activeLinkRef
-                          : undefined
-                    })}
-                  >
-                    <Icon /> {name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </Dropdown>
-        </div>
-      )}
+          {items.map(({ name, path, icon: Icon }) => (
+            <li key={path}>
+              <Link
+                css={`
+                  display: inline-block;
+                  padding: 3px 8px 3px 5px;
+                `}
+                to={path}
+              >
+                <Icon /> {name}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </ModalDropdown>
       <div
         css={`
           display: flex;
@@ -107,7 +61,7 @@ function DropdownMenu({ items }: MenuProps) {
         `}
       >
         <MenuButton
-          ref={menuButtonRef}
+          ref={buttonRef}
           intent={isOpen ? "will-close" : "will-open"}
           onClick={() => setIsOpen(!isOpen)}
         />

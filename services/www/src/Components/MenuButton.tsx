@@ -33,6 +33,7 @@ function MenuButton(
         width: 0.9em;
         position: relative;
         overflow: hidden;
+        cursor: pointer;
         border-radius: 1em;
         opacity: 0.8;
         transition: 200ms opacity;
