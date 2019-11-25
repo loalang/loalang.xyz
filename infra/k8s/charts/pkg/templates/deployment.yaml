@@ -64,18 +64,18 @@ spec:
                   name: pkg-database
                   key: POSTGRES_USER
 
-          - name: cloudsql-proxy
-            image: gcr.io/cloudsql-docker/gce-proxy:1.14
-            command: ["/cloud_sql_proxy",
-                      "-instances=loalang-pkg=tcp:3306",
-                      # If running on a VPC, the Cloud SQL proxy can connect via Private IP. See:
-                      # https://cloud.google.com/sql/docs/mysql/private-ip for more info.
-                      # "-ip_address_types=PRIVATE",
-                      "-credential_file=/var/secrets/google/key.json"]
-            securityContext:
-              runAsUser: 2  # non-root user
-              allowPrivilegeEscalation: false
-            volumeMounts:
-              - name: service-account-key
-                mountPath: /var/secrets/google
-                readOnly: true
+        - name: cloudsql-proxy
+          image: gcr.io/cloudsql-docker/gce-proxy:1.14
+          command: ["/cloud_sql_proxy",
+                    "-instances=loalang-pkg=tcp:3306",
+                    # If running on a VPC, the Cloud SQL proxy can connect via Private IP. See:
+                    # https://cloud.google.com/sql/docs/mysql/private-ip for more info.
+                    # "-ip_address_types=PRIVATE",
+                    "-credential_file=/var/secrets/google/key.json"]
+          securityContext:
+            runAsUser: 2  # non-root user
+            allowPrivilegeEscalation: false
+          volumeMounts:
+            - name: service-account-key
+              mountPath: /var/secrets/google
+              readOnly: true
