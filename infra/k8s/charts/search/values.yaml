@@ -8,5 +8,5 @@ imagePullSecrets:
   - name: regcred
 
 service:
-  type: LoadBalancer
+  type: ClusterIP
   port: 80

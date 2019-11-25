@@ -1,4 +1,4 @@
-import { Client, RequestParams, ApiResponse } from "@elastic/elasticsearch";
+import { Client, RequestParams } from "@elastic/elasticsearch";
 
 export default class ElasticSearch {
   constructor(private _client: Client) {}
