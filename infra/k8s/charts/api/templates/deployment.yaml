@@ -27,6 +27,8 @@ spec:
           env:
             - name: SEARCH_HOST
               value: http://{{ .Release.Name }}-search
+            - name: PKG_HOST
+              value: http://{{ .Release.Name }}-pkg
           ports:
             - name: http
               containerPort: 80

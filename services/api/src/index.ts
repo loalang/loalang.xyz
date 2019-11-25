@@ -1,4 +1,7 @@
 import server from "./server";
+import fetch from "node-fetch";
+
+(global as any).fetch = fetch;
 
 server
   .listen({

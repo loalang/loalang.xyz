@@ -3,6 +3,7 @@ import { fileLoader, mergeResolvers, mergeTypes } from "merge-graphql-schemas";
 import { ApolloServer } from "apollo-server";
 import { makeExecutableSchema } from "graphql-tools";
 import Search from "./Search/Search";
+import PackageManager from "./PackageManager/PackageManager";
 
 const typesArray = fileLoader(
   path.join(__dirname, "Resolvers", "**", "*.graphql")
@@ -40,6 +41,7 @@ export default new ApolloServer({
   playground: true,
   introspection: true,
   context: {
-    search: Search.create()
+    search: Search.create(),
+    pkg: PackageManager.create()
   }
 });

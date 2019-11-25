@@ -10,7 +10,7 @@ export default {
       _: any,
       { term, limit, offset }: { term: string; limit: number; offset: number },
       { search }: { search: Search }
-    ): Promise<{ count: number; results: object[] }> {
+    ): Promise<{ count: number; results: (SearchPackage | SearchClassDoc)[] }> {
       const response = await search.search(term, limit, offset);
 
       return {

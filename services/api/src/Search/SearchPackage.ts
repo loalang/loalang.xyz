@@ -1,11 +1,19 @@
-import Package from "../Resolvers/Package";
+import Package, { PackageVersion } from "../Resolvers/Package";
 
 export default class SearchPackage extends Package {
-  readonly name: string;
+  readonly _name: string;
 
   constructor({ name }: { name: string }) {
     super();
 
-    this.name = name;
+    this._name = name;
+  }
+
+  async name() {
+    return this._name;
+  }
+
+  async versions(): Promise<PackageVersion[]> {
+    throw new Error("Unimplemented");
   }
 }

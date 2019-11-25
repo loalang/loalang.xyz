@@ -1,3 +1,16 @@
+type Query {
+  package(name: String!): Package
+}
+
 type Package {
   name: String!
+  versions: [PackageVersion!]!
+  version(exact: String!): PackageVersion
+  latestVersion: PackageVersion!
+}
+
+type PackageVersion {
+  package: Package!
+  version: String!
+  url: String!
 }

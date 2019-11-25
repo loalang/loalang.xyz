@@ -3,24 +3,36 @@ import HttpError from "./HttpError";
 import { Readable } from "stream";
 import { parse } from "./Publication";
 import publish from "./publish";
+import { inspectPackage, inspectVersion } from "./inspect";
 
 const server = http.createServer(async (req, res) => {
   try {
     res.setHeader("Content-Type", "application/json");
 
     const url = new URL(`http://incoming${req.url}`);
-    switch (`${req.method} ${url.pathname}`) {
-      case "PUT /publish":
-        const url = await publish(await parse(req));
+    const header = `${req.method} ${url.pathname}`;
+    let match: RegExpExecArray | null;
+    if ((match = /^PUT \/packages\/(.*)$/.exec(header))) {
+      const name = decodeURIComponent(match[1]);
+      const version = url.searchParams.get("version");
+      const pkg = await publish(await parse(name, version, req));
 
-        res.writeHead(201);
-        res.write(JSON.stringify({ message: "Success", url }));
-        break;
+      res.writeHead(201);
+      res.write(JSON.stringify({ message: "Success", pkg }));
+    } else if ((match = /^GET \/packages\/(.*)$/.exec(header))) {
+      const name = decodeURIComponent(match[1]);
+      const version = url.searchParams.get("version");
 
-      default:
-        res.writeHead(404);
-        res.write(JSON.stringify({ message: "Not Found" }));
-        break;
+      const result =
+        version == null
+          ? await inspectPackage(name)
+          : await inspectVersion(name, version);
+
+      res.writeHead(200);
+      res.write(JSON.stringify(result));
+    } else {
+      res.writeHead(404);
+      res.write(JSON.stringify({ message: "Not Found" }));
     }
   } catch (e) {
     if (e instanceof HttpError) {
