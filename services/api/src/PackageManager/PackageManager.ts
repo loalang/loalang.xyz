@@ -9,10 +9,12 @@ export default class PackageManager {
 
   async find(name: string): Promise<PackageManagerPackage | null> {
     const response = await fetch(`${this._host}/packages/${name}`);
-    const pkg = await response.json();
-    if (pkg == null) {
+    if (response.status === 404) {
       return null;
     }
-    return new PackageManagerPackage(pkg);
+    if (response.status !== 200) {
+      throw new Error(await response.text());
+    }
+    return new PackageManagerPackage(await response.json());
   }
 }
