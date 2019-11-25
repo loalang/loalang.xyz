@@ -34,11 +34,11 @@ spec:
               protocol: TCP
           livenessProbe:
             httpGet:
-              path: /.well-known/apollo/server-health
+              path: /healthz
               port: http
           readinessProbe:
             httpGet:
-              path: /.well-known/apollo/server-health
+              path: /healthz
               port: http
           volumeMounts:
             - name: service-account-key

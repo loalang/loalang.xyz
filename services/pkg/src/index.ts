@@ -12,7 +12,10 @@ const server = http.createServer(async (req, res) => {
     const url = new URL(`http://incoming${req.url}`);
     const header = `${req.method} ${url.pathname}`;
     let match: RegExpExecArray | null;
-    if ((match = /^PUT \/packages\/(.*)$/.exec(header))) {
+    if ((match = /^GET \/healthz$/.exec(header))) {
+      res.writeHead(200);
+      res.write(JSON.stringify({ message: "OK" }));
+    } else if ((match = /^PUT \/packages\/(.*)$/.exec(header))) {
       const name = decodeURIComponent(match[1]);
       const version = url.searchParams.get("version");
       const pkg = await publish(await parse(name, version, req));

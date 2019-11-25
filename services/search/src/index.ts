@@ -4,21 +4,23 @@ import search from "./search";
 const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(`http://incoming${req.url}`);
+    res.setHeader("Content-Type", "application/json");
     switch (`${req.method} ${url.pathname}`) {
+      case "GET /healthz":
+        res.writeHead(200);
+        res.write(JSON.stringify({ message: "OK" }));
+        break;
+
       case "GET /search":
         const term = url.searchParams.get("term");
         const limit = Number(url.searchParams.get("limit") || 10);
         const offset = Number(url.searchParams.get("offset") || 0);
-        res.writeHead(200, {
-          "Content-Type": "application/json"
-        });
+        res.writeHead(200);
         res.write(JSON.stringify(await search(term, limit, offset)));
         break;
 
       default:
-        res.writeHead(404, {
-          "Content-Type": "application/json"
-        });
+        res.writeHead(404);
         res.write(JSON.stringify({ message: "Not Found" }));
         break;
     }

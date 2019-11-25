@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: registry.gitlab.com/loalang/loalang.xyz/api
+  repository: registry.gitlab.com/loalang/loalang.xyz/search
   pullPolicy: Always
 
 imagePullSecrets:
