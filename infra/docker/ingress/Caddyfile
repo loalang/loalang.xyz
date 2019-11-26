@@ -3,12 +3,7 @@ loalang.xyz {
         dns cloudflare
     }
 
-    proxy / {
-        to www
-        transport http {
-            read_buffer 4096
-        }
-    }
+    proxy / www
 }
 
 api.loalang.xyz {
@@ -16,10 +11,5 @@ api.loalang.xyz {
         dns cloudflare
     }
 
-    proxy / {
-        to api
-        transport http {
-            read_buffer 4096
-        }
-    }
+    proxy / api
 }
