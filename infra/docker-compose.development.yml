@@ -37,6 +37,8 @@ services:
     command: ["yarn", "start"]
     ports:
       - 8092:80
+    environment:
+      ALGOLIA_INDEX: dev_search
 
   pkg:
     image: gitlab.com/loalang/loalang.xyz/pkg-builder

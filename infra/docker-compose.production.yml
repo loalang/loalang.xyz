@@ -17,7 +17,7 @@ services:
 
   search:
     environment:
-      ELASTIC_HOST: http://elastic:9200
+      ALGOLIA_INDEX: prod_search
 
   pkg:
     environment:
