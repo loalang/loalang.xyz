@@ -25,6 +25,8 @@ services:
       ALGOLIA_INDEX: prod_search
 
   pkg:
+    volumes:
+      - /etc/google/credentials.json:/etc/google/credentials.json
     environment:
       POSTGRES_HOST: ${POSTGRES_HOST}
       POSTGRES_USER: ${POSTGRES_USER}

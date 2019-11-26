@@ -50,12 +50,14 @@ build www
 docker pull "registry.gitlab.com/loalang/loalang.xyz/ingress:latest" || true
 
 INGRESS_VERSION="$(sh ./infra/id-of.sh infra/docker/ingress)"
-docker build \
-    --cache-from "registry.gitlab.com/loalang/loalang.xyz/ingress:latest" \
-    -t "registry.gitlab.com/loalang/loalang.xyz/ingress:latest" \
-    -t "registry.gitlab.com/loalang/loalang.xyz/ingress:$INGRESS_VERSION" \
-    -f infra/docker/ingress/Dockerfile .
+docker pull "registry.gitlab.com/loalang/loalang.xyz/ingress:$INGRESS_VERSION" || {
+    docker build \
+        --cache-from "registry.gitlab.com/loalang/loalang.xyz/ingress:latest" \
+        -t "registry.gitlab.com/loalang/loalang.xyz/ingress:latest" \
+        -t "registry.gitlab.com/loalang/loalang.xyz/ingress:$INGRESS_VERSION" \
+        -f infra/docker/ingress/Dockerfile .
 
-# Push new ingress version
-docker push "registry.gitlab.com/loalang/loalang.xyz/ingress:latest"
-docker push "registry.gitlab.com/loalang/loalang.xyz/ingress:$INGRESS_VERSION"
+    # Push new ingress version
+    docker push "registry.gitlab.com/loalang/loalang.xyz/ingress:latest"
+    docker push "registry.gitlab.com/loalang/loalang.xyz/ingress:$INGRESS_VERSION"
+}
