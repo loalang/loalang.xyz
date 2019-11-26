@@ -31,6 +31,7 @@ deploy-production:
   image: docker/compose:1.25.0-alpine
   before_script:
     - apk update && apk add openssh
+    - chmod 600 "$SSH_PRIVATE_KEY"
   script:
     - sh infra/deploy.sh
   environment:
@@ -46,6 +47,7 @@ deploy-staging:
   image: docker/compose:1.25.0-alpine
   before_script:
     - apk update && apk add openssh
+    - chmod 600 "$SSH_PRIVATE_KEY"
   script:
     - sh infra/deploy.sh $CI_ENVIRONMENT_SLUG
   environment:
@@ -60,6 +62,7 @@ clean-staging:
     GIT_STRATEGY: none
   before_script:
     - apk update && apk add openssh
+    - chmod 600 "$SSH_PRIVATE_KEY"
   script:
     - ssh -o StrictHostKeyChecking=no -i "$SSH_PRIVATE_KEY" core@$DOCKER_SWARM_MANAGER_IP docker stack remove loalang-$CI_ENVIRONMENT_SLUG
   environment:
