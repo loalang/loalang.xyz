@@ -3,7 +3,7 @@ loalang.xyz {
         dns cloudflare
     }
 
-    reverse_proxy / {
+    proxy / {
         to www
         transport http {
             read_buffer 4096
@@ -16,7 +16,7 @@ api.loalang.xyz {
         dns cloudflare
     }
 
-    reverse_proxy / {
+    proxy / {
         to api
         transport http {
             read_buffer 4096
