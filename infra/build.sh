@@ -51,7 +51,7 @@ INGRESS_VERSION="$(sh ./infra/id-of.sh infra/docker/ingress)"
 docker build \
     --cache-from "registry.gitlab.com/loalang/loalang.xyz/ingress:latest" \
     -t "registry.gitlab.com/loalang/loalang.xyz/ingress:latest" \
-    -t "registry.gitlab.com/loalang/loalang.xyz/ingress:$VERSION" \
+    -t "registry.gitlab.com/loalang/loalang.xyz/ingress:$INGRESS_VERSION" \
     -f infra/docker/ingress/Dockerfile .
 
 # Push new ingress version
