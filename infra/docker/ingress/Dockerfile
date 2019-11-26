@@ -1,3 +1,3 @@
 FROM abiosoft/caddy
 
-COPY infra/docker/ingress/Caddyfile
+COPY infra/docker/ingress/Caddyfile /etc/Caddyfile
