@@ -1,4 +1,4 @@
-import Search, { SearchResults, SearchResult } from "./Search2";
+import Search, { SearchResults, SearchResult } from "./Search";
 import algolia, { Client } from "algoliasearch";
 
 type AlgoliaResult = SearchResult & {

@@ -1,5 +1,5 @@
 import http from "http";
-import Search from "./Search2";
+import Search from "./Search";
 import AlgoliaSearch from "./AlgoliaSearch";
 
 const search: Search = AlgoliaSearch.create();
