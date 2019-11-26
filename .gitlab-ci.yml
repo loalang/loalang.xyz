@@ -28,7 +28,7 @@ deploy-production:
   only:
     - master
   stage: deploy
-  image: docker/compose:1.25.0
+  image: docker/compose:1.25.0-debian
   script:
     - sh infra/deploy.sh
   environment:
@@ -41,7 +41,7 @@ deploy-staging:
   except:
     - master
   stage: deploy
-  image: docker/compose:1.25.0
+  image: docker/compose:1.25.0-debian
   script:
     - sh infra/deploy.sh $CI_ENVIRONMENT_SLUG
   environment:
