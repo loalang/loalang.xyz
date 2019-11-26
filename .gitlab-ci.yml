@@ -28,9 +28,7 @@ deploy-production:
   only:
     - master
   stage: deploy
-  image: dtzar/helm-kubectl:latest
-  before_script:
-    - kubectl create secret docker-registry regcred --namespace="$KUBE_NAMESPACE" --docker-server="$CI_REGISTRY" --docker-username="$CI_REGISTRY_USER" --docker-password="$CI_REGISTRY_PASSWORD" --docker-email="$GITLAB_USER_EMAIL" || true
+  image: docker/compose:1.25.0-alpine
   script:
     - sh infra/deploy.sh
   environment:
@@ -43,9 +41,7 @@ deploy-staging:
   except:
     - master
   stage: deploy
-  image: dtzar/helm-kubectl:latest
-  before_script:
-    - kubectl create secret docker-registry regcred --namespace="$KUBE_NAMESPACE" --docker-server="$CI_REGISTRY" --docker-username="$CI_REGISTRY_USER" --docker-password="$CI_REGISTRY_PASSWORD" --docker-email="$GITLAB_USER_EMAIL" || true
+  image: docker/compose:1.25.0-alpine
   script:
     - sh infra/deploy.sh $CI_ENVIRONMENT_SLUG
   environment:
@@ -55,11 +51,11 @@ deploy-staging:
 
 clean-staging:
   stage: deploy
-  image: dtzar/helm-kubectl:latest
+  image: docker/compose:1.25.0-alpine
   variables:
     GIT_STRATEGY: none
   script:
-    - helm delete loalang-$CI_ENVIRONMENT_SLUG
+    - ssh -i "$SSH_PRIVATE_KEY" core@$DOCKER_SWARM_MANAGER_IP docker stack remove loalang-$CI_ENVIRONMENT_SLUG
   environment:
     name: $CI_COMMIT_REF_NAME
     action: stop
