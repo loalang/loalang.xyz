@@ -1,7 +1,7 @@
 import Publication from "./Publication";
 import HttpError from "./HttpError";
 import uuid from "uuid/v4";
-import { database, bucket, topic } from "./collaborators";
+import { database, notifier, storage } from "./collaborators";
 import Package from "./Package";
 
 export default async function publish(
@@ -45,36 +45,18 @@ export default async function publish(
       id = existingVersions.rows[0].id;
     }
 
-    const file = bucket.file(
-      `${publication.name}/${publication.version}.tar.gz`
-    );
+    const url = await storage.storePublication(publication);
 
-    if (file.id == null) {
-      throw new Error("Id was not generated.");
-    }
-
-    await new Promise((resolve, reject) =>
-      publication.tarball
-        .pipe(file.createWriteStream())
-        .on("error", reject)
-        .on("finish", resolve)
-        .on("close", resolve)
-    );
-
-    await file.makePublic();
-    const url = `https://storage.googleapis.com/loalang-pkg/${decodeURIComponent(
-      file.id
-    )}`;
     const insertResult = await client.query<{ published: Date }>(
       "insert into versions(id, version, url) values($1, $2, $3) returning published",
       [id, publication.version, url]
     );
-    await topic.publishJSON({
+    await notifier.notifyPackagePublished(
       id,
-      name: publication.name,
-      version: publication.version,
+      publication.name,
+      publication.version,
       url
-    });
+    );
     return {
       id,
       name: publication.name,

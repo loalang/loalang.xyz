@@ -14,3 +14,5 @@ services:
 
   pkg:
     image: registry.gitlab.com/loalang/loalang.xyz/pkg:${PKG_TAG}
+    environment:
+      AMQP_URL: ${AMQP_URL}
