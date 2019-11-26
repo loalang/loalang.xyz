@@ -1,8 +1,8 @@
-tls {
-    dns cloudflare
-}
-
 loalang.xyz {
+    tls {
+        dns cloudflare
+    }
+
     reverse_proxy / {
         to www
         transport http {
@@ -12,6 +12,10 @@ loalang.xyz {
 }
 
 api.loalang.xyz {
+    tls {
+        dns cloudflare
+    }
+
     reverse_proxy / {
         to api
         transport http {
