@@ -6,7 +6,7 @@ build() {
     SERVICE=$1
     shift
 
-    VERSION="$(sh ./infra/id-of.sh $SERVICE)"
+    VERSION="$(sh ./infra/id-of.sh services/$SERVICE)"
 
     # Pull latest builder version
     docker pull "registry.gitlab.com/loalang/loalang.xyz/$SERVICE-builder:latest" || true
@@ -43,3 +43,17 @@ build pkg
 build search
 build api
 build www
+
+# Pull latest ingress version
+docker pull "registry.gitlab.com/loalang/loalang.xyz/ingress:latest" || true
+
+INGRESS_VERSION="$(sh ./infra/id-of.sh infra/docker/ingress)"
+docker build \
+    --cache-from "registry.gitlab.com/loalang/loalang.xyz/ingress:latest" \
+    -t "registry.gitlab.com/loalang/loalang.xyz/ingress:latest" \
+    -t "registry.gitlab.com/loalang/loalang.xyz/ingress:$VERSION" \
+    -f infra/docker/ingress/app.dockerfile .
+
+# Push new ingress version
+docker push "registry.gitlab.com/loalang/loalang.xyz/ingress:latest"
+docker push "registry.gitlab.com/loalang/loalang.xyz/ingress:$INGRESS_VERSION"

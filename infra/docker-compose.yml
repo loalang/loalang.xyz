@@ -1,0 +1,17 @@
+version: "3.7"
+services:
+  www:
+    image: registry.gitlab.com/loalang/loalang.xyz/www:${WWW_TAG}
+
+  api:
+    image: registry.gitlab.com/loalang/loalang.xyz/api:${API_TAG}
+
+  search:
+    image: registry.gitlab.com/loalang/loalang.xyz/search:${SEARCH_TAG}
+    environment:
+      ALGOLIA_APPLICATION_ID: ${ALGOLIA_APPLICATION_ID}
+      ALGOLIA_READ_KEY: ${ALGOLIA_READ_KEY}
+      ALGOLIA_INDEX: ${ALGOLIA_INDEX}
+
+  pkg:
+    image: registry.gitlab.com/loalang/loalang.xyz/pkg:${PKG_TAG}

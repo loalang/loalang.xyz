@@ -1,5 +1,8 @@
 import http from "http";
-import search from "./search";
+import Search from "./Search";
+import AlgoliaSearch from "./AlgoliaSearch";
+
+const search: Search = AlgoliaSearch.create();
 
 const server = http.createServer(async (req, res) => {
   try {
@@ -15,8 +18,9 @@ const server = http.createServer(async (req, res) => {
         const term = url.searchParams.get("term");
         const limit = Number(url.searchParams.get("limit") || 10);
         const offset = Number(url.searchParams.get("offset") || 0);
+        const result = await search.search(term, limit, offset);
         res.writeHead(200);
-        res.write(JSON.stringify(await search(term, limit, offset)));
+        res.write(JSON.stringify(result));
         break;
 
       default:
@@ -33,6 +37,6 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-server.listen(Number(process.env.PORT || 8086), "0.0.0.0", () => {
+server.listen(80, "0.0.0.0", () => {
   console.log("Listening on", server.address());
 });

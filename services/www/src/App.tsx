@@ -48,7 +48,7 @@ function getAPIUrl(): string {
   const { hostname } = new URL(window.location.href);
 
   if (hostname === "localhost") {
-    return "http://localhost:8085";
+    return process.env.REACT_APP_API_URL!;
   }
 
   return `https://${hostname.replace(/loalang\.xyz$/, "api.loalang.xyz")}`;

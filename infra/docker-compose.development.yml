@@ -1,0 +1,66 @@
+version: "3.7"
+services:
+  www:
+    image: gitlab.com/loalang/loalang.xyz/www-builder
+    build:
+      context: ..
+      dockerfile: ./infra/docker/services/www/builder.dockerfile
+    volumes:
+      - ../services/www:/project
+    command: ["yarn", "start"]
+    ports:
+      - 8090:3000
+    environment:
+      REACT_APP_API_URL: http://localhost:8091
+
+  api:
+    image: gitlab.com/loalang/loalang.xyz/api-builder
+    build:
+      context: ..
+      dockerfile: ./infra/docker/services/api/builder.dockerfile
+    volumes:
+      - ../services/api:/project
+    command: ["yarn", "start"]
+    ports:
+      - 8091:80
+    environment:
+      PKG_HOST: http://pkg
+      SEARCH_HOST: http://search
+
+  search:
+    image: gitlab.com/loalang/loalang.xyz/search-builder
+    build:
+      context: ..
+      dockerfile: ./infra/docker/services/search/builder.dockerfile
+    volumes:
+      - ../services/search:/project
+    command: ["yarn", "start"]
+    ports:
+      - 8092:80
+
+  pkg:
+    image: gitlab.com/loalang/loalang.xyz/pkg-builder
+    build:
+      context: ..
+      dockerfile: ./infra/docker/services/pkg/builder.dockerfile
+    volumes:
+      - ../services/pkg:/project
+      - ${LOCAL_GOOGLE_CREDENTIALS_FILE}:/mnt/credentials.json
+    command: ["yarn", "start"]
+    ports:
+      - 8093:80
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DATABASE: postgres
+      POSTGRES_PASS: <<database-password>>
+      GOOGLE_APPLICATION_CREDENTIALS: /mnt/credentials.json
+
+  postgres:
+    image: postgres:12-alpine
+    environment:
+      POSTGRES_PASSWORD: <<database-password>>
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - ../.db:/var/lib/postgresql/data

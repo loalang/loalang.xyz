@@ -1,0 +1,28 @@
+version: "3.7"
+services:
+  ingress:
+    image: registry.gitlab.com/loalang/loalang.xyz/ingress:${INGRESS_TAG}
+    ports:
+      - 80:80
+      - 443:443
+
+  www:
+    environment:
+      REACT_APP_API_URL: http://api.loalang.xyz
+
+  api:
+    environment:
+      PKG_HOST: http://pkg
+      SEARCH_HOST: http://search
+
+  search:
+    environment:
+      ELASTIC_HOST: http://elastic:9200
+
+  pkg:
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DATABASE: ${POSTGRES_DATABASE}
+      POSTGRES_PASS: ${POSTGRES_PASS}
+      GOOGLE_APPLICATION_CREDENTIALS: /etc/google/credentials.json

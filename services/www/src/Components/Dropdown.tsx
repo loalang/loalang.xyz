@@ -5,10 +5,12 @@ const DURATION = 200;
 
 export default function Dropdown({
   children,
-  isOpen = children != null
+  isOpen = children != null,
+  crop = false
 }: {
   children?: ReactNode;
   isOpen?: boolean;
+  crop?: boolean;
 }) {
   const [isDisposed, setIsDisposed] = useState(!isOpen);
 
@@ -49,6 +51,8 @@ export default function Dropdown({
             0 24px 50px 0 rgba(0,0,0,0.4)
         `};
         border-radius: 4px;
+
+        overflow: ${crop ? "hidden" : "visible"};
 
         > * {
           background: transparent;

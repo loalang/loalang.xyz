@@ -1,0 +1,17 @@
+loalang.xyz {
+    reverse_proxy / {
+        to www
+        transport http {
+            read_buffer 4096
+        }
+    }
+}
+
+api.loalang.xyz {
+    reverse_proxy / {
+        to api
+        transport http {
+            read_buffer 4096
+        }
+    }
+}

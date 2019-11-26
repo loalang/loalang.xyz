@@ -1,5 +1,0 @@
-apiVersion: v1
-appVersion: "1.0"
-description: The Loa Public API
-name: api
-version: 0.1.0

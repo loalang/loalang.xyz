@@ -107,8 +107,14 @@ function InlineMenu({ items }: MenuProps) {
               margin-right: 15px;
               transition: opacity 150ms;
             `}
-            getProps={({ isCurrent }) => ({
-              style: { opacity: isCurrent ? 1 : 0.6 }
+            getProps={({ isPartiallyCurrent, isCurrent }) => ({
+              style: {
+                opacity: (path === "/"
+                ? isCurrent
+                : isPartiallyCurrent)
+                  ? 1
+                  : 0.6
+              }
             })}
           >
             <Icon /> {name}

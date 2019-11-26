@@ -1,33 +1,25 @@
-import ElasticSearch from "./ElasticSearch/ElasticSearch";
-
-export interface Response {
-  count: number;
-  results: Result[];
+export default interface Search {
+  search(
+    term: string | null,
+    limit: number,
+    offset: number
+  ): Promise<SearchResults>;
 }
 
-export type Result =
-  | {
-      __type: "PACKAGE";
-      name: string;
-    }
-  | {
-      __type: "CLASS_DOC";
-      simpleName: string;
-      qualifiedName: string;
-    };
+export interface SearchResults {
+  count: number;
+  results: SearchResult[];
+}
 
-const es = ElasticSearch.create();
+export type SearchResult = PackageSearchResult | ClassDocSearchResult;
 
-export default async function search(
-  term: string | null,
-  limit: number,
-  offset: number
-): Promise<Response> {
-  const response = await es.search<Result>({
-    q: term || undefined
-  });
-  return {
-    count: response.total,
-    results: response.hits.slice(offset, offset + limit)
-  };
+export interface PackageSearchResult {
+  __type: "PACKAGE";
+  name: string;
+}
+
+export interface ClassDocSearchResult {
+  __type: "CLASS_DOC";
+  simpleName: string;
+  qualifiedName: string;
 }

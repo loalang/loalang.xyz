@@ -10,5 +10,4 @@ RUN yarn --production --pure-lockfile
 
 COPY --from=builder /project/build /api/build
 
-ENV PORT 80
 CMD ["node", "/api/build"]
