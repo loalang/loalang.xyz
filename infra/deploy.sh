@@ -22,4 +22,9 @@ export INGRESS_TAG=${LATEST_TAG:-$(sh ./infra/id-of.sh infra/docker/ingress)} \
 docker-compose \
   -f infra/docker-compose.yml \
   -f infra/docker-compose.${SLUG:-production}.yml \
-  config | ssh -i "${SSH_PRIVATE_KEY:-~/.ssh/id_rsa}" core@$DOCKER_SWARM_MANAGER_IP docker stack deploy --with-registry-auth -c - $RELEASE_NAME
+  config \
+| ssh \
+  -o StrictHostKeyChecking=no \
+  -i "${SSH_PRIVATE_KEY:-~/.ssh/id_rsa}" \
+  core@$DOCKER_SWARM_MANAGER_IP \
+  docker stack deploy --with-registry-auth -c - $RELEASE_NAME

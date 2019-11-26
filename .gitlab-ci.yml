@@ -61,7 +61,7 @@ clean-staging:
   before_script:
     - apk update && apk add openssh
   script:
-    - ssh -i "$SSH_PRIVATE_KEY" core@$DOCKER_SWARM_MANAGER_IP docker stack remove loalang-$CI_ENVIRONMENT_SLUG
+    - ssh -o StrictHostKeyChecking=no -i "$SSH_PRIVATE_KEY" core@$DOCKER_SWARM_MANAGER_IP docker stack remove loalang-$CI_ENVIRONMENT_SLUG
   environment:
     name: $CI_COMMIT_REF_NAME
     action: stop

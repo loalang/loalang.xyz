@@ -1,3 +1,7 @@
+tls {
+    dns cloudflare
+}
+
 loalang.xyz {
     reverse_proxy / {
         to www

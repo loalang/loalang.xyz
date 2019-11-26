@@ -7,6 +7,9 @@ services:
       - 443:443
     volumes:
       - /home/core/.caddy:/root/.caddy
+    environment:
+      CLOUDFLARE_EMAIL: ${CLOUDFLARE_EMAIL}
+      CLOUDFLARE_API_KEY: ${CLOUDFLARE_API_KEY}
 
   www:
     environment:
