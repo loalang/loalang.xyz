@@ -28,7 +28,9 @@ deploy-production:
   only:
     - master
   stage: deploy
-  image: docker/compose:1.25.0-debian
+  image: docker/compose:1.25.0-alpine
+  before_script:
+    - apk update && apk add openssh
   script:
     - sh infra/deploy.sh
   environment:
@@ -41,7 +43,9 @@ deploy-staging:
   except:
     - master
   stage: deploy
-  image: docker/compose:1.25.0-debian
+  image: docker/compose:1.25.0-alpine
+  before_script:
+    - apk update && apk add openssh
   script:
     - sh infra/deploy.sh $CI_ENVIRONMENT_SLUG
   environment:
@@ -51,9 +55,11 @@ deploy-staging:
 
 clean-staging:
   stage: deploy
-  image: ubuntu
+  image: alpine
   variables:
     GIT_STRATEGY: none
+  before_script:
+    - apk update && apk add openssh
   script:
     - ssh -i "$SSH_PRIVATE_KEY" core@$DOCKER_SWARM_MANAGER_IP docker stack remove loalang-$CI_ENVIRONMENT_SLUG
   environment:
