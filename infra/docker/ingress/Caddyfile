@@ -1,4 +1,8 @@
 loalang.xyz {
+    tls {
+        dns cloudflare
+    }
+
     proxy / {
         to www
         transport http {
@@ -8,6 +12,10 @@ loalang.xyz {
 }
 
 api.loalang.xyz {
+    tls {
+        dns cloudflare
+    }
+
     proxy / {
         to api
         transport http {
