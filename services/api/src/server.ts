@@ -25,5 +25,11 @@ export default new ApolloServer({
   schema,
   playground: true,
   introspection: true,
-  context: ({ req, res }) => createContext(req, res)
+  context: ({ req, res }) => createContext(req, res),
+  cors: {
+    credentials: true,
+    origin(_, callback) {
+      callback(null, true);
+    }
+  }
 });

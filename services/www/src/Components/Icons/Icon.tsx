@@ -9,6 +9,7 @@ export const Home = withProps(toReactComponent("./svg/home-outline.svg"));
 export const Info = withProps(toReactComponent("./svg/info-outline.svg"));
 export const Archive = withProps(toReactComponent("./svg/archive-outline.svg"));
 export const Search = withProps(toReactComponent("./svg/search-outline.svg"));
+export const Person = withProps(toReactComponent("./svg/person-outline.svg"));
 
 export type Icon = (props: IconProps) => ReactElement;
 

@@ -56,6 +56,10 @@ deploy-staging:
     on_stop: clean-staging
 
 clean-staging:
+  only:
+    - branches
+  except:
+    - master
   stage: deploy
   image: alpine
   variables:

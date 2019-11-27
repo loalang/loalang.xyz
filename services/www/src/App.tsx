@@ -10,7 +10,8 @@ import {
 
 const client = new ApolloClient({
   link: new HttpLink({
-    uri: getAPIUrl()
+    uri: getAPIUrl(),
+    credentials: "include"
   }),
   cache: new InMemoryCache({
     fragmentMatcher: new IntrospectionFragmentMatcher({

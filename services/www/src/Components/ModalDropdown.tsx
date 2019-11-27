@@ -1,6 +1,6 @@
 import "styled-components/macro";
 import React, { ReactNode, useRef, useEffect, RefObject } from "react";
-import usePortal from "../usePortal";
+import usePortal from "./usePortal";
 import { root } from "../dom";
 import Dropdown from "./Dropdown";
 

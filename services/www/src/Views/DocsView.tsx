@@ -1,4 +1,3 @@
-import "styled-components/macro";
 import React, { useState } from "react";
 import { PageTitle } from "../Components/Header";
 import { useQuery } from "react-apollo";
