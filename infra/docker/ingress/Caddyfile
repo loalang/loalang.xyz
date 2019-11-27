@@ -13,3 +13,11 @@ api.loalang.xyz {
 
     proxy / api
 }
+
+pkg.loalang.xyz {
+    tls {
+        dns cloudflare
+    }
+
+    proxy / pkg
+}
