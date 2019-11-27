@@ -1,3 +1,7 @@
+create database pkg;
+
+\connect pkg;
+
 create table packages (
     id uuid not null,
     name varchar not null,

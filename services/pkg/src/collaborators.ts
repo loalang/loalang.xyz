@@ -8,7 +8,7 @@ export const database = new Pool({
   host: process.env.POSTGRES_HOST,
   user: process.env.POSTGRES_USER || "postgres",
   password: process.env.POSTGRES_PASS,
-  database: process.env.POSTGRES_DATABASE || "postgres"
+  database: "pkg"
 });
 
 export const notifier: Notifier = new AMQPNotifier();

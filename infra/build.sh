@@ -41,6 +41,7 @@ build() {
     }
 }
 
+build auth
 build pkg
 build search
 build api

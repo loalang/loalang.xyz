@@ -15,10 +15,12 @@ services:
     environment:
       REACT_APP_API_URL: http://api.loalang.xyz
 
-  api:
+  auth:
     environment:
-      PKG_HOST: http://pkg
-      SEARCH_HOST: http://search
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASS: ${POSTGRES_PASS}
+      PASSWORD_HASH_SALT: ${PASSWORD_HASH_SALT}
 
   search:
     environment:
@@ -30,6 +32,5 @@ services:
     environment:
       POSTGRES_HOST: ${POSTGRES_HOST}
       POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_DATABASE: ${POSTGRES_DATABASE}
       POSTGRES_PASS: ${POSTGRES_PASS}
       GOOGLE_APPLICATION_CREDENTIALS: /etc/google/credentials.json

@@ -5,6 +5,15 @@ services:
 
   api:
     image: registry.gitlab.com/loalang/loalang.xyz/api:${API_TAG}
+    environment:
+      AUTH_HOST: http://auth
+      PKG_HOST: http://pkg
+      SEARCH_HOST: http://search
+
+  auth:
+    image: registry.gitlab.com/loalang/loalang.xyz/auth:${AUTH_TAG}
+    environment:
+      JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY}
 
   search:
     image: registry.gitlab.com/loalang/loalang.xyz/search:${SEARCH_TAG}
