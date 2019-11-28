@@ -1,12 +1,12 @@
 import "styled-components/macro";
 import React, { useState, ReactNode } from "react";
-import { useLogin } from "./useAuth";
+import { useRegister } from "./useAuth";
 import SubmitButton from "./SubmitButton";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [login, { failed, isLoading }] = useLogin();
+  const [register, { failed, isLoading }] = useRegister();
 
   return (
     <form
@@ -24,7 +24,7 @@ export default function LoginForm() {
       `}
       onSubmit={e => {
         e.preventDefault();
-        login(email, password);
+        register(email, password);
       }}
     >
       {failed && (
