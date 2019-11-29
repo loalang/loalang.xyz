@@ -3,7 +3,11 @@ import Context from "../Context";
 export default {
   Query: {
     me(_: any, __: any, { user }: Context) {
-      return user.asLoggedIn();
+      if (user.isLoggedIn()) {
+        return user;
+      } else {
+        return null;
+      }
     }
   },
   Mutation: {
@@ -13,8 +17,8 @@ export default {
       { auth }: Context
     ) {
       const user = await auth.register(email, password);
-      if (user != null) {
-        return user.asLoggedIn();
+      if (user != null && user.isLoggedIn()) {
+        return user;
       }
       return null;
     },
@@ -24,8 +28,8 @@ export default {
       { auth }: Context
     ) {
       const user = await auth.login(email, password);
-      if (user != null) {
-        return user.asLoggedIn();
+      if (user != null && user.isLoggedIn()) {
+        return user;
       }
       return null;
     }

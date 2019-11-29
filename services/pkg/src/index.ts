@@ -3,7 +3,7 @@ import HttpError from "./HttpError";
 import { Readable } from "stream";
 import { parse } from "./Publication";
 import publish from "./publish";
-import { inspectPackage, inspectVersion } from "./inspect";
+import { inspectPackage, inspectVersion, inspectPublisher } from "./inspect";
 
 const server = http.createServer(async (req, res) => {
   try {
@@ -22,7 +22,7 @@ const server = http.createServer(async (req, res) => {
 
       res.writeHead(201);
       res.write(JSON.stringify({ message: "Success", pkg }));
-    } else if ((match = /^GET \/packages\/(.*)$/.exec(header))) {
+    } else if ((match = /^GET \/packages\/(.+)$/.exec(header))) {
       const name = decodeURIComponent(match[1]);
       const version = url.searchParams.get("version");
 
@@ -30,6 +30,13 @@ const server = http.createServer(async (req, res) => {
         version == null
           ? await inspectPackage(name)
           : await inspectVersion(name, version);
+
+      res.writeHead(200);
+      res.write(JSON.stringify(result));
+    } else if ((match = /^GET \/publishers\/([^/]+)$/.exec(header))) {
+      const publisherId = match[1];
+
+      const result = await inspectPublisher(publisherId);
 
       res.writeHead(200);
       res.write(JSON.stringify(result));

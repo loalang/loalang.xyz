@@ -1,11 +1,11 @@
 import LoggedInUser from "../Authentication/LoggedInUser";
 
 export default abstract class User {
-  abstract asLoggedIn(): LoggedInUser | null;
+  abstract isLoggedIn(): this is LoggedInUser;
 }
 
 export class GuestUser extends User {
-  asLoggedIn() {
-    return null;
+  isLoggedIn(): this is LoggedInUser {
+    return false;
   }
 }

@@ -5,7 +5,7 @@ export default class LoggedInUser extends User {
     super();
   }
 
-  asLoggedIn() {
-    return this;
+  isLoggedIn(): this is LoggedInUser {
+    return true;
   }
 }

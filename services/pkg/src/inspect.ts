@@ -1,5 +1,6 @@
 import Package, { PackageVersion } from "./Package";
 import { database } from "./collaborators";
+import Publisher from "./Publisher";
 
 export async function inspectPackage(name: string): Promise<Package | null> {
   const client = await database.connect();
@@ -41,6 +42,15 @@ export async function inspectVersion(
   name: string,
   version: string
 ): Promise<PackageVersion | null> {
+  const client = await database.connect();
+  try {
+    return null;
+  } finally {
+    client.release();
+  }
+}
+
+export async function inspectPublisher(id: string): Promise<Publisher | null> {
   const client = await database.connect();
   try {
     return null;

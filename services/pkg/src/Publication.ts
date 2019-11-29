@@ -5,6 +5,7 @@ import HttpError from "./HttpError";
 export default interface Publication {
   name: string;
   version: string;
+  publisherId: string;
   tarball: Readable;
 }
 
@@ -17,6 +18,14 @@ export function parse(
     throw new HttpError(400, "Required Content-Type: application/tar+gzip");
   }
 
+  const publisherId = req.headers["x-publisher-id"];
+  if (publisherId == null) {
+    throw new HttpError(400, "Required X-Publisher-Id to be set");
+  }
+  if (Array.isArray(publisherId)) {
+    throw new HttpError(400, "Cannot publish as multiple publishers");
+  }
+
   if (typeof version !== "string") {
     throw new HttpError(400, "Required query param: version");
   }
@@ -24,6 +33,7 @@ export function parse(
   return {
     name,
     version,
+    publisherId,
     tarball: req
   };
 }

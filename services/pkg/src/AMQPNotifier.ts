@@ -1,8 +1,6 @@
 import Notifier from "./Notifier";
 import { connect } from "amqplib";
 
-const clientPromise = connect(process.env.AMQP_URL || "");
-
 export default class AMQPNotifier implements Notifier {
   async notifyPackagePublished(
     id: string,
@@ -10,7 +8,9 @@ export default class AMQPNotifier implements Notifier {
     version: string,
     url: string
   ): Promise<void> {
-    const channel = await (await clientPromise).createChannel();
+    const channel = await (
+      await connect(process.env.AMQP_URL || "")
+    ).createChannel();
     await channel.assertQueue("package-published");
     await channel.sendToQueue(
       "package-published",

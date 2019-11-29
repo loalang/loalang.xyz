@@ -9,6 +9,33 @@ export default async function publish(
 ): Promise<Package> {
   let client = await database.connect();
   try {
+    const rootNamespace = publication.name.split("/").shift()!;
+    const owners = await database.query<{ owner_id: string }>(
+      `
+        select owner_id from root_namespace_owners
+        where root_namespace = $1
+      `,
+      [rootNamespace]
+    );
+
+    if (
+      owners.rowCount > 0 &&
+      !owners.rows.map(o => o.owner_id).includes(publication.publisherId)
+    ) {
+      throw new HttpError(
+        403,
+        `User not authorized to publish to root namespace ${rootNamespace}`
+      );
+    } else if (owners.rowCount === 0) {
+      // Publisher has claimed the root namespace
+      await client.query(
+        `
+          insert into root_namespace_owners(root_namespace, owner_id) values($1, $2)
+        `,
+        [rootNamespace, publication.publisherId]
+      );
+    }
+
     const existingVersions = await client.query<{
       id: string;
       version: string;
@@ -48,15 +75,14 @@ export default async function publish(
     const url = await storage.storePublication(publication);
 
     const insertResult = await client.query<{ published: Date }>(
-      "insert into versions(id, version, url) values($1, $2, $3) returning published",
-      [id, publication.version, url]
+      "insert into versions(id, version, url, publisher) values($1, $2, $3, $4) returning published",
+      [id, publication.version, url, publication.publisherId]
     );
-    await notifier.notifyPackagePublished(
-      id,
-      publication.name,
-      publication.version,
-      url
-    );
+    await notifier
+      .notifyPackagePublished(id, publication.name, publication.version, url)
+      .catch(err => {
+        console.error(err);
+      });
     return {
       id,
       name: publication.name,

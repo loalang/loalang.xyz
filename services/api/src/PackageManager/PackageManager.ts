@@ -2,6 +2,7 @@ import PackageManagerPackage from "./PackageManagerPackage";
 import { Readable } from "stream";
 import Package from "../Resolvers/Package";
 import http, { IncomingMessage } from "http";
+import LoggedInUser from "../Authentication/LoggedInUser";
 
 export default class PackageManager {
   constructor(private _host: string) {}
@@ -24,7 +25,8 @@ export default class PackageManager {
   async publish(
     name: string,
     version: string,
-    stream: Readable
+    stream: Readable,
+    user: LoggedInUser
   ): Promise<Package> {
     const response = await new Promise<IncomingMessage>((resolve, reject) => {
       const request = http.request(
@@ -32,7 +34,8 @@ export default class PackageManager {
         {
           method: "PUT",
           headers: {
-            "Content-Type": "application/tar+gzip"
+            "Content-Type": "application/tar+gzip",
+            "X-Publisher-Id": user.id
           }
         }
       );
