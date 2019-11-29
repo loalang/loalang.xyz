@@ -9,7 +9,7 @@ import {
 } from "crypto";
 import ValidationError from "./ValidationError";
 
-const envKeyString = process.env.JWT_PRIVATE_KEY;
+const envKeyString = process.env.TOKEN_ENCRYPTION_PRIVATE_KEY;
 
 let keyPair: { privateKey: KeyObject; publicKey: KeyObject };
 if (envKeyString) {

@@ -11,10 +11,6 @@ services:
       CLOUDFLARE_EMAIL: ${CLOUDFLARE_EMAIL}
       CLOUDFLARE_API_KEY: ${CLOUDFLARE_API_KEY}
 
-  www:
-    environment:
-      REACT_APP_API_URL: http://api.loalang.xyz
-
   auth:
     environment:
       POSTGRES_HOST: ${POSTGRES_HOST}

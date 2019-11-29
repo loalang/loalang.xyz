@@ -13,7 +13,7 @@ services:
   auth:
     image: registry.gitlab.com/loalang/loalang.xyz/auth:${AUTH_TAG}
     environment:
-      JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY}
+      TOKEN_ENCRYPTION_PRIVATE_KEY: ${TOKEN_ENCRYPTION_PRIVATE_KEY}
 
   search:
     image: registry.gitlab.com/loalang/loalang.xyz/search:${SEARCH_TAG}
