@@ -13,15 +13,17 @@ const envKeyString = process.env.TOKEN_ENCRYPTION_PRIVATE_KEY;
 
 let keyPair: { privateKey: KeyObject; publicKey: KeyObject };
 if (envKeyString) {
-  const privateKey = createPrivateKey(envKeyString);
+  const privateKey = createPrivateKey({
+    key: envKeyString,
+    format: "pem",
+    type: "pkcs8"
+  });
   keyPair = {
     privateKey,
     publicKey: createPublicKey(privateKey)
   };
 } else {
-  keyPair = generateKeyPairSync("rsa", {
-    modulusLength: 2048
-  });
+  keyPair = generateKeyPairSync("rsa", { modulusLength: 2048 });
 }
 
 interface TokenRecord {
