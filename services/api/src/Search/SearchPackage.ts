@@ -4,13 +4,20 @@ import PackageManagerPackage from "../PackageManager/PackageManagerPackage";
 import PackageManager from "../PackageManager/PackageManager";
 
 export default class SearchPackage extends Package {
+  readonly _id: string;
   readonly _name: string;
+
   _lazyPackage: PackageManagerPackage | null | undefined;
 
-  constructor({ name }: { name: string }) {
+  constructor({ name, id }: { name: string; id: string }) {
     super();
 
+    this._id = id;
     this._name = name;
+  }
+
+  async id() {
+    return this._id;
   }
 
   async name() {

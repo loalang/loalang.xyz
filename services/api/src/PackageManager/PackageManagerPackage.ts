@@ -5,6 +5,10 @@ export default class PackageManagerPackage extends Package {
     super();
   }
 
+  async id() {
+    return this._registry.id;
+  }
+
   async name() {
     return this._registry.name;
   }

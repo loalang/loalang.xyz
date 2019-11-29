@@ -1,6 +1,7 @@
 export type Result =
   | {
       __type: "PACKAGE";
+      id: string;
       name: string;
     }
   | {

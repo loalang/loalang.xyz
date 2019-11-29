@@ -3,6 +3,7 @@ type Query {
 }
 
 type Package {
+  id: String!
   name: String!
   versions: [PackageVersion!]!
   version(exact: String!): PackageVersion

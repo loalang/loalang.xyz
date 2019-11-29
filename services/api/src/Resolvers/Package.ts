@@ -2,6 +2,7 @@ import { compare } from "semver";
 import Context from "../Context";
 
 export default abstract class Package {
+  abstract id(): Promise<string>;
   abstract name(): Promise<string>;
   abstract versions(_: {}, context: Context): Promise<PackageVersion[]>;
 

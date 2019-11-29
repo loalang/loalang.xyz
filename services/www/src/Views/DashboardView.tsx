@@ -4,6 +4,7 @@ import { PageTitle } from "../Components/Header";
 import { useUser } from "../Components/useAuth";
 import RegisterForm from "../Components/RegisterForm";
 import LoginForm from "../Components/LoginForm";
+import MyPackages from "../Components/MyPackages";
 
 export default function DashboardView() {
   const { isLoading, user } = useUser();
@@ -26,9 +27,7 @@ export default function DashboardView() {
           "Loading..."
         ) : (
           <>
-            You are{" "}
-            {user == null ? "not logged in" : `logged in as ${user.email}`}
-            {user == null && (
+            {user == null ? (
               <>
                 <h1
                   css={`
@@ -52,6 +51,8 @@ export default function DashboardView() {
                 </h1>
                 <LoginForm />
               </>
+            ) : (
+              <MyPackages />
             )}
           </>
         )}
