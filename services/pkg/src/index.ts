@@ -21,7 +21,7 @@ const server = http.createServer(async (req, res) => {
       const pkg = await publish(await parse(name, version, req));
 
       res.writeHead(201);
-      res.write(JSON.stringify({ message: "Success", pkg }));
+      res.write(JSON.stringify({ message: "OK", pkg }));
     } else if ((match = /^GET \/packages\/(.+)$/.exec(header))) {
       const name = decodeURIComponent(match[1]);
       const version = url.searchParams.get("version");
@@ -31,8 +31,16 @@ const server = http.createServer(async (req, res) => {
           ? await inspectPackage(name)
           : await inspectVersion(name, version);
 
-      res.writeHead(200);
-      res.write(JSON.stringify(result));
+      if (result == null) {
+        res.writeHead(404);
+        res.write(JSON.stringify({ message: "Not Found" }));
+      } else if (version == null) {
+        res.writeHead(200);
+        res.write(JSON.stringify({ message: "OK", pkg: result }));
+      } else {
+        res.writeHead(200);
+        res.write(JSON.stringify({ message: "OK", version: result }));
+      }
     } else if ((match = /^GET \/publishers\/([^/]+)$/.exec(header))) {
       const publisherId = match[1];
 
