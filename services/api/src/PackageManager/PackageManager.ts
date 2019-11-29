@@ -19,7 +19,7 @@ export default class PackageManager {
     if (response.status !== 200) {
       throw new Error(await response.text());
     }
-    return new PackageManagerPackage(await response.json());
+    return new PackageManagerPackage((await response.json()).pkg);
   }
 
   async publish(
