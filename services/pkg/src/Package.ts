@@ -8,4 +8,5 @@ export interface PackageVersion {
   version: string;
   url: string;
   published: Date;
+  publisher: string;
 }

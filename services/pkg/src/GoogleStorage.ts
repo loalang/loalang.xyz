@@ -33,7 +33,7 @@ export default class GoogleStorage implements Storage {
 
     await file.makePublic();
 
-    return `https://storage.googleapis.com/loalang-pkg/${decodeURIComponent(
+    return `https://storage.googleapis.com/${bucket.name}/${decodeURIComponent(
       file.id
     )}`;
   }

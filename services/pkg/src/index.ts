@@ -21,7 +21,7 @@ const server = http.createServer(async (req, res) => {
       const pkg = await publish(await parse(name, version, req));
 
       res.writeHead(201);
-      res.write(JSON.stringify({ message: "OK", pkg }));
+      res.write(JSON.stringify({ message: "OK", package: pkg }));
     } else if ((match = /^GET \/packages\/(.+)$/.exec(header))) {
       const name = decodeURIComponent(match[1]);
       const version = url.searchParams.get("version");
@@ -36,7 +36,7 @@ const server = http.createServer(async (req, res) => {
         res.write(JSON.stringify({ message: "Not Found" }));
       } else if (version == null) {
         res.writeHead(200);
-        res.write(JSON.stringify({ message: "OK", pkg: result }));
+        res.write(JSON.stringify({ message: "OK", package: result }));
       } else {
         res.writeHead(200);
         res.write(JSON.stringify({ message: "OK", version: result }));
@@ -44,10 +44,15 @@ const server = http.createServer(async (req, res) => {
     } else if ((match = /^GET \/publishers\/([^/]+)$/.exec(header))) {
       const publisherId = match[1];
 
-      const result = await inspectPublisher(publisherId);
+      const publisher = await inspectPublisher(publisherId);
 
-      res.writeHead(200);
-      res.write(JSON.stringify(result));
+      if (publisher == null) {
+        res.writeHead(404);
+        res.write(JSON.stringify({ message: "Not Found" }));
+      } else {
+        res.writeHead(200);
+        res.write(JSON.stringify({ message: "OK", publisher }));
+      }
     } else {
       res.writeHead(404);
       res.write(JSON.stringify({ message: "Not Found" }));

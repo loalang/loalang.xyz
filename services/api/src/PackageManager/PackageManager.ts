@@ -19,7 +19,7 @@ export default class PackageManager {
     if (response.status !== 200) {
       throw new Error(await response.text());
     }
-    return new PackageManagerPackage((await response.json()).pkg);
+    return new PackageManagerPackage((await response.json()).package);
   }
 
   async publish(
@@ -49,7 +49,18 @@ export default class PackageManager {
 
     return collectString(response)
       .then(JSON.parse)
-      .then(r => new PackageManagerPackage(r.pkg));
+      .then(r => new PackageManagerPackage(r.package));
+  }
+
+  async packagesOwnedBy(user: LoggedInUser): Promise<Package[]> {
+    const response = await fetch(`${this._host}/publishers/${user.id}`);
+    if (response.status !== 200) {
+      throw new Error(await response.text());
+    }
+    const {
+      publisher: { packages }
+    } = await response.json();
+    return packages.map((r: any) => new PackageManagerPackage(r));
   }
 }
 

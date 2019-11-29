@@ -10,6 +10,7 @@ export default {
       }
     }
   },
+
   Mutation: {
     async register(
       _: any,

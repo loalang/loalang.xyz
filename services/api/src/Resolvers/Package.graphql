@@ -20,3 +20,7 @@ scalar Upload
 type Mutation {
   publishPackage(name: String!, version: String!, package: Upload!): Package
 }
+
+type User {
+  packages: [Package!]!
+}

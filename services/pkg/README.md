@@ -46,7 +46,7 @@ Content-Type: application/tar+gzip
 ```json
 {
   "message": "OK",
-  "pkg": {
+  "package": {
     "id": "yyyyyyyy-uuid-yyyy-yyyy-yyyyyyyyyyyy",
     "name": "My/Package",
     "versions": [
@@ -75,14 +75,15 @@ GET /packages/My/Package HTTP/1.1
 ```json
 {
   "message": "OK",
-  "pkg": {
+  "package": {
     "id": "yyyyyyyy-uuid-yyyy-yyyy-yyyyyyyyyyyy",
     "name": "My/Package",
     "versions": [
       {
         "version": "1.0.0",
         "url": "https://cdn-url-to/tarball-1.0.0.tar.gz",
-        "published": "2019-11-29T09:45:24.161Z"
+        "published": "2019-11-29T09:45:24.161Z",
+        "publisher": "xxxxxxxx-uuid-xxxx-xxxx-xxxxxxxxxxxx"
       }
     ]
   }
@@ -107,7 +108,8 @@ GET /packages/My/Package?version=1.0.0 HTTP/1.1
   "version": {
     "version": "1.0.0",
     "url": "https://cdn-url-to/tarball-1.0.0.tar.gz",
-    "published": "2019-11-29T09:45:24.161Z"
+    "published": "2019-11-29T09:45:24.161Z",
+    "publisher": "xxxxxxxx-uuid-xxxx-xxxx-xxxxxxxxxxxx"
   }
 }
 ```
@@ -126,7 +128,23 @@ GET /publishers/xxxxxxxx-uuid-xxxx-xxxx-xxxxxxxxxxxx HTTP/1.1
 
 ```json
 {
-  "message": "OK"
-  // TBD
+  "message": "OK",
+  "publisher": {
+    "id": "xxxxxxxx-uuid-xxxx-xxxx-xxxxxxxxxxxx",
+    "packages": [
+      {
+        "id": "yyyyyyyy-uuid-yyyy-yyyy-yyyyyyyyyyyy",
+        "name": "My/Package",
+        "versions": [
+          {
+            "version": "1.0.0",
+            "url": "https://cdn-url-to/tarball-1.0.0.tar.gz",
+            "published": "2019-11-29T09:45:24.161Z",
+            "publisher": "xxxxxxxx-uuid-xxxx-xxxx-xxxxxxxxxxxx"
+          }
+        ]
+      }
+    ]
+  }
 }
 ```

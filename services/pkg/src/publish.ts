@@ -41,9 +41,10 @@ export default async function publish(
       version: string;
       url: string;
       published: Date;
+      publisher: string;
     }>(
       `
-        select id, version, url, published from packages
+        select id, version, url, published, publisher from packages
         inner join versions using(id)
         where name = $1
       `,
@@ -90,12 +91,14 @@ export default async function publish(
         .map(existing => ({
           version: existing.version,
           url: existing.url,
-          published: existing.published
+          published: existing.published,
+          publisher: existing.publisher
         }))
         .concat({
           version: publication.version,
           url,
-          published: insertResult.rows[0].published
+          published: insertResult.rows[0].published,
+          publisher: publication.publisherId
         })
     };
   } finally {
