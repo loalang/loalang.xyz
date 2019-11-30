@@ -17,9 +17,12 @@ const gstorage = new GStorage({
 const bucket = new Bucket(gstorage, "loalang-pkg");
 
 export default class GoogleStorage implements Storage {
-  async storePublication(publication: Publication): Promise<string> {
+  async storePublication(
+    id: string,
+    publication: Publication
+  ): Promise<string> {
     const file = bucket.file(
-      `${publication.name}/${publication.version}.tar.gz`
+      `${publication.name}/${publication.version}/${id}.tar.gz`
     );
 
     if (file.id == null) {

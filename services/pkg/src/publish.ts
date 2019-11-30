@@ -74,7 +74,7 @@ export default async function publish(
       id = existingVersions.rows[0].id;
     }
 
-    const url = await storage.storePublication(publication);
+    const url = await storage.storePublication(id, publication);
 
     const insertResult = await client.query<{ published: Date }>(
       "insert into versions(id, version, url, publisher, checksum) values($1, $2, $3, $4, $5) returning published",
