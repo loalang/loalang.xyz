@@ -32,4 +32,5 @@ export interface PackageVersion {
   package: Package;
   version: string;
   url: string;
+  checksum: string;
 }

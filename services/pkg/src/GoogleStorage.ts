@@ -39,7 +39,7 @@ export default class GoogleStorage implements Storage {
       "https://storage.googleapis.com" +
       `/${bucket.name}/${decodeURIComponent(file.id)}`;
 
-    if (publication.checksum !== checksum.digest("hex")) {
+    if (!Buffer.from(publication.checksum, "hex").equals(checksum.digest())) {
       await file.delete();
       throw new HttpError(400, "Checksum mismatch");
     }

@@ -10,7 +10,7 @@ export async function inspectPackage(name: string): Promise<Package | null> {
       name: string;
       version: string;
       url: string;
-      checksum: string;
+      checksum: Buffer;
       published: Date;
       publisher: string;
     }>(
@@ -33,7 +33,7 @@ export async function inspectPackage(name: string): Promise<Package | null> {
       versions: result.rows.map(row => ({
         version: row.version,
         url: row.url,
-        checksum: row.checksum,
+        checksum: row.checksum.toString("hex"),
         published: row.published,
         publisher: row.publisher
       }))
@@ -82,6 +82,7 @@ export async function inspectPublisher(id: string): Promise<Publisher | null> {
       `,
       [id]
     );
+
     return {
       id,
       packages: Array.from(

@@ -14,10 +14,11 @@ export default class PackageManagerPackage extends Package {
   }
 
   async versions(): Promise<PackageVersion[]> {
-    return this._registry.versions.map((version: any) => ({
+    return (this._registry.versions as any[]).map(version => ({
       package: this,
       version: version.version,
-      url: version.url
+      url: version.url,
+      checksum: version.checksum
     }));
   }
 }

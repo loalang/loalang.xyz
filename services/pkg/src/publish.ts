@@ -83,7 +83,7 @@ export default async function publish(
         publication.version,
         url,
         publication.publisherId,
-        publication.checksum
+        Buffer.from(publication.checksum, "hex")
       ]
     );
     await notifier
