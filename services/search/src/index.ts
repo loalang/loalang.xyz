@@ -38,5 +38,5 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(80, "0.0.0.0", () => {
-  console.log("Listening on", server.address());
+  console.log("Started!");
 });

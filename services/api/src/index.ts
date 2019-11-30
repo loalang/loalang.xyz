@@ -8,6 +8,6 @@ server
     host: "0.0.0.0",
     port: 80
   })
-  .then(({ url }) => {
-    console.log(`🚀  Server ready at ${url}`);
+  .then(() => {
+    console.log("Started!");
   });

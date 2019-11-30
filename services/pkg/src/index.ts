@@ -72,15 +72,5 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(80, "0.0.0.0", () => {
-  console.log("Listening on", server.address());
+  console.log("Started!");
 });
-
-function parseBody<T>(stream: Readable): Promise<T> {
-  return new Promise<string>((resolve, reject) => {
-    let buffer = "";
-    stream
-      .on("data", chunk => (buffer += chunk.toString("utf-8")))
-      .on("error", reject)
-      .on("close", () => resolve(buffer));
-  }).then(JSON.parse);
-}
