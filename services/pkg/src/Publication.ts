@@ -6,6 +6,7 @@ export default interface Publication {
   name: string;
   version: string;
   publisherId: string;
+  checksum: string;
   tarball: Readable;
 }
 
@@ -26,6 +27,14 @@ export function parse(
     throw new HttpError(400, "Cannot publish as multiple publishers");
   }
 
+  const checksum = req.headers["x-checksum"];
+  if (checksum == null) {
+    throw new HttpError(400, "Required X-Checksum to be set");
+  }
+  if (Array.isArray(checksum)) {
+    throw new HttpError(400, "Only provide one checksum");
+  }
+
   if (typeof version !== "string") {
     throw new HttpError(400, "Required query param: version");
   }
@@ -33,6 +42,7 @@ export function parse(
   return {
     name,
     version,
+    checksum,
     publisherId,
     tarball: req
   };

@@ -40,11 +40,12 @@ export default async function publish(
       id: string;
       version: string;
       url: string;
+      checksum: Buffer;
       published: Date;
       publisher: string;
     }>(
       `
-        select id, version, url, published, publisher from packages
+        select id, version, url, published, publisher, checksum from packages
         inner join versions using(id)
         where name = $1
       `,
@@ -76,8 +77,14 @@ export default async function publish(
     const url = await storage.storePublication(publication);
 
     const insertResult = await client.query<{ published: Date }>(
-      "insert into versions(id, version, url, publisher) values($1, $2, $3, $4) returning published",
-      [id, publication.version, url, publication.publisherId]
+      "insert into versions(id, version, url, publisher, checksum) values($1, $2, $3, $4, $5) returning published",
+      [
+        id,
+        publication.version,
+        url,
+        publication.publisherId,
+        publication.checksum
+      ]
     );
     await notifier
       .notifyPackagePublished(id, publication.name, publication.version, url)
@@ -91,12 +98,14 @@ export default async function publish(
         .map(existing => ({
           version: existing.version,
           url: existing.url,
+          checksum: existing.checksum.toString("hex"),
           published: existing.published,
           publisher: existing.publisher
         }))
         .concat({
           version: publication.version,
           url,
+          checksum: publication.checksum,
           published: insertResult.rows[0].published,
           publisher: publication.publisherId
         })

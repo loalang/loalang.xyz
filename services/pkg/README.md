@@ -53,7 +53,9 @@ Content-Type: application/tar+gzip
       {
         "version": "1.0.0",
         "url": "https://cdn-url-to/tarball-1.0.0.tar.gz",
-        "published": "2019-11-29T09:45:24.161Z"
+        "checksum": "<<sha1 checksum>>",
+        "published": "2019-11-29T09:45:24.161Z",
+        "publisher": "xxxxxxxx-uuid-xxxx-xxxx-xxxxxxxxxxxx"
       }
     ]
   }
@@ -82,6 +84,7 @@ GET /packages/My/Package HTTP/1.1
       {
         "version": "1.0.0",
         "url": "https://cdn-url-to/tarball-1.0.0.tar.gz",
+        "checksum": "<<sha1 checksum>>",
         "published": "2019-11-29T09:45:24.161Z",
         "publisher": "xxxxxxxx-uuid-xxxx-xxxx-xxxxxxxxxxxx"
       }
@@ -108,6 +111,7 @@ GET /packages/My/Package?version=1.0.0 HTTP/1.1
   "version": {
     "version": "1.0.0",
     "url": "https://cdn-url-to/tarball-1.0.0.tar.gz",
+    "checksum": "<<sha1 checksum>>",
     "published": "2019-11-29T09:45:24.161Z",
     "publisher": "xxxxxxxx-uuid-xxxx-xxxx-xxxxxxxxxxxx"
   }
@@ -139,6 +143,7 @@ GET /publishers/xxxxxxxx-uuid-xxxx-xxxx-xxxxxxxxxxxx HTTP/1.1
           {
             "version": "1.0.0",
             "url": "https://cdn-url-to/tarball-1.0.0.tar.gz",
+            "checksum": "<<sha1 checksum>>",
             "published": "2019-11-29T09:45:24.161Z",
             "publisher": "xxxxxxxx-uuid-xxxx-xxxx-xxxxxxxxxxxx"
           }

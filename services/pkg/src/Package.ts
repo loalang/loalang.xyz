@@ -9,4 +9,5 @@ export interface PackageVersion {
   url: string;
   published: Date;
   publisher: string;
+  checksum: string;
 }

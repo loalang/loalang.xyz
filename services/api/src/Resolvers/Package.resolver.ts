@@ -20,8 +20,14 @@ export default {
       {
         name,
         version,
-        package: upload
-      }: { name: string; version: string; package: Promise<FileUpload> },
+        package: upload,
+        checksum
+      }: {
+        name: string;
+        version: string;
+        package: Promise<FileUpload>;
+        checksum: string;
+      },
       { pkg, user }: Context
     ): Promise<Package | null> {
       if (!user.isLoggedIn()) {
@@ -34,7 +40,8 @@ export default {
         name,
         version,
         (await upload).createReadStream(),
-        user
+        user,
+        checksum
       );
     }
   }

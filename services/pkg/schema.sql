@@ -20,6 +20,7 @@ create table versions (
     id uuid not null,
     version varchar not null,
     url varchar not null,
+    checksum bytea not null,
     published timestamp not null default now(),
     publisher uuid not null,
     primary key (id, version),

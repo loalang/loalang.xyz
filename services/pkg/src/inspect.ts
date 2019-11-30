@@ -10,11 +10,12 @@ export async function inspectPackage(name: string): Promise<Package | null> {
       name: string;
       version: string;
       url: string;
+      checksum: string;
       published: Date;
       publisher: string;
     }>(
       `
-        select id, name, version, url, published, publisher
+        select id, name, version, url, published, publisher, checksum
           from packages
           inner join versions using(id)
         where name = $1
@@ -32,6 +33,7 @@ export async function inspectPackage(name: string): Promise<Package | null> {
       versions: result.rows.map(row => ({
         version: row.version,
         url: row.url,
+        checksum: row.checksum,
         published: row.published,
         publisher: row.publisher
       }))
@@ -61,6 +63,7 @@ export async function inspectPublisher(id: string): Promise<Publisher | null> {
       name: string;
       version: string;
       url: string;
+      checksum: Buffer;
       published: Date;
       publisher: string;
     }>(
@@ -84,13 +87,17 @@ export async function inspectPublisher(id: string): Promise<Publisher | null> {
       packages: Array.from(
         packageVersions.rows
           .reduce(
-            (packages, { id, name, url, published, version, publisher }) => {
+            (
+              packages,
+              { id, name, url, published, version, publisher, checksum }
+            ) => {
               const pkg = packages.get(id) || { id, name, versions: [] };
 
               pkg.versions.push({
                 url,
                 published,
                 version,
+                checksum: checksum.toString("hex"),
                 publisher
               });
 

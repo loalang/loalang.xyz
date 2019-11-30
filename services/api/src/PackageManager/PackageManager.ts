@@ -26,7 +26,8 @@ export default class PackageManager {
     name: string,
     version: string,
     stream: Readable,
-    user: LoggedInUser
+    user: LoggedInUser,
+    checksum: string
   ): Promise<Package> {
     const response = await new Promise<IncomingMessage>((resolve, reject) => {
       const request = http.request(
@@ -35,7 +36,8 @@ export default class PackageManager {
           method: "PUT",
           headers: {
             "Content-Type": "application/tar+gzip",
-            "X-Publisher-Id": user.id
+            "X-Publisher-Id": user.id,
+            "X-Checksum": checksum
           }
         }
       );
