@@ -6,7 +6,7 @@ const COOKIE_KEY = "LOA_AUTH";
 const AUTH_HOST = process.env.AUTH_HOST || "";
 
 const A_DAY = 1000 * 60 * 60 * 24;
-const TWENTYNINE_DAYS = A_DAY * 29;
+const THIRTY_DAYS = A_DAY * 30;
 
 export default class Authentication {
   private constructor(private readonly _cookies: Cookies) {}
@@ -44,7 +44,7 @@ export default class Authentication {
       return null;
     }
     const { token } = await response.json();
-    this._cookies.set(COOKIE_KEY, token);
+    this._cookies.set(COOKIE_KEY, token, { maxAge: THIRTY_DAYS });
     return this._getUser(token);
   }
 
@@ -63,7 +63,7 @@ export default class Authentication {
       return null;
     }
     const { token } = await response.json();
-    this._cookies.set(COOKIE_KEY, token);
+    this._cookies.set(COOKIE_KEY, token, { maxAge: THIRTY_DAYS });
     return this._getUser(token);
   }
 
@@ -82,7 +82,7 @@ export default class Authentication {
       secondsLeftUntilExpiry
     } = await whoisResponse.json();
 
-    if (secondsLeftUntilExpiry < TWENTYNINE_DAYS) {
+    if (secondsLeftUntilExpiry < THIRTY_DAYS - A_DAY) {
       const refreshResponse = await fetch(`${AUTH_HOST}/refresh`, {
         headers: {
           "X-Token": token
@@ -90,7 +90,7 @@ export default class Authentication {
       });
       if (refreshResponse.status === 200) {
         const { token } = await refreshResponse.json();
-        this._cookies.set(COOKIE_KEY, token);
+        this._cookies.set(COOKIE_KEY, token, { maxAge: THIRTY_DAYS });
       }
     }
 
