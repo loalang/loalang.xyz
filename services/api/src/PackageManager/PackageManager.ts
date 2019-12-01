@@ -1,6 +1,6 @@
 import PackageManagerPackage from "./PackageManagerPackage";
 import { Readable } from "stream";
-import Package from "../Resolvers/Package";
+import Package, { PackageVersion } from "../Resolvers/Package";
 import http, { IncomingMessage } from "http";
 import LoggedInUser from "../Authentication/LoggedInUser";
 
@@ -63,6 +63,26 @@ export default class PackageManager {
       publisher: { packages }
     } = await response.json();
     return packages.map((r: any) => new PackageManagerPackage(r));
+  }
+
+  async resolve(requests: {
+    [name: string]: string;
+  }): Promise<{ package: string; version: string }[]> {
+    const response = await fetch(`${this._host}/resolve`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(requests)
+    });
+
+    if (response.status !== 200) {
+      throw new Error(await response.text());
+    }
+
+    const { resolved } = await response.json();
+
+    return resolved;
   }
 }
 

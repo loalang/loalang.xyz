@@ -153,3 +153,33 @@ GET /publishers/xxxxxxxx-uuid-xxxx-xxxx-xxxxxxxxxxxx HTTP/1.1
   }
 }
 ```
+
+### `POST /resolve`
+
+Resolving packages and version constraints, resolving all dependencies into a list of selected versions for all packages, including transient dependencies.
+
+#### Example Request
+
+```json
+{
+  "My/Package": "1.0"
+}
+```
+
+#### Example Response
+
+```json
+{
+  "message": "OK",
+  "resolved": [
+    {
+      "package": "My/Package",
+      "version": "1.0.0"
+    },
+    {
+      "package": "My/Dependency/Package",
+      "version": "2.3.1"
+    }
+  ]
+}
+```

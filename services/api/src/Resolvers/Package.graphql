@@ -1,5 +1,11 @@
 type Query {
   package(name: String!): Package
+  resolvePackages(packages: [RequestedPackage!]!): [PackageVersion!]!
+}
+
+input RequestedPackage {
+  name: String!
+  version: String!
 }
 
 type Package {

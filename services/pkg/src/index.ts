@@ -4,6 +4,7 @@ import { Readable } from "stream";
 import { parse } from "./Publication";
 import publish from "./publish";
 import { inspectPackage, inspectVersion, inspectPublisher } from "./inspect";
+import resolvePackageConstraints from "./resolvePackageConstraints";
 
 const server = http.createServer(async (req, res) => {
   try {
@@ -53,6 +54,13 @@ const server = http.createServer(async (req, res) => {
         res.writeHead(200);
         res.write(JSON.stringify({ message: "OK", publisher }));
       }
+    } else if ((match = /^POST \/resolve$/.exec(header))) {
+      const resolved = await resolvePackageConstraints(
+        await parseJSON<{ [name: string]: string }>(req)
+      );
+
+      res.writeHead(200);
+      res.write(JSON.stringify({ message: "OK", resolved }));
     } else {
       res.writeHead(404);
       res.write(JSON.stringify({ message: "Not Found" }));
@@ -74,3 +82,13 @@ const server = http.createServer(async (req, res) => {
 server.listen(80, "0.0.0.0", () => {
   console.log("Started!");
 });
+
+function parseJSON<T>(stream: Readable): Promise<T> {
+  return new Promise<string>((resolve, reject) => {
+    let buffer = "";
+    stream
+      .on("data", c => (buffer += c.toString("utf-8")))
+      .once("error", reject)
+      .once("close", () => resolve(buffer));
+  }).then(JSON.parse);
+}
