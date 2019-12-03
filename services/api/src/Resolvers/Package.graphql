@@ -32,7 +32,14 @@ type Mutation {
     version: String!
     package: Upload!
     checksum: String!
+    dependencies: [PublicationDependency!]! = []
   ): Package
+}
+
+input PublicationDependency {
+  package: String!
+  version: String!
+  development: Boolean
 }
 
 type User {

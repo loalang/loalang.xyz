@@ -60,12 +60,18 @@ export default {
         name,
         version,
         package: upload,
-        checksum
+        checksum,
+        dependencies
       }: {
         name: string;
         version: string;
         package: Promise<FileUpload>;
         checksum: string;
+        dependencies: {
+          package: string;
+          version: string;
+          development?: boolean;
+        }[];
       },
       { pkg, user }: Context
     ): Promise<Package | null> {
@@ -80,7 +86,8 @@ export default {
         version,
         (await upload).createReadStream(),
         user,
-        checksum
+        checksum,
+        dependencies
       );
     }
   }

@@ -68,23 +68,23 @@ export default function publish(publication: Publication): Promise<Package> {
       }
     }
 
-    let id: string;
+    let packageId: string;
     if (existingVersions.length === 0) {
-      id = uuid();
+      packageId = uuid();
       await session.query`
-        CREATE (:Package{ id: ${id}, name: ${publication.name} })
+        CREATE (:Package{ id: ${packageId}, name: ${publication.name} })
       `;
     } else {
-      id = existingVersions[0].id;
+      packageId = existingVersions[0].packageId;
     }
 
-    const url = await storage.storePublication(id, publication);
+    const url = await storage.storePublication(packageId, publication);
 
     const releaseId = uuid();
     const publishedAt = now();
     const releaseVersion = encode(publication.version);
     await session.query`
-      MATCH (p:Package{ id: ${id} }),
+      MATCH (p:Package{ id: ${packageId} }),
             (publisher:Publisher{ id: ${publication.publisherId} })
       CREATE (p)-[:HAS]->(r:Release{
         id: ${releaseId},
@@ -97,6 +97,7 @@ export default function publish(publication: Publication): Promise<Package> {
 
     for (const dep of publication.dependencies) {
       const { version, prerelease } = encode(dep.version);
+
       await session.query`
         MATCH
           (dependent:Release{ id: ${releaseId} }),
@@ -113,7 +114,7 @@ export default function publish(publication: Publication): Promise<Package> {
 
     await notifier
       .notifyPackagePublished(
-        id,
+        packageId,
         publication.name,
         publication.version.format(),
         url
@@ -141,7 +142,7 @@ export default function publish(publication: Publication): Promise<Package> {
       });
 
     return {
-      id,
+      id: packageId,
       name: publication.name,
       versions
     };

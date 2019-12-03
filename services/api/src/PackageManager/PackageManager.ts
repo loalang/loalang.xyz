@@ -27,7 +27,8 @@ export default class PackageManager {
     version: string,
     stream: Readable,
     user: LoggedInUser,
-    checksum: string
+    checksum: string,
+    dependencies: { package: string; version: string; development?: boolean }[]
   ): Promise<Package> {
     const response = await new Promise<IncomingMessage>((resolve, reject) => {
       const request = http.request(
@@ -37,7 +38,11 @@ export default class PackageManager {
           headers: {
             "Content-Type": "application/tar+gzip",
             "X-Publisher-Id": user.id,
-            "X-Checksum": checksum
+            "X-Checksum": checksum,
+            "X-Dependency": dependencies.map(
+              dep =>
+                `${dep.package}=${dep.version}${dep.development ? "; dev" : ""}`
+            )
           }
         }
       );
