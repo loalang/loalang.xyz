@@ -15,10 +15,7 @@ export default interface Publication {
 export interface Dependency {
   package: string;
   development: boolean;
-  major: number | null;
-  minor: number | null;
-  patch: number | null;
-  prerelease: string | null;
+  version: SemVer;
 }
 
 export function parse(
@@ -94,9 +91,10 @@ export function parseDependencyHeader(header: string): Dependency {
   return {
     package: name,
     development: typeof devFlag === "string",
-    major: major == null ? null : Number(major),
-    minor: minor == null ? null : Number(minor),
-    patch: patch == null ? null : Number(patch),
-    prerelease: prerelease == null ? null : prerelease
+    version: parseVersion(
+      `${major || 0}.${minor || 0}.${patch || 0}${
+        prerelease ? `-${prerelease}` : ""
+      }`
+    )!
   };
 }

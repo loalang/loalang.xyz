@@ -81,34 +81,6 @@ export default function publish(publication: Publication): Promise<Package> {
     const url = await storage.storePublication(id, publication);
 
     const releaseId = uuid();
-
-    // TODO: do this in a single query
-    /*
-    for (const dep of publication.dependencies) {
-      await session.query<{ published: DateTime }>(
-        `
-          with p as (
-            select id from packages
-            where name = $2
-            group by name, id
-          )
-          insert into
-            dependencies(dependent, dependency, development, major, minor, patch, prerelease)
-            values($1, p.id, $3, $4, $5, $6, $7)
-        `,
-        [
-          versionId,
-          dep.package,
-          dep.development,
-          dep.major,
-          dep.minor,
-          dep.patch,
-          dep.prerelease
-        ]
-      );
-    }
-    */
-
     const publishedAt = now();
     const releaseVersion = encode(publication.version);
     await session.query`
@@ -122,6 +94,22 @@ export default function publish(publication: Publication): Promise<Package> {
         prerelease: ${releaseVersion.prerelease}
       })<-[:PUBLISHED{ at: ${publishedAt} }]-(publisher)
     `;
+
+    for (const dep of publication.dependencies) {
+      const { version, prerelease } = encode(dep.version);
+      await session.query`
+        MATCH
+          (dependent:Release{ id: ${releaseId} }),
+          (dependency:Package{ name: ${dep.package} })
+        CREATE (dependent)-[:DEPENDS_ON{
+          minVersion: ${version},
+          minPrerelease: ${prerelease},
+          maxVersion: ${version},
+          maxPrerelease: ${prerelease},
+          development: ${dep.development}
+        }]->(dependency)
+      `;
+    }
 
     await notifier
       .notifyPackagePublished(
