@@ -1,3 +1,6 @@
+import { SemVer } from "semver";
+import { DateTime } from "./DateTime";
+
 export default interface Package {
   id: string;
   name: string;
@@ -5,9 +8,10 @@ export default interface Package {
 }
 
 export interface PackageVersion {
-  version: string;
+  id: string;
+  version: SemVer;
   url: string;
-  published: Date;
+  publishedAt: DateTime;
   publisher: string;
   checksum: string;
 }

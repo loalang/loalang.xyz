@@ -18,7 +18,8 @@ export default class PackageManagerPackage extends Package {
       package: this,
       version: version.version,
       url: version.url,
-      checksum: version.checksum
+      checksum: version.checksum,
+      publishedAt: version.publishedAt
     }));
   }
 }

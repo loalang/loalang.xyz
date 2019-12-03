@@ -26,7 +26,7 @@ services:
     volumes:
       - /etc/google/credentials.json:/etc/google/credentials.json
     environment:
-      POSTGRES_HOST: ${POSTGRES_HOST}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASS: ${POSTGRES_PASS}
+      NEO4J_HOST: ${NEO4J_HOST}
+      NEO4J_USER: ${NEO4J_USER}
+      NEO4J_PASS: ${NEO4J_PASS}
       GOOGLE_APPLICATION_CREDENTIALS: /etc/google/credentials.json

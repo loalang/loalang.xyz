@@ -21,6 +21,7 @@ type PackageVersion {
   version: String!
   url: String!
   checksum: String!
+  publishedAt: DateTime!
 }
 
 scalar Upload

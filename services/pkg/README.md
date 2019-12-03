@@ -34,6 +34,8 @@ Package publication, or the publication of a new version of an existing package.
 PUT /packages/My/Package?version=1.0.0 HTTP/1.1
 
 X-Publisher-Id: xxxxxxxx-uuid-xxxx-xxxx-xxxxxxxxxxxx
+X-Dependency: My/Dependency/Package=2
+X-Dependency: My/Other/Dependency/Package=3.2; dev
 Content-Type: application/tar+gzip
 
 <<tar archive>>
@@ -54,8 +56,14 @@ Content-Type: application/tar+gzip
         "version": "1.0.0",
         "url": "https://cdn-url-to/tarball-1.0.0.tar.gz",
         "checksum": "<<sha1 checksum>>",
-        "published": "2019-11-29T09:45:24.161Z",
-        "publisher": "xxxxxxxx-uuid-xxxx-xxxx-xxxxxxxxxxxx"
+        "publishedAt": "2019-11-29T09:45:24.161Z",
+        "publisher": "xxxxxxxx-uuid-xxxx-xxxx-xxxxxxxxxxxx",
+        "dependencies": {
+          "My/Dependency/Package": "2"
+        },
+        "devDependencies": {
+          "My/Other/Dependency/Package": "3.2"
+        }
       }
     ]
   }
@@ -85,8 +93,14 @@ GET /packages/My/Package HTTP/1.1
         "version": "1.0.0",
         "url": "https://cdn-url-to/tarball-1.0.0.tar.gz",
         "checksum": "<<sha1 checksum>>",
-        "published": "2019-11-29T09:45:24.161Z",
-        "publisher": "xxxxxxxx-uuid-xxxx-xxxx-xxxxxxxxxxxx"
+        "publishedAt": "2019-11-29T09:45:24.161Z",
+        "publisher": "xxxxxxxx-uuid-xxxx-xxxx-xxxxxxxxxxxx",
+        "dependencies": {
+          "My/Dependency/Package": "2"
+        },
+        "devDependencies": {
+          "My/Other/Dependency/Package": "3.2"
+        }
       }
     ]
   }
@@ -112,8 +126,14 @@ GET /packages/My/Package?version=1.0.0 HTTP/1.1
     "version": "1.0.0",
     "url": "https://cdn-url-to/tarball-1.0.0.tar.gz",
     "checksum": "<<sha1 checksum>>",
-    "published": "2019-11-29T09:45:24.161Z",
-    "publisher": "xxxxxxxx-uuid-xxxx-xxxx-xxxxxxxxxxxx"
+    "publishedAt": "2019-11-29T09:45:24.161Z",
+    "publisher": "xxxxxxxx-uuid-xxxx-xxxx-xxxxxxxxxxxx",
+    "dependencies": {
+      "My/Dependency/Package": "2"
+    },
+    "devDependencies": {
+      "My/Other/Dependency/Package": "3.2"
+    }
   }
 }
 ```
@@ -144,8 +164,14 @@ GET /publishers/xxxxxxxx-uuid-xxxx-xxxx-xxxxxxxxxxxx HTTP/1.1
             "version": "1.0.0",
             "url": "https://cdn-url-to/tarball-1.0.0.tar.gz",
             "checksum": "<<sha1 checksum>>",
-            "published": "2019-11-29T09:45:24.161Z",
-            "publisher": "xxxxxxxx-uuid-xxxx-xxxx-xxxxxxxxxxxx"
+            "publishedAt": "2019-11-29T09:45:24.161Z",
+            "publisher": "xxxxxxxx-uuid-xxxx-xxxx-xxxxxxxxxxxx",
+            "dependencies": {
+              "My/Dependency/Package": "2"
+            },
+            "devDependencies": {
+              "My/Other/Dependency/Package": "3.2"
+            }
           }
         ]
       }

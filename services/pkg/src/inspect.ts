@@ -1,104 +1,123 @@
 import Package, { PackageVersion } from "./Package";
 import { database } from "./collaborators";
 import Publisher from "./Publisher";
+import { decode } from "./versionEncoding";
+import { DateTime } from "./DateTime";
 
-export async function inspectPackage(name: string): Promise<Package | null> {
-  const client = await database.connect();
-  try {
-    const result = await client.query<{
+export function inspectPackage(name: string): Promise<Package | null> {
+  return database.session(async session => {
+    const result = await session.query<{
       id: string;
+      packageId: string;
       name: string;
-      version: string;
       url: string;
-      checksum: Buffer;
-      published: Date;
+      checksum: string;
+      publishedAt: DateTime;
       publisher: string;
-    }>(
-      `
-        select id, name, version, url, published, publisher, checksum
-          from packages
-          inner join versions using(id)
-        where name = $1
-      `,
-      [name]
-    );
 
-    if (result.rowCount === 0) {
+      version: number | null;
+      prerelease: string | null;
+    }>`
+      MATCH (package:Package{ name: ${name} })-[:HAS]->(release:Release)<-[published:PUBLISHED]-(publisher:Publisher)
+      RETURN
+        release.id AS id,
+        package.id AS packageId,
+        package.name AS name,
+        release.url AS url,
+        release.checksum AS checksum,
+        published.at AS publishedAt,
+        publisher.id AS publisher,
+        release.version AS version,
+        release.prerelease AS prerelease
+    `;
+
+    if (result.length === 0) {
       return null;
     }
 
     return {
-      id: result.rows[0].id,
-      name: result.rows[0].name,
-      versions: result.rows.map(row => ({
-        version: row.version,
+      id: result[0].packageId,
+      name: result[0].name,
+      versions: result.map(row => ({
+        id: row.id,
+        version: decode({
+          version: row.version,
+          prerelease: row.prerelease
+        }),
         url: row.url,
-        checksum: row.checksum.toString("hex"),
-        published: row.published,
+        checksum: row.checksum,
+        publishedAt: row.publishedAt,
         publisher: row.publisher
       }))
     };
-  } finally {
-    client.release();
-  }
+  });
 }
 
 export async function inspectVersion(
   name: string,
   version: string
 ): Promise<PackageVersion | null> {
-  const client = await database.connect();
-  try {
-    return null;
-  } finally {
-    client.release();
-  }
+  return null;
 }
 
-export async function inspectPublisher(id: string): Promise<Publisher | null> {
-  const client = await database.connect();
-  try {
-    const packageVersions = await client.query<{
+export function inspectPublisher(id: string): Promise<Publisher | null> {
+  return database.session(async session => {
+    const packageVersions = await session.query<{
       id: string;
+      packageId: string;
       name: string;
-      version: string;
       url: string;
-      checksum: Buffer;
-      published: Date;
+      checksum: string;
+      publishedAt: DateTime;
       publisher: string;
-    }>(
-      `
-        with packages_published_by_user as (
-          select id, name
-          from versions v
-          inner join packages using(id)
-          where
-            v.publisher = $1
-          group by id, name
-        )
-        select *
-          from packages_published_by_user
-          inner join versions using(id)
-      `,
-      [id]
-    );
+
+      version: number | null;
+      prerelease: string | null;
+    }>`
+      MATCH (publisher:Publisher{ id: ${id} })-[published:PUBLISHED]->(release:Release)<-[:HAS]-(package:Package)
+      RETURN
+        release.id AS id,
+        package.id AS packageId,
+        package.name AS name,
+        release.url AS url,
+        release.checksum AS checksum,
+        published.at AS publishedAt,
+        publisher.id AS publisher,
+        release.version AS version,
+        release.prerelease AS prerelease
+    `;
 
     return {
       id,
       packages: Array.from(
-        packageVersions.rows
+        packageVersions
           .reduce(
             (
               packages,
-              { id, name, url, published, version, publisher, checksum }
+              {
+                packageId,
+                id,
+                name,
+                url,
+                publishedAt,
+                version,
+                prerelease,
+                publisher,
+                checksum
+              }
             ) => {
-              const pkg = packages.get(id) || { id, name, versions: [] };
+              const pkg = packages.get(packageId) || {
+                id: packageId,
+                name,
+                versions: []
+              };
 
               pkg.versions.push({
+                id,
                 url,
-                published,
-                version,
-                checksum: checksum.toString("hex"),
+                publishedAt,
+                version: decode({ version, prerelease }),
+                checksum: checksum,
                 publisher
               });
 
@@ -110,7 +129,5 @@ export async function inspectPublisher(id: string): Promise<Publisher | null> {
           .values()
       )
     };
-  } finally {
-    client.release();
-  }
+  });
 }

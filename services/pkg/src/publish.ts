@@ -2,58 +2,65 @@ import Publication from "./Publication";
 import HttpError from "./HttpError";
 import uuid from "uuid/v4";
 import { database, notifier, storage } from "./collaborators";
-import Package from "./Package";
+import Package, { PackageVersion } from "./Package";
+import { decode, encode } from "./versionEncoding";
+import { DateTime, now } from "./DateTime";
 
-export default async function publish(
-  publication: Publication
-): Promise<Package> {
-  let client = await database.connect();
-  try {
+export default function publish(publication: Publication): Promise<Package> {
+  return database.session(async session => {
     const rootNamespace = publication.name.split("/").shift()!;
-    const owners = await database.query<{ owner_id: string }>(
-      `
-        select owner_id from root_namespace_owners
-        where root_namespace = $1
-      `,
-      [rootNamespace]
-    );
+    const owners = await session.query<{ id: string }>`
+      MATCH (:RootNamespace{ name: ${rootNamespace} })<-[:OWNS]-(owner:Publisher)
+      RETURN owner.id AS id
+    `;
 
     if (
-      owners.rowCount > 0 &&
-      !owners.rows.map(o => o.owner_id).includes(publication.publisherId)
+      owners.length > 0 &&
+      !owners.map(o => o.id).includes(publication.publisherId)
     ) {
       throw new HttpError(
         403,
         `User not authorized to publish to root namespace ${rootNamespace}`
       );
-    } else if (owners.rowCount === 0) {
+    } else if (owners.length === 0) {
       // Publisher has claimed the root namespace
-      await client.query(
-        `
-          insert into root_namespace_owners(root_namespace, owner_id) values($1, $2)
-        `,
-        [rootNamespace, publication.publisherId]
-      );
+      await session.query`
+        MERGE (:RootNamespace{ name: ${rootNamespace} })<-[:OWNS]-(:Publisher{ id: ${publication.publisherId} })
+      `;
     }
 
-    const existingVersions = await client.query<{
+    const existingVersions = await session.query<{
       id: string;
-      version: string;
+      packageId: string;
       url: string;
-      checksum: Buffer;
-      published: Date;
+      checksum: string;
+      publishedAt: DateTime;
       publisher: string;
-    }>(
-      `
-        select id, version, url, published, publisher, checksum from packages
-        inner join versions using(id)
-        where name = $1
-      `,
-      [publication.name]
-    );
 
-    for (const { version } of existingVersions.rows) {
-      if (version === publication.version) {
+      version: number | null;
+      prerelease: string | null;
+    }>`
+      MATCH (package:Package{ name: ${publication.name} })-[:HAS]->(release:Release)<-[published:PUBLISHED]-(publisher:Publisher)
+      RETURN
+        release.id AS id,
+        package.id AS packageId,
+        release.url AS url,
+        release.checksum AS checksum,
+        published.at AS publishedAt,
+        publisher.id AS publisher,
+        release.version AS version,
+        release.prerelease AS prerelease
+    `;
+
+    const existing = existingVersions.map(({ version, prerelease, ...ex }) => {
+      return {
+        ...ex,
+        version: decode({ version, prerelease })
+      };
+    });
+
+    for (const { version } of existing) {
+      if (version.compare(publication.version) === 0) {
         throw new HttpError(
           400,
           `Version ${version} or ${publication.name} is already published`
@@ -61,56 +68,94 @@ export default async function publish(
       }
     }
 
-    let id;
-    if (existingVersions.rowCount === 0) {
+    let id: string;
+    if (existingVersions.length === 0) {
       id = uuid();
-      await client.query(
-        `
-          insert into packages(id, name) values($1, $2)
-        `,
-        [id, publication.name]
-      );
+      await session.query`
+        CREATE (:Package{ id: ${id}, name: ${publication.name} })
+      `;
     } else {
-      id = existingVersions.rows[0].id;
+      id = existingVersions[0].id;
     }
 
     const url = await storage.storePublication(id, publication);
 
-    const insertResult = await client.query<{ published: Date }>(
-      "insert into versions(id, version, url, publisher, checksum) values($1, $2, $3, $4, $5) returning published",
-      [
-        id,
-        publication.version,
-        url,
-        publication.publisherId,
-        Buffer.from(publication.checksum, "hex")
-      ]
-    );
+    const releaseId = uuid();
+
+    // TODO: do this in a single query
+    /*
+    for (const dep of publication.dependencies) {
+      await session.query<{ published: DateTime }>(
+        `
+          with p as (
+            select id from packages
+            where name = $2
+            group by name, id
+          )
+          insert into
+            dependencies(dependent, dependency, development, major, minor, patch, prerelease)
+            values($1, p.id, $3, $4, $5, $6, $7)
+        `,
+        [
+          versionId,
+          dep.package,
+          dep.development,
+          dep.major,
+          dep.minor,
+          dep.patch,
+          dep.prerelease
+        ]
+      );
+    }
+    */
+
+    const publishedAt = now();
+    const releaseVersion = encode(publication.version);
+    await session.query`
+      MATCH (p:Package{ id: ${id} }),
+            (publisher:Publisher{ id: ${publication.publisherId} })
+      CREATE (p)-[:HAS]->(r:Release{
+        id: ${releaseId},
+        checksum: ${publication.checksum},
+        url: ${url},
+        version: ${releaseVersion.version},
+        prerelease: ${releaseVersion.prerelease}
+      })<-[:PUBLISHED{ at: ${publishedAt} }]-(publisher)
+    `;
+
     await notifier
-      .notifyPackagePublished(id, publication.name, publication.version, url)
+      .notifyPackagePublished(
+        id,
+        publication.name,
+        publication.version.format(),
+        url
+      )
       .catch(err => {
         console.error(err);
       });
+
+    const versions: PackageVersion[] = existing
+      .map(ex => ({
+        id: ex.id,
+        version: ex.version,
+        url: ex.url,
+        checksum: ex.checksum,
+        publishedAt: ex.publishedAt,
+        publisher: ex.publisher
+      }))
+      .concat({
+        id: releaseId,
+        version: publication.version,
+        url,
+        checksum: publication.checksum,
+        publishedAt,
+        publisher: publication.publisherId
+      });
+
     return {
       id,
       name: publication.name,
-      versions: existingVersions.rows
-        .map(existing => ({
-          version: existing.version,
-          url: existing.url,
-          checksum: existing.checksum.toString("hex"),
-          published: existing.published,
-          publisher: existing.publisher
-        }))
-        .concat({
-          version: publication.version,
-          url,
-          checksum: publication.checksum,
-          published: insertResult.rows[0].published,
-          publisher: publication.publisherId
-        })
+      versions
     };
-  } finally {
-    await client.release();
-  }
+  });
 }

@@ -1,7 +1,7 @@
 {
   "scripts": {
     "build": "tsc --outDir build && find src -type f -iname '*.graphql' -exec cp {} build/Resolvers \\;",
-    "start": "nodemon --watch 'src/**/*.ts' --ignore 'src/**/*.test.ts' --exec 'ts-node' src/index.ts"
+    "start": "nodemon --watch 'src/**/*.graphql' --watch 'src/**/*.ts' --ignore 'src/**/*.test.ts' --exec 'ts-node' src/index.ts"
   },
   "devDependencies": {
     "@types/cookies": "^0.7.4",
