@@ -46,7 +46,10 @@ export function inspectPackage(name: string): Promise<Package | null> {
         checksum: row.release.properties.checksum,
         publishedAt: row.published.properties.at,
         publisher: row.publisher.properties.id,
-        dependencies: collectDependencies(row.dependencies)
+        dependencies: collectDependencies(row.dependencies),
+        devDependencies: collectDependencies(row.dependencies, {
+          development: true
+        })
       }))
     };
   });
@@ -100,7 +103,10 @@ export function inspectPublisher(id: string): Promise<Publisher | null> {
                 version: decode(release.properties),
                 checksum: release.properties.checksum,
                 publisher: publisher.properties.id,
-                dependencies: collectDependencies(dependencies)
+                dependencies: collectDependencies(dependencies),
+                devDependencies: collectDependencies(dependencies, {
+                  development: true
+                })
               });
 
               packages.set(id, pkg);

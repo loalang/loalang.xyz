@@ -72,8 +72,6 @@ export default function publish(publication: Publication): Promise<Package> {
       }
     }
 
-    console.log(existingReleases);
-
     let packageId: string;
     if (existingReleases.length === 0) {
       packageId = uuid();
@@ -137,7 +135,10 @@ export default function publish(publication: Publication): Promise<Package> {
         checksum: release.properties.checksum,
         publishedAt: published.properties.at,
         publisher: publisher.properties.id,
-        dependencies: collectDependencies(dependencies)
+        dependencies: collectDependencies(dependencies),
+        devDependencies: collectDependencies(dependencies, {
+          development: true
+        })
       }))
       .concat({
         id: releaseId,
@@ -149,6 +150,15 @@ export default function publish(publication: Publication): Promise<Package> {
         dependencies: publication.dependencies.reduce(
           (dependencies, { version, development, package: name }) => {
             if (!development) {
+              dependencies[name] = version;
+            }
+            return dependencies;
+          },
+          {} as { [name: string]: SemVer }
+        ),
+        devDependencies: publication.dependencies.reduce(
+          (dependencies, { version, development, package: name }) => {
+            if (development) {
               dependencies[name] = version;
             }
             return dependencies;

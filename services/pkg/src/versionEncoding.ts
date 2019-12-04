@@ -19,9 +19,13 @@ export function decode({
   version,
   prerelease
 }: {
-  version: Integer | null;
+  version: Integer | number | null;
   prerelease?: string | null | undefined;
 }): SemVer {
+  if (typeof version === "number") {
+    version = Integer.fromInt(version);
+  }
+
   if (version == null || version.isZero()) {
     return parse(`0.0.0${prerelease == null ? "" : `-${prerelease}`}`)!;
   }

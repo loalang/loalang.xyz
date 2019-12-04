@@ -15,4 +15,5 @@ export interface PackageVersion {
   publisher: string;
   checksum: string;
   dependencies: { [name: string]: SemVer };
+  devDependencies: { [name: string]: SemVer };
 }

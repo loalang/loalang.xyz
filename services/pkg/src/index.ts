@@ -103,6 +103,6 @@ function parseJSON<T>(stream: Readable): Promise<T> {
     stream
       .on("data", c => (buffer += c.toString("utf-8")))
       .once("error", reject)
-      .once("close", () => resolve(buffer));
+      .once("end", () => resolve(buffer));
   }).then(JSON.parse);
 }
