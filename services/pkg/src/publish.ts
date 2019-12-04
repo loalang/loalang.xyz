@@ -5,10 +5,20 @@ import { database, notifier, storage } from "./collaborators";
 import Package, { PackageVersion } from "./Package";
 import { decode, encode } from "./versionEncoding";
 import { DateTime, now } from "./DateTime";
+import {
+  PackageNode,
+  ReleaseNode,
+  PUBLISHEDEdge,
+  PublisherNode,
+  collectDependencies,
+  DEPENDS_ONEdge
+} from "./Schema";
+import { SemVer } from "semver";
 
 export default function publish(publication: Publication): Promise<Package> {
   return database.session(async session => {
     const rootNamespace = publication.name.split("/").shift()!;
+
     const owners = await session.query<{ id: string }>`
       MATCH (:RootNamespace{ name: ${rootNamespace} })<-[:OWNS]-(owner:Publisher)
       RETURN owner.id AS id
@@ -29,37 +39,31 @@ export default function publish(publication: Publication): Promise<Package> {
       `;
     }
 
-    const existingVersions = await session.query<{
-      id: string;
-      packageId: string;
-      url: string;
-      checksum: string;
-      publishedAt: DateTime;
-      publisher: string;
-
-      version: number | null;
-      prerelease: string | null;
-    }>`
+    const existingReleases = (
+      await session.query<{
+        package: PackageNode;
+        release: ReleaseNode;
+        published: PUBLISHEDEdge;
+        publisher: PublisherNode;
+        dependencies: [DEPENDS_ONEdge, PackageNode][];
+      }>`
       MATCH (package:Package{ name: ${publication.name} })-[:HAS]->(release:Release)<-[published:PUBLISHED]-(publisher:Publisher)
+      OPTIONAL MATCH (release)-[dep:DEPENDS_ON]-(dependency:Package)
       RETURN
-        release.id AS id,
-        package.id AS packageId,
-        release.url AS url,
-        release.checksum AS checksum,
-        published.at AS publishedAt,
-        publisher.id AS publisher,
-        release.version AS version,
-        release.prerelease AS prerelease
-    `;
-
-    const existing = existingVersions.map(({ version, prerelease, ...ex }) => {
+        package,
+        release,
+        published,
+        publisher,
+        collect([dep, dependency]) AS dependencies
+    `
+    ).map(ex => {
       return {
         ...ex,
-        version: decode({ version, prerelease })
+        version: decode(ex.release.properties)
       };
     });
 
-    for (const { version } of existing) {
+    for (const { version } of existingReleases) {
       if (version.compare(publication.version) === 0) {
         throw new HttpError(
           400,
@@ -68,14 +72,16 @@ export default function publish(publication: Publication): Promise<Package> {
       }
     }
 
+    console.log(existingReleases);
+
     let packageId: string;
-    if (existingVersions.length === 0) {
+    if (existingReleases.length === 0) {
       packageId = uuid();
       await session.query`
         CREATE (:Package{ id: ${packageId}, name: ${publication.name} })
       `;
     } else {
-      packageId = existingVersions[0].packageId;
+      packageId = existingReleases[0].package.properties.id;
     }
 
     const url = await storage.storePublication(packageId, publication);
@@ -123,14 +129,15 @@ export default function publish(publication: Publication): Promise<Package> {
         console.error(err);
       });
 
-    const versions: PackageVersion[] = existing
-      .map(ex => ({
-        id: ex.id,
-        version: ex.version,
-        url: ex.url,
-        checksum: ex.checksum,
-        publishedAt: ex.publishedAt,
-        publisher: ex.publisher
+    const versions: PackageVersion[] = existingReleases
+      .map(({ version, release, published, publisher, dependencies }) => ({
+        id: release.properties.id,
+        version,
+        url: release.properties.url,
+        checksum: release.properties.checksum,
+        publishedAt: published.properties.at,
+        publisher: publisher.properties.id,
+        dependencies: collectDependencies(dependencies)
       }))
       .concat({
         id: releaseId,
@@ -138,7 +145,16 @@ export default function publish(publication: Publication): Promise<Package> {
         url,
         checksum: publication.checksum,
         publishedAt,
-        publisher: publication.publisherId
+        publisher: publication.publisherId,
+        dependencies: publication.dependencies.reduce(
+          (dependencies, { version, development, package: name }) => {
+            if (!development) {
+              dependencies[name] = version;
+            }
+            return dependencies;
+          },
+          {} as { [name: string]: SemVer }
+        )
       });
 
     return {

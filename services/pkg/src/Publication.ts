@@ -57,9 +57,11 @@ export function parse(
 
   const dependencyHeaders = req.headers["x-dependency"];
   if (typeof dependencyHeaders === "string") {
-    dependencies.push(parseDependencyHeader(dependencyHeaders));
+    dependencies.push(...parseDependencyHeader(dependencyHeaders));
   } else if (dependencyHeaders != null) {
-    dependencies = dependencyHeaders.map(parseDependencyHeader);
+    for (const dependencyHeader of dependencyHeaders) {
+      dependencies.push(...parseDependencyHeader(dependencyHeader));
+    }
   }
 
   return {
@@ -72,29 +74,31 @@ export function parse(
   };
 }
 
-export function parseDependencyHeader(header: string): Dependency {
-  const match = /^([^=\s]+)\s*(?:=\s*(\d+))?(?:\.(\d+))?(?:\.(\d+))?(?:-(.+?))?\s*(?:;\s*(dev))?\s*;?\s*$/.exec(
-    header
-  );
+export function parseDependencyHeader(header: string): Dependency[] {
+  return header.split(/\s*,\s*/g).map(header => {
+    const match = /^([^=\s]+)\s*(?:=\s*(\d+))?(?:\.(\d+))?(?:\.(\d+))?(?:-(.+?))?\s*(?:;\s*(dev))?\s*;?\s*$/.exec(
+      header
+    );
 
-  if (match == null) {
-    throw new HttpError(400, `Invalid dependency header: ${header}`);
-  }
+    if (match == null) {
+      throw new HttpError(400, `Invalid dependency header: ${header}`);
+    }
 
-  const name = match[1];
-  const major: string | undefined = match[2];
-  const minor: string | undefined = match[3];
-  const patch: string | undefined = match[4];
-  const prerelease: string | undefined = match[5];
-  const devFlag: string | undefined = match[6];
+    const name = match[1];
+    const major: string | undefined = match[2];
+    const minor: string | undefined = match[3];
+    const patch: string | undefined = match[4];
+    const prerelease: string | undefined = match[5];
+    const devFlag: string | undefined = match[6];
 
-  return {
-    package: name,
-    development: typeof devFlag === "string",
-    version: parseVersion(
-      `${major || 0}.${minor || 0}.${patch || 0}${
-        prerelease ? `-${prerelease}` : ""
-      }`
-    )!
-  };
+    return {
+      package: name,
+      development: typeof devFlag === "string",
+      version: parseVersion(
+        `${major || 0}.${minor || 0}.${patch || 0}${
+          prerelease ? `-${prerelease}` : ""
+        }`
+      )!
+    };
+  });
 }

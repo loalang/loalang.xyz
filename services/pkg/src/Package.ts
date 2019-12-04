@@ -14,4 +14,5 @@ export interface PackageVersion {
   publishedAt: DateTime;
   publisher: string;
   checksum: string;
+  dependencies: { [name: string]: SemVer };
 }

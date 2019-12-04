@@ -1,31 +1,40 @@
 import { SemVer, parse } from "semver";
+import Integer from "./Integer";
 
 // Each part of the version takes up 15 bits
-export const VERSION_PART_SIZE = 10;
+export const VERSION_PART_SIZE = Integer.fromInt(21);
 
 // 0000 0000 1111
-const PATCH_MASK = (1 << VERSION_PART_SIZE) - 1;
+const PATCH_MASK = Integer.fromInt(1)
+  .shiftLeft(VERSION_PART_SIZE)
+  .subtract(1);
 
 // 0000 1111 0000
-const MINOR_MASK = PATCH_MASK << VERSION_PART_SIZE;
+const MINOR_MASK = PATCH_MASK.shiftLeft(VERSION_PART_SIZE);
 
 // 1111 0000 0000
-const MAJOR_MASK = MINOR_MASK << VERSION_PART_SIZE;
+const MAJOR_MASK = MINOR_MASK.shiftLeft(VERSION_PART_SIZE);
 
 export function decode({
   version,
   prerelease
 }: {
-  version: number | null;
+  version: Integer | null;
   prerelease?: string | null | undefined;
 }): SemVer {
-  if (version == null || version === 0) {
+  if (version == null || version.isZero()) {
     return parse(`0.0.0${prerelease == null ? "" : `-${prerelease}`}`)!;
   }
 
-  const major = (MAJOR_MASK & version) >> (VERSION_PART_SIZE * 2);
-  const minor = (MINOR_MASK & version) >> (VERSION_PART_SIZE * 1);
-  const patch = (PATCH_MASK & version) >> (VERSION_PART_SIZE * 0);
+  const major = MAJOR_MASK.and(version).shiftRight(
+    VERSION_PART_SIZE.multiply(2)
+  );
+  const minor = MINOR_MASK.and(version).shiftRight(
+    VERSION_PART_SIZE.multiply(1)
+  );
+  const patch = PATCH_MASK.and(version).shiftRight(
+    VERSION_PART_SIZE.multiply(0)
+  );
 
   return parse(
     `${major}.${minor}.${patch}${prerelease == null ? "" : `-${prerelease}`}`
@@ -34,12 +43,18 @@ export function decode({
 
 export function encode(
   version: SemVer
-): { version: number; prerelease: string | null } {
-  const majorPart = version.major << (VERSION_PART_SIZE * 2);
-  const minorPart = version.minor << (VERSION_PART_SIZE * 1);
-  const patchPart = version.patch << (VERSION_PART_SIZE * 0);
+): { version: Integer; prerelease: string | null } {
+  const majorPart = Integer.fromInt(version.major).shiftLeft(
+    VERSION_PART_SIZE.multiply(2)
+  );
+  const minorPart = Integer.fromInt(version.minor).shiftLeft(
+    VERSION_PART_SIZE.multiply(1)
+  );
+  const patchPart = Integer.fromInt(version.patch).shiftLeft(
+    VERSION_PART_SIZE.multiply(0)
+  );
 
-  const versionNumber = majorPart | minorPart | patchPart;
+  const versionNumber = majorPart.or(minorPart).or(patchPart);
 
   return {
     version: versionNumber,
