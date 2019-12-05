@@ -17,7 +17,7 @@ export interface ResolvedVersion {
 }
 
 export default function resolvePackageConstraints(constraints: {
-  [name: string]: string;
+  [name: string]: string | null;
 }): Promise<ResolvedVersion[]> {
   return database.session(async session => {
     const deps = await session.query<{

@@ -71,7 +71,7 @@ export default class PackageManager {
   }
 
   async resolve(requests: {
-    [name: string]: string;
+    [name: string]: string | null;
   }): Promise<{ package: string; version: string }[]> {
     const response = await fetch(`${this._host}/resolve`, {
       method: "POST",

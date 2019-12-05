@@ -58,7 +58,7 @@ const server = http.createServer(async (req, res) => {
       }
     } else if ((match = /^POST \/resolve$/.exec(header))) {
       const resolved = await resolvePackageConstraints(
-        await parseJSON<{ [name: string]: string }>(req)
+        await parseJSON<{ [name: string]: string | null }>(req)
       );
 
       res.writeHead(200);

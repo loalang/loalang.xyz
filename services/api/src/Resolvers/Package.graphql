@@ -5,7 +5,7 @@ type Query {
 
 input RequestedPackage {
   name: String!
-  version: String!
+  version: String
 }
 
 type Package {

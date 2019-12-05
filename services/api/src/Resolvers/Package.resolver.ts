@@ -5,7 +5,7 @@ import { AuthenticationError } from "apollo-server";
 
 interface RequestedPackage {
   name: string;
-  version: string;
+  version: string | null;
 }
 
 export default {
@@ -25,7 +25,7 @@ export default {
     ): Promise<PackageVersion[]> {
       const resolved = await pkg.resolve(
         packages.reduce(
-          (pkgs: { [name: string]: string }, { name, version }) => {
+          (pkgs: { [name: string]: string | null }, { name, version }) => {
             pkgs[name] = version;
             return pkgs;
           },
