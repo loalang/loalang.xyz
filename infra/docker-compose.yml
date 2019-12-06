@@ -19,7 +19,8 @@ services:
     image: registry.gitlab.com/loalang/loalang.xyz/search:${SEARCH_TAG}
     environment:
       ALGOLIA_APPLICATION_ID: ${ALGOLIA_APPLICATION_ID}
-      ALGOLIA_READ_KEY: ${ALGOLIA_READ_KEY}
+      ALGOLIA_ADMIN_KEY: ${ALGOLIA_ADMIN_KEY}
+      AMQP_URL: ${AMQP_URL}
 
   pkg:
     image: registry.gitlab.com/loalang/loalang.xyz/pkg:${PKG_TAG}

@@ -1,6 +1,13 @@
 import Notifier from "./Notifier";
 import { connect } from "amqplib";
 
+export interface PackagePublishedEvent {
+  id: string;
+  name: string;
+  version: string;
+  url: string;
+}
+
 export default class AMQPNotifier implements Notifier {
   async notifyPackagePublished(
     id: string,
@@ -14,7 +21,9 @@ export default class AMQPNotifier implements Notifier {
     await channel.assertQueue("package-published");
     await channel.sendToQueue(
       "package-published",
-      Buffer.from(JSON.stringify({ id, name, version, url }))
+      Buffer.from(
+        JSON.stringify({ id, name, version, url } as PackagePublishedEvent)
+      )
     );
   }
 }

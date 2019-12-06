@@ -1,8 +1,11 @@
 import http from "http";
 import Search from "./Search";
 import AlgoliaSearch from "./AlgoliaSearch";
+import Queue from "./Queue";
+import AMQPQueue from "./AMQPQueue";
 
 const search: Search = AlgoliaSearch.create();
+const queue: Queue = AMQPQueue.create();
 
 const server = http.createServer(async (req, res) => {
   try {
@@ -35,6 +38,17 @@ const server = http.createServer(async (req, res) => {
   } finally {
     res.end();
   }
+});
+
+queue.onPackagePublished(event => {
+  search
+    .index({
+      __type: "PACKAGE",
+      name: event.name
+    })
+    .catch(e => {
+      console.error("Failed to ingest published package", event, e);
+    });
 });
 
 server.listen(80, "0.0.0.0", () => {

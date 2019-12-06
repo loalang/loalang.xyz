@@ -5,6 +5,7 @@
   },
   "devDependencies": {
     "@types/algoliasearch": "^3.34.5",
+    "@types/amqplib": "^0.5.13",
     "@types/node": "^12.12.8",
     "nodemon": "^2.0.0",
     "ts-node": "^8.5.2",
@@ -12,6 +13,7 @@
   },
   "dependencies": {
     "@elastic/elasticsearch": "^7.4.0",
-    "algoliasearch": "^3.35.1"
+    "algoliasearch": "^3.35.1",
+    "amqplib": "^0.5.5"
   }
 }

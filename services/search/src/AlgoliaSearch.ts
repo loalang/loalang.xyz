@@ -1,5 +1,5 @@
 import Search, { SearchResults, SearchResult } from "./Search";
-import algolia, { Client } from "algoliasearch";
+import algolia, { Client, Index } from "algoliasearch";
 
 type AlgoliaResult = SearchResult & {
   objectID: string;
@@ -9,17 +9,22 @@ type AlgoliaResult = SearchResult & {
 export default class AlgoliaSearch implements Search {
   private constructor(
     private readonly _client: Client,
-    private readonly _index: string
+    private readonly _index: Index
   ) {}
 
   static create() {
-    return new AlgoliaSearch(
-      algolia(
-        process.env.ALGOLIA_APPLICATION_ID || "",
-        process.env.ALGOLIA_READ_KEY || ""
-      ),
-      process.env.ALGOLIA_INDEX || ""
+    const client = algolia(
+      process.env.ALGOLIA_APPLICATION_ID || "",
+      process.env.ALGOLIA_ADMIN_KEY || ""
     );
+    return new AlgoliaSearch(
+      client,
+      client.initIndex(process.env.ALGOLIA_INDEX || "")
+    );
+  }
+
+  async index(...objects: SearchResult[]): Promise<void> {
+    await this._index.addObjects(objects);
   }
 
   async search(
@@ -38,7 +43,7 @@ export default class AlgoliaSearch implements Search {
       results: [response]
     } = await this._client.search<AlgoliaResult>([
       {
-        indexName: this._index,
+        indexName: this._index.indexName,
         params: {
           hitsPerPage: limit,
           page: offset / limit

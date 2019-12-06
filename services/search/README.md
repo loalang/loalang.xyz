@@ -6,7 +6,7 @@ The hosted internal Search service.
 
 - `ALGOLIA_APPLICATION_ID` – The ID of an Algolia application.
 - `ALGOLIA_INDEX` – The name of the index to use.
-- `ALGOLIA_READ_KEY` – An auth key giving permission to read from the index.
+- `ALGOLIA_ADMIN_KEY` – An auth key giving permission to read and write from the index.
 
 ## API
 

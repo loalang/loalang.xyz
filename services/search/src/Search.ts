@@ -4,6 +4,8 @@ export default interface Search {
     limit: number,
     offset: number
   ): Promise<SearchResults>;
+
+  index(...objects: SearchResult[]): Promise<void>;
 }
 
 export interface SearchResults {
