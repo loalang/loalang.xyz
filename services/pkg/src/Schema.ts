@@ -72,7 +72,7 @@ export type DEPENDS_ONEdge = Relationship<{
 }>;
 
 export function collectDependencies(
-  dependencies: [DEPENDS_ONEdge | null, PackageNode | null][],
+  dependencies: ([DEPENDS_ONEdge, PackageNode] | [null, null])[],
   { development: devDeps }: { development: boolean } = { development: false }
 ): { [name: string]: SemVer } {
   return dependencies

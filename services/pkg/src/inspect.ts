@@ -10,7 +10,6 @@ import {
   DEPENDS_ONEdge,
   collectDependencies
 } from "./Schema";
-import { SemVer } from "semver";
 
 export function inspectPackage(name: string): Promise<Package | null> {
   return database.session(async session => {
@@ -19,7 +18,7 @@ export function inspectPackage(name: string): Promise<Package | null> {
       release: ReleaseNode;
       published: PUBLISHEDEdge;
       publisher: PublisherNode;
-      dependencies: [DEPENDS_ONEdge, PackageNode][];
+      dependencies: ([DEPENDS_ONEdge, PackageNode] | [null, null])[];
     }>`
       MATCH
         (package:Package{ name: ${name} })-[:HAS]->(release:Release)<-[published:PUBLISHED]-(publisher:Publisher)
@@ -69,7 +68,7 @@ export function inspectPublisher(id: string): Promise<Publisher | null> {
       release: ReleaseNode;
       published: PUBLISHEDEdge;
       publisher: PublisherNode;
-      dependencies: [DEPENDS_ONEdge, PackageNode][];
+      dependencies: ([DEPENDS_ONEdge, PackageNode] | [null, null])[];
     }>`
       MATCH (publisher:Publisher{ id: ${id} })-[published:PUBLISHED]->(release:Release)<-[:HAS]-(package:Package)
       OPTIONAL MATCH (release)-[dep:DEPENDS_ON]-(dependency:Package)
@@ -109,7 +108,7 @@ export function inspectPublisher(id: string): Promise<Publisher | null> {
                 })
               });
 
-              packages.set(id, pkg);
+              packages.set(p.properties.id, pkg);
               return packages;
             },
             new Map<string, Package>()
