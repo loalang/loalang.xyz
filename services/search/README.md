@@ -7,6 +7,7 @@ The hosted internal Search service.
 - `ALGOLIA_APPLICATION_ID` – The ID of an Algolia application.
 - `ALGOLIA_INDEX` – The name of the index to use.
 - `ALGOLIA_ADMIN_KEY` – An auth key giving permission to read and write from the index.
+- `AMQP_URL` – The URL for the messaging queue.
 
 ## API
 

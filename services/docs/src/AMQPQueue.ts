@@ -8,13 +8,15 @@ export default class AMQPQueue implements Queue {
     return new AMQPQueue(connect(process.env.AMQP_URL || ""));
   }
 
-  async onPackagePublished(cb: (event: PackagePublishedEvent) => void) {
+  async onPackagePublished(
+    cb: (event: PackagePublishedEvent) => Promise<void> | void
+  ) {
     const connection = await this._connecting;
     const channel = await connection.createChannel();
-    await channel.assertQueue("package-published->search");
-    await channel.consume("package-published->search", msg => {
+    await channel.assertQueue("package-published->docs");
+    await channel.consume("package-published->docs", async msg => {
       if (msg != null) {
-        cb(JSON.parse(msg.content.toString("utf-8")));
+        await cb(JSON.parse(msg.content.toString("utf-8")));
         channel.ack(msg);
       }
     });

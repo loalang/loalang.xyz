@@ -4,7 +4,6 @@
     "start": "nodemon --watch 'src/**/*.ts' --ignore 'src/**/*.test.ts' --exec 'ts-node' src/index.ts"
   },
   "devDependencies": {
-    "@types/algoliasearch": "^3.34.5",
     "@types/amqplib": "^0.5.13",
     "@types/node": "^12.12.8",
     "nodemon": "^2.0.0",
@@ -12,7 +11,7 @@
     "typescript": "^3.7.2"
   },
   "dependencies": {
-    "algoliasearch": "^3.35.1",
-    "amqplib": "^0.5.5"
+    "amqplib": "^0.5.5",
+    "async-redis": "^1.1.7"
   }
 }

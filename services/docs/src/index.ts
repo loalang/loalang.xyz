@@ -1,11 +1,13 @@
 import http from "http";
-import Search from "./Search";
-import AlgoliaSearch from "./AlgoliaSearch";
 import Queue from "./Queue";
 import AMQPQueue from "./AMQPQueue";
+import { Database } from "./Database";
+import { RedisDatabase } from "./RedisDatabase";
+import IngestPackage from "./IngestPackage";
 
-const search: Search = AlgoliaSearch.create();
 const queue: Queue = AMQPQueue.create();
+const database: Database = RedisDatabase.create();
+const ingest = new IngestPackage(database);
 
 const server = http.createServer(async (req, res) => {
   try {
@@ -17,14 +19,12 @@ const server = http.createServer(async (req, res) => {
         res.write(JSON.stringify({ message: "OK" }));
         break;
 
-      case "GET /search":
-        const term = url.searchParams.get("term");
-        const limit = Number(url.searchParams.get("limit") || 10);
-        const offset = Number(url.searchParams.get("offset") || 0);
-        const result = await search.search(term, limit, offset);
+      case "GET /root-namespaces": {
+        const namespaces = await database.rootNamespaces();
         res.writeHead(200);
-        res.write(JSON.stringify(result));
+        res.write(JSON.stringify({ message: "OK", namespaces }));
         break;
+      }
 
       default:
         res.writeHead(404);
@@ -42,10 +42,7 @@ const server = http.createServer(async (req, res) => {
 
 queue.onPackagePublished(async event => {
   try {
-    search.index({
-      __type: "PACKAGE",
-      name: event.name
-    });
+    await ingest.ingest(event);
   } catch (e) {
     console.error("Failed to ingest published package", event, e);
   }

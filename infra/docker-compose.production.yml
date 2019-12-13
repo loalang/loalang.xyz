@@ -30,3 +30,9 @@ services:
       NEO4J_USER: ${NEO4J_USER}
       NEO4J_PASS: ${NEO4J_PASS}
       GOOGLE_APPLICATION_CREDENTIALS: /etc/google/credentials.json
+
+  docs:
+    environment:
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_PASS: ${REDIS_PASS}

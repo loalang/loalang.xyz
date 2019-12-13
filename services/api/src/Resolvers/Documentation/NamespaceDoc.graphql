@@ -1,0 +1,9 @@
+type Query {
+  rootNamespaces: [NamespaceDoc!]!
+}
+
+type NamespaceDoc {
+  name: String!
+  subNamespaces: [NamespaceDoc!]!
+  classes: [ClassDoc!]!
+}

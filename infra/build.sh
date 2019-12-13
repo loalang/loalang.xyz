@@ -41,6 +41,7 @@ build() {
     }
 }
 
+build docs
 build auth
 build pkg
 build search

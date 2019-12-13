@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@loalang/docs": "^0.0.2",
+    "@loalang/ui-toolbox": "^0.0.7",
     "@reach/router": "^1.2.1",
     "apollo-cache-inmemory": "^1.6.3",
     "apollo-client": "^2.6.4",

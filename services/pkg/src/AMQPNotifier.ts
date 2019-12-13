@@ -18,12 +18,12 @@ export default class AMQPNotifier implements Notifier {
     const channel = await (
       await connect(process.env.AMQP_URL || "")
     ).createChannel();
-    await channel.assertQueue("package-published");
-    await channel.sendToQueue(
-      "package-published",
-      Buffer.from(
-        JSON.stringify({ id, name, version, url } as PackagePublishedEvent)
-      )
+    await channel.assertQueue("package-published->search");
+    await channel.assertQueue("package-published->docs");
+    const buffer = Buffer.from(
+      JSON.stringify({ id, name, version, url } as PackagePublishedEvent)
     );
+    await channel.sendToQueue("package-published->search", buffer);
+    await channel.sendToQueue("package-published->docs", buffer);
   }
 }

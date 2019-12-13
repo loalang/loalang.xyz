@@ -9,6 +9,7 @@ services:
       AUTH_HOST: http://auth
       PKG_HOST: http://pkg
       SEARCH_HOST: http://search
+      DOCS_HOST: http://docs
 
   auth:
     image: registry.gitlab.com/loalang/loalang.xyz/auth:${AUTH_TAG}
@@ -24,5 +25,10 @@ services:
 
   pkg:
     image: registry.gitlab.com/loalang/loalang.xyz/pkg:${PKG_TAG}
+    environment:
+      AMQP_URL: ${AMQP_URL}
+
+  docs:
+    image: registry.gitlab.com/loalang/loalang.xyz/docs:${DOCS_TAG}
     environment:
       AMQP_URL: ${AMQP_URL}
