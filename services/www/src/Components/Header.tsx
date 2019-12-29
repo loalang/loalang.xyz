@@ -1,126 +1,184 @@
-import "styled-components/macro";
-import React, { ReactNode, useContext } from "react";
-import SafeArea from "./SafeArea";
-import Menu from "./Menu";
-import { TopNavigationContext } from "./TopNavigation";
+import React, { useState } from "react";
 import Helmet from "react-helmet";
-import useMediaQuery from "./useMediaQuery";
-import Search from "./Search";
+import { SafeArea } from "@loalang/ui-toolbox/SafeArea";
+import { Logo } from "@loalang/ui-toolbox/Icons/Logo";
+import { Search } from "@loalang/ui-toolbox/Search/Search";
+import { ItemHeading } from "@loalang/ui-toolbox/Typography/TextStyle/ItemHeading";
+import { useMediaQuery } from "@loalang/ui-toolbox/useMediaQuery";
+import { css } from "emotion";
+import useSearch from "../Hooks/useSearch";
+import { Icon } from "@loalang/ui-toolbox/Icons/Icon";
+import { Link, useRouteMatch } from "react-router-dom";
 
-const HEIGHT = 45;
-const Z_INDEX = 10;
+const NAV_ITEMS = [
+  {
+    name: "Docs",
+    path: "/docs",
+    icon: Icon.FileText
+  },
+  {
+    name: "Profile",
+    path: "/me",
+    icon: Icon.Person
+  },
+  {
+    name: "Learn",
+    path: "/learn",
+    icon: Icon.Edit
+  },
+  {
+    name: "Notebooks",
+    path: "/notebooks",
+    icon: Icon.Code
+  }
+];
 
-export function PageTitle({ children: name }: { children: string }) {
-  const isInline = useMediaQuery("(min-width: 500px)");
+export function Header({ children }: { children?: string }) {
+  const isWide = useMediaQuery("(min-width: 500px)");
+  const { path: currentPath } = useRouteMatch();
 
   return (
-    <>
+    <header
+      className={css`
+        position: sticky;
+        top: 0px;
+      `}
+    >
       <Helmet>
-        <title>{name} | Loa Programming Language</title>
+        <title>
+          {children != null
+            ? `${children} | Loa Programming Language`
+            : "Loa Programming Language"}
+        </title>
       </Helmet>
 
-      {isInline ? (
-        <h1
-          css={`
-            font-weight: bold;
-            font-size: 24px;
-            line-height: 1.1;
-          `}
-        >
-          {name}
-        </h1>
-      ) : (
-        <div
-          css={`
-            position: fixed;
-            top: env(safe-area-inset-top);
-            left: 50px;
-            width: calc(100% - 100px);
-            height: ${HEIGHT}px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            color: #fff;
-            z-index: ${Z_INDEX + 1};
-          `}
-        >
-          <h1
-            css={`
-              text-overflow: ellipsis;
-              white-space: nowrap;
-              overflow: hidden;
-              line-height: 1.3;
-            `}
-          >
-            {name}
-          </h1>
-        </div>
-      )}
-    </>
-  );
-}
-
-export default function Header() {
-  const topNavigation = useContext(TopNavigationContext);
-  if (topNavigation == null) {
-    throw new Error("The header is only valid within a TopNavigationContext");
-  }
-  return (
-    <>
-      <ContentWrapper />
-
-      <header
-        css={`
+      <div
+        className={css`
           background: #1111ff;
-          color: #fff;
-          position: fixed;
-          top: 0;
-          width: 100%;
-          z-index: ${Z_INDEX};
+          padding: ${isWide ? 10 : 9}px;
+          position: relative;
         `}
       >
-        <ContentWrapper>
+        <SafeArea top left right>
           <div
-            css={`
-              padding: 7px 10px;
-              height: 100%;
-              box-sizing: border-box;
+            className={css`
               display: flex;
+              align-items: center;
+              margin: 0 -6px;
+
+              & > * {
+                margin: 0 6px;
+              }
             `}
           >
             <div
-              css={`
-                flex: 1;
-              `}
-            >
-              <Menu items={topNavigation.menuItems} />
-            </div>
-            <div
-              css={`
+              className={css`
                 display: flex;
                 align-items: center;
+                color: #fff;
               `}
             >
-              <Search />
+              <Link to="/">
+                <Logo size={isWide ? 36 : 27} />
+              </Link>
+
+              {isWide && (
+                <span
+                  className={css`
+                    margin-left: 6px;
+                  `}
+                >
+                  <ItemHeading>Loa</ItemHeading>
+                </span>
+              )}
             </div>
+
+            <GlobalSearch />
           </div>
-        </ContentWrapper>
-      </header>
-    </>
+        </SafeArea>
+      </div>
+
+      <div
+        className={css`
+          background: #fff;
+          padding: 7px ${isWide ? 10 : 9}px;
+          box-shadow: 0px -75px 190px rgba(0, 0, 0, 0.2),
+            0px 2px 7px rgba(0, 0, 0, 0.08);
+
+          white-space: nowrap;
+          overflow-x: auto;
+          -ms-overflow-style: none;
+          &::-webkit-scrollbar {
+            display: none;
+          }
+        `}
+      >
+        <SafeArea left right>
+          {NAV_ITEMS.map(({ name, path, icon: Icon }) => (
+            <Link key={name} to={path}>
+              <div
+                className={css`
+                  display: inline-flex;
+                  align-items: center;
+                  font-size: 21px;
+                  color: ${currentPath !== "/" && path.startsWith(currentPath)
+                    ? "#1111ff"
+                    : "#000"};
+
+                  & > span {
+                    margin-left: 3px;
+                    margin-right: 9px;
+                    font-size: 14px;
+                    font-weight: bold;
+                  }
+                `}
+              >
+                <Icon />
+                <span>{name}</span>
+              </div>
+            </Link>
+          ))}
+        </SafeArea>
+      </div>
+    </header>
   );
 }
 
-function ContentWrapper({ children }: { children?: ReactNode }) {
+function GlobalSearch() {
+  const [term, setTerm] = useState("");
+  const { results } = useSearch(term);
+
   return (
-    <SafeArea top left right>
-      <div
-        css={`
-          height: ${HEIGHT}px;
-        `}
-      >
-        {children}
-      </div>
-    </SafeArea>
+    <div
+      className={css`
+        flex: 0 1 400px;
+      `}
+    >
+      <Search
+        term={term}
+        onChange={setTerm}
+        onClick={console.log.bind(console)}
+        results={results.map(result => {
+          switch (result.__typename) {
+            case "ClassDoc":
+              return {
+                id: result.qualifiedName,
+                name: result.qualifiedName
+              };
+
+            case "Package":
+              return {
+                id: result.name,
+                name: result.name
+              };
+
+            default:
+              throw new Error("Unknown search result!");
+          }
+        })}
+        translucent
+        placeholder="Search for anything..."
+      />
+    </div>
   );
 }

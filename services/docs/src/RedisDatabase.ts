@@ -1,6 +1,6 @@
 /// <reference path="./async-redis.d.ts" />
 
-import { Database, Doc } from "./Database";
+import { Database, Doc, ClassDoc } from "./Database";
 import { Client, createClient } from "async-redis";
 
 export class RedisDatabase implements Database {
@@ -32,7 +32,15 @@ export class RedisDatabase implements Database {
     );
   }
 
-  async save(qualifiedName: string, doc: Doc) {
+  async saveClass(qualifiedName: string, doc: ClassDoc) {
     await this._client.set(`docs::${qualifiedName}`, JSON.stringify(doc));
+  }
+
+  async describe(qualifiedName: string): Promise<Doc | null> {
+    const doc = await this._client.get(`docs::${qualifiedName}`);
+    if (doc == null) {
+      return null;
+    }
+    return JSON.parse(doc);
   }
 }

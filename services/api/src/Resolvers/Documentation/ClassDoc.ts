@@ -1,4 +1,8 @@
 export default abstract class ClassDoc {
-  abstract simpleName(): string;
-  abstract qualifiedName(): string;
+  abstract name(): QualifiedNameDoc;
+}
+
+export interface QualifiedNameDoc {
+  name: string;
+  namespace: string | null;
 }

@@ -1,12 +1,14 @@
 import React from "react";
-import { PageTitle } from "../Components/Header";
+import { Header } from "../Components/Header";
+import { SafeArea } from "@loalang/ui-toolbox/SafeArea";
 
-export default function HomeView() {
+export function HomeView() {
   return (
     <>
-      <PageTitle>Home</PageTitle>
-      Home!
-      <div style={{ height: 3000 }}></div>
+      <Header />
+      <SafeArea left right bottom>
+        Home
+      </SafeArea>
     </>
   );
 }

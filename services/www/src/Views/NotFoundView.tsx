@@ -2,12 +2,12 @@ import React from "react";
 import { Header } from "../Components/Header";
 import { SafeArea } from "@loalang/ui-toolbox/SafeArea";
 
-export function DocsView() {
+export function NotFoundView() {
   return (
     <>
-      <Header>Docs</Header>
+      <Header>Not Found</Header>
       <SafeArea left right bottom>
-        Docs
+        Not Found
       </SafeArea>
     </>
   );

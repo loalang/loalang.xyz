@@ -39,6 +39,8 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASS: <<database-password>>
       PASSWORD_HASH_SALT: <<salt>>
+    depends_on:
+      - postgres
 
   search:
     image: gitlab.com/loalang/loalang.xyz/search-builder
@@ -69,6 +71,8 @@ services:
       NEO4J_USER: neo4j
       NEO4J_PASS: neo4j
       GOOGLE_APPLICATION_CREDENTIALS: /mnt/credentials.json
+    depends_on:
+      - neo4j
 
   docs:
     image: gitlab.com/loalang/loalang.xyz/docs-builder
@@ -84,6 +88,8 @@ services:
       REDIS_PASS: null
       REDIS_HOST: redis
       REDIS_PORT: 6379
+    depends_on:
+      - redis
 
   postgres:
     image: postgres:12-alpine

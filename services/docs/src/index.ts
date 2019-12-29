@@ -1,7 +1,7 @@
 import http from "http";
 import Queue from "./Queue";
 import AMQPQueue from "./AMQPQueue";
-import { Database } from "./Database";
+import { Database, Doc } from "./Database";
 import { RedisDatabase } from "./RedisDatabase";
 import IngestPackage from "./IngestPackage";
 
@@ -13,23 +13,27 @@ const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(`http://incoming${req.url}`);
     res.setHeader("Content-Type", "application/json");
-    switch (`${req.method} ${url.pathname}`) {
-      case "GET /healthz":
-        res.writeHead(200);
-        res.write(JSON.stringify({ message: "OK" }));
-        break;
-
-      case "GET /root-namespaces": {
-        const namespaces = await database.rootNamespaces();
-        res.writeHead(200);
-        res.write(JSON.stringify({ message: "OK", namespaces }));
-        break;
-      }
-
-      default:
+    const p = `${req.method} ${url.pathname}`;
+    let m: RegExpMatchArray | null;
+    if (p === "GET /healthz") {
+      res.writeHead(200);
+      res.write(JSON.stringify({ message: "OK" }));
+    } else if (p === "GET /root-namespaces") {
+      const namespaces = await database.rootNamespaces();
+      res.writeHead(200);
+      res.write(JSON.stringify({ message: "OK", namespaces }));
+    } else if ((m = /^GET \/describe\/(.*)$/.exec(p))) {
+      const doc = await database.describe(m[1]);
+      if (doc == null) {
         res.writeHead(404);
         res.write(JSON.stringify({ message: "Not Found" }));
-        break;
+      } else {
+        res.writeHead(200);
+        res.write(JSON.stringify({ message: "OK", doc }));
+      }
+    } else {
+      res.writeHead(404);
+      res.write(JSON.stringify({ message: "Not Found" }));
     }
   } catch (e) {
     console.error(e);

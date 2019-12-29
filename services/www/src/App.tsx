@@ -7,6 +7,8 @@ import {
   InMemoryCache,
   IntrospectionFragmentMatcher
 } from "apollo-cache-inmemory";
+import { Reset } from "@loalang/ui-toolbox/Reset";
+import { BrowserRouter } from "react-router-dom";
 
 const client = new ApolloClient({
   link: new HttpLink({
@@ -39,9 +41,13 @@ const client = new ApolloClient({
 
 export default function App() {
   return (
-    <ApolloProvider client={client}>
-      <RootView />
-    </ApolloProvider>
+    <Reset>
+      <BrowserRouter>
+        <ApolloProvider client={client}>
+          <RootView />
+        </ApolloProvider>
+      </BrowserRouter>
+    </Reset>
   );
 }
 

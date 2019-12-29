@@ -1,4 +1,8 @@
 type ClassDoc {
-  qualifiedName: String!
-  simpleName: String!
+  name: QualifiedNameDoc!
+}
+
+type QualifiedNameDoc {
+  name: String!
+  namespace: String
 }
