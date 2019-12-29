@@ -1,4 +1,6 @@
-import ClassDoc from "../Resolvers/Documentation/ClassDoc";
+import ClassDoc, {
+  QualifiedNameDoc
+} from "../Resolvers/Documentation/ClassDoc";
 
 export default class SearchClassDoc extends ClassDoc {
   readonly _qualifiedName: string;
@@ -17,11 +19,13 @@ export default class SearchClassDoc extends ClassDoc {
     this._qualifiedName = qualifiedName;
   }
 
-  simpleName(): string {
-    return this._simpleName;
-  }
-
-  qualifiedName(): string {
-    return this._qualifiedName;
+  name(): QualifiedNameDoc {
+    return {
+      name: this._simpleName,
+      namespace: this._qualifiedName
+        .split("/")
+        .slice(0, -1)
+        .join("/")
+    };
   }
 }
