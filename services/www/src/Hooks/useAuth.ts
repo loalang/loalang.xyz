@@ -19,6 +19,12 @@ const LOGIN_MUTATION = gql`
   ${USER_FRAGMENT}
 `;
 
+const LOGOUT_MUTATION = gql`
+  mutation Logout {
+    logout
+  }
+`;
+
 const REGISTER_MUTATION = gql`
   mutation Register($email: String!, $password: String!) {
     register(email: $email, password: $password) {
@@ -51,6 +57,13 @@ export function useUser(): { isLoading: boolean; user: User | null } {
     isLoading: loading,
     user: data == null ? null : data.me
   };
+}
+
+export function useLogout(): () => void {
+  const [logout] = useMutation(LOGOUT_MUTATION, {
+    onCompleted: () => window.location.reload()
+  });
+  return () => logout();
 }
 
 export function useLogin(): [

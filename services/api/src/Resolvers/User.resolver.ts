@@ -23,6 +23,7 @@ export default {
       }
       return null;
     },
+
     async login(
       _: any,
       { email, password }: { email: string; password: string },
@@ -33,6 +34,11 @@ export default {
         return user;
       }
       return null;
+    },
+
+    async logout(_: any, {}: {}, { auth }: Context) {
+      await auth.logout();
+      return "OK";
     }
   }
 };

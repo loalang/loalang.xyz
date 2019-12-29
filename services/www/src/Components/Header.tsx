@@ -7,7 +7,13 @@ import { useMediaQuery } from "@loalang/ui-toolbox/useMediaQuery";
 import { useOnClickOutside } from "@loalang/ui-toolbox/useOnClickOutside";
 import { css } from "emotion";
 import useSearch from "../Hooks/useSearch";
-import { useLogin, useRegister, useUser } from "../Hooks/useAuth";
+import {
+  useLogin,
+  useRegister,
+  useUser,
+  User,
+  useLogout
+} from "../Hooks/useAuth";
 import { Icon } from "@loalang/ui-toolbox/Icons/Icon";
 import { Link, useRouteMatch } from "react-router-dom";
 import { EmailInput } from "@loalang/ui-toolbox/Forms/EmailInput";
@@ -305,11 +311,14 @@ function GlobalSearch() {
 
 function ProfileMenu() {
   const isWide = useMediaQuery("(min-width: 680px)");
+  const isSuperWide = useMediaQuery("(min-width: 1200px)");
   const { isLoading, user } = useUser();
   const [isOpen, setIsOpen] = useState(false);
   const [containerRef] = useOnClickOutside(() => setIsOpen(false));
 
   const size = isWide ? 34 : 25;
+
+  const color = user == null ? "black" : generateColor(user.email);
 
   return (
     <div
@@ -322,37 +331,65 @@ function ProfileMenu() {
         disabled={isLoading}
         onClick={() => setIsOpen(!isOpen)}
         className={css`
-          display: block;
-          border-radius: 50%;
-          width: ${size}px;
-          height: ${size}px;
-          background: #637bff;
-          color: rgba(0, 0, 214, 0.5);
-          display: inline-flex;
+          display: flex;
           align-items: center;
-          justify-content: center;
-          font-size: ${size * 1.1}px;
-          overflow: hidden;
-          border: 2px solid #fff;
-          box-sizing: border-box;
-          cursor: pointer;
-
-          & > * {
-            background: transparent;
-          }
         `}
       >
-        {isLoading ? null : user != null ? (
-          user.email[0].toUpperCase()
-        ) : (
-          <div
+        {isSuperWide && user != null && (
+          <span
             className={css`
-              margin-top: -2px;
+              color: #fff;
+              font-weight: bold;
+              font-size: 14px;
+              margin-right: 10px;
             `}
           >
-            <Icon.Person filled />
-          </div>
+            {user.email}
+          </span>
         )}
+
+        <div
+          className={css`
+            display: block;
+            border-radius: 50%;
+            width: ${size}px;
+            height: ${size}px;
+            background: ${user != null ? color : "#637bff"};
+            color: rgba(0, 0, 214, 0.5);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            box-sizing: border-box;
+            cursor: pointer;
+
+            & > * {
+              background: transparent;
+            }
+          `}
+        >
+          {isLoading ? null : user != null ? (
+            <div
+              className={css`
+                font-size: ${size * 0.7}px;
+                font-weight: bold;
+                color: ${color};
+                filter: invert(1) grayscale(1) contrast(10);
+              `}
+            >
+              {user.email[0].toUpperCase()}
+            </div>
+          ) : (
+            <div
+              className={css`
+                margin-top: -2px;
+                font-size: ${size * 1.1}px;
+              `}
+            >
+              <Icon.Person filled />
+            </div>
+          )}
+        </div>
       </button>
 
       {isOpen && (
@@ -370,11 +407,22 @@ function ProfileMenu() {
             background: #f9f9f9;
           `}
         >
-          {user == null ? <LoginForm /> : <div>Logged in as {user.email}</div>}
+          {user == null ? <LoginForm /> : <ProfileActions user={user} />}
         </div>
       )}
     </div>
   );
+}
+
+const PALETTE = ["#75ca68", "#6bb3de", "#cf8ce4", "#bf3560", "#e4d828"];
+
+function generateColor(string: string): string {
+  let hash = 17;
+  for (const letter of string) {
+    hash *= letter.charCodeAt(0);
+    hash *= 11;
+  }
+  return PALETTE[hash % PALETTE.length];
 }
 
 function LoginForm() {
@@ -541,5 +589,15 @@ function LinkButton({
     >
       {children}
     </button>
+  );
+}
+
+function ProfileActions({ user }: { user: User }) {
+  const logout = useLogout();
+
+  return (
+    <div>
+      <button onClick={logout}>Log out</button>
+    </div>
   );
 }

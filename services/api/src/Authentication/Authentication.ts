@@ -67,6 +67,10 @@ export default class Authentication {
     return this._getUser(token);
   }
 
+  async logout(): Promise<void> {
+    this._cookies.set(COOKIE_KEY, "", { maxAge: -THIRTY_DAYS });
+  }
+
   private async _getUser(token: string): Promise<LoggedInUser | null> {
     const whoisResponse = await fetch(`${AUTH_HOST}/whois`, {
       headers: {
