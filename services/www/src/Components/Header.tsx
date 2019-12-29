@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Helmet from "react-helmet";
 import { SafeArea } from "@loalang/ui-toolbox/SafeArea";
 import { Logo } from "@loalang/ui-toolbox/Icons/Logo";
@@ -35,7 +35,7 @@ const NAV_ITEMS = [
 
 export function Header({ children }: { children?: string }) {
   const isWide = useMediaQuery("(min-width: 500px)");
-  const { path: currentPath } = useRouteMatch();
+  const isInstalled = Boolean((navigator as any).standalone);
 
   return (
     <header
@@ -98,49 +98,118 @@ export function Header({ children }: { children?: string }) {
         </SafeArea>
       </div>
 
-      <div
-        className={css`
-          background: #fff;
-          padding: 7px ${isWide ? 10 : 9}px;
-          box-shadow: 0px -75px 190px rgba(0, 0, 0, 0.2),
-            0px 2px 7px rgba(0, 0, 0, 0.08);
-
-          white-space: nowrap;
-          overflow-x: auto;
-          -ms-overflow-style: none;
-          &::-webkit-scrollbar {
-            display: none;
-          }
-        `}
-      >
-        <SafeArea left right>
-          {NAV_ITEMS.map(({ name, path, icon: Icon }) => (
-            <Link key={name} to={path}>
-              <div
-                className={css`
-                  display: inline-flex;
-                  align-items: center;
-                  font-size: 21px;
-                  color: ${currentPath !== "/" && path.startsWith(currentPath)
-                    ? "#1111ff"
-                    : "#000"};
-
-                  & > span {
-                    margin-left: 3px;
-                    margin-right: 9px;
-                    font-size: 14px;
-                    font-weight: bold;
-                  }
-                `}
-              >
-                <Icon />
-                <span>{name}</span>
-              </div>
-            </Link>
-          ))}
-        </SafeArea>
-      </div>
+      {!isWide && (isInstalled ? <NativeMobileMenu /> : <WebMobileMenu />)}
     </header>
+  );
+}
+
+function NativeMobileMenu() {
+  const { path: currentPath } = useRouteMatch();
+
+  useEffect(() => {
+    document.body.style.marginBottom = "52px";
+    return () => {
+      document.body.style.marginBottom = "0px";
+    };
+  }, []);
+
+  return (
+    <div
+      className={css`
+        background: #fff;
+        padding: 7px 9px;
+        box-shadow: 0px 75px 190px rgba(0, 0, 0, 0.2),
+          0px -2px 7px rgba(0, 0, 0, 0.08);
+
+        position: fixed;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+
+        white-space: nowrap;
+        overflow-x: auto;
+        -ms-overflow-style: none;
+        &::-webkit-scrollbar {
+          display: none;
+        }
+      `}
+    >
+      <SafeArea left right bottom>
+        {NAV_ITEMS.map(({ name, path, icon: Icon }) => (
+          <Link key={name} to={path}>
+            <div
+              className={css`
+                display: inline-flex;
+                align-items: center;
+                font-size: 21px;
+                color: ${currentPath !== "/" && path.startsWith(currentPath)
+                  ? "#1111ff"
+                  : "#000"};
+
+                & > span {
+                  margin-left: 3px;
+                  margin-right: 9px;
+                  font-size: 14px;
+                  font-weight: bold;
+                }
+              `}
+            >
+              <Icon />
+              <span>{name}</span>
+            </div>
+          </Link>
+        ))}
+      </SafeArea>
+    </div>
+  );
+}
+
+function WebMobileMenu() {
+  const { path: currentPath } = useRouteMatch();
+
+  return (
+    <div
+      className={css`
+        background: #fff;
+        padding: 7px 9px;
+        box-shadow: 0px -75px 190px rgba(0, 0, 0, 0.2),
+          0px 2px 7px rgba(0, 0, 0, 0.08);
+
+        white-space: nowrap;
+        overflow-x: auto;
+        -ms-overflow-style: none;
+        &::-webkit-scrollbar {
+          display: none;
+        }
+      `}
+    >
+      <SafeArea left right>
+        {NAV_ITEMS.map(({ name, path, icon: Icon }) => (
+          <Link key={name} to={path}>
+            <div
+              className={css`
+                display: inline-flex;
+                align-items: center;
+                font-size: 21px;
+                color: ${currentPath !== "/" && path.startsWith(currentPath)
+                  ? "#1111ff"
+                  : "#000"};
+
+                & > span {
+                  margin-left: 3px;
+                  margin-right: 9px;
+                  font-size: 14px;
+                  font-weight: bold;
+                }
+              `}
+            >
+              <Icon />
+              <span>{name}</span>
+            </div>
+          </Link>
+        ))}
+      </SafeArea>
+    </div>
   );
 }
 
@@ -160,16 +229,18 @@ function GlobalSearch() {
         onClick={console.log.bind(console)}
         results={results.map(result => {
           switch (result.__typename) {
-            case "ClassDoc":
+            case "ClassDoc": {
+              const qualifiedName = `${result.name.namespace}/${result.name.name}`;
               return {
-                id: result.qualifiedName,
-                name: result.qualifiedName
+                id: qualifiedName,
+                name: qualifiedName
               };
+            }
 
             case "Package":
               return {
-                id: result.name,
-                name: result.name
+                id: result.packageName,
+                name: result.packageName
               };
 
             default:

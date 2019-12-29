@@ -1312,6 +1312,13 @@
   dependencies:
     emotion "^10.0.23"
 
+"@loalang/ui-toolbox@^0.1.1":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@loalang/ui-toolbox/-/ui-toolbox-0.1.1.tgz#f26fe832a9704b0a9cc548e8a90ab817972a4592"
+  integrity sha512-AEax4aVErTBVUOoznHbzH2vdt/NWIeUQcQJWtZJDqZqK7YVcb/neB7Qxx/JJVkzXFiCYPaTfEG+fuTXfetQfVQ==
+  dependencies:
+    emotion "^10.0.23"
+
 "@mrmlnc/readdir-enhanced@^2.2.1":
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/@mrmlnc/readdir-enhanced/-/readdir-enhanced-2.2.1.tgz#524af240d1a360527b730475ecfa1344aa540dde"

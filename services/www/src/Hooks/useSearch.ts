@@ -8,11 +8,13 @@ const SEARCH_PACKAGES_QUERY = gql`
       results {
         __typename
         ... on Package {
-          name
+          packageName: name
         }
         ... on ClassDoc {
-          simpleName
-          qualifiedName
+          name {
+            name
+            namespace
+          }
         }
       }
     }
@@ -22,12 +24,14 @@ const SEARCH_PACKAGES_QUERY = gql`
 export type SearchResult =
   | {
       __typename: "Package";
-      name: string;
+      packageName: string;
     }
   | {
       __typename: "ClassDoc";
-      simpleName: string;
-      qualifiedName: string;
+      name: {
+        name: string;
+        namespace: string | null;
+      };
     };
 
 export default function useSearch(
