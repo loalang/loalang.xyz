@@ -1312,10 +1312,10 @@
   dependencies:
     emotion "^10.0.23"
 
-"@loalang/ui-toolbox@^0.1.1":
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/@loalang/ui-toolbox/-/ui-toolbox-0.1.1.tgz#f26fe832a9704b0a9cc548e8a90ab817972a4592"
-  integrity sha512-AEax4aVErTBVUOoznHbzH2vdt/NWIeUQcQJWtZJDqZqK7YVcb/neB7Qxx/JJVkzXFiCYPaTfEG+fuTXfetQfVQ==
+"@loalang/ui-toolbox@^0.1.2":
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/@loalang/ui-toolbox/-/ui-toolbox-0.1.2.tgz#15f8f561d2c535b919a3421626d2282a79ce7323"
+  integrity sha512-XfAveRBrrue3Ly/6YJOX1IynQ4Ga/g7ej5KjkmGnKKToJKt5FCXCKXi1Tfx7Zr2LU1Mz1+W+EfBI+O7VyVUloA==
   dependencies:
     emotion "^10.0.23"
 
