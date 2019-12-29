@@ -382,7 +382,7 @@ function ProfileMenu() {
           ) : (
             <div
               className={css`
-                margin-top: -2px;
+                margin-top: 2px;
                 font-size: ${size * 1.1}px;
               `}
             >
@@ -407,7 +407,11 @@ function ProfileMenu() {
             background: #f9f9f9;
           `}
         >
-          {user == null ? <LoginForm /> : <ProfileActions user={user} />}
+          {user == null ? (
+            <LoginForm />
+          ) : (
+            <ProfileActions user={user} onClickItem={() => setIsOpen(false)} />
+          )}
         </div>
       )}
     </div>
@@ -524,6 +528,11 @@ function LoginForm() {
           `}
         >
           <Basic>
+            {failedLogin && "Login failed. Please check your credentials. "}
+
+            {failedRegistration &&
+              "Registration failed. Maybe an account is already registered for this email address, or your password might be too weak. "}
+
             {intent === "login" && (
               <>
                 Don't have an account?{" "}
@@ -592,12 +601,52 @@ function LinkButton({
   );
 }
 
-function ProfileActions({ user }: { user: User }) {
+function ProfileActions({
+  user,
+  onClickItem
+}: {
+  user: User;
+  onClickItem: () => void;
+}) {
   const logout = useLogout();
 
+  const profileActionStyle = css`
+    display: block;
+    padding: 7px 9px;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+
+    &:not(:first-child) {
+      border-top: 1px solid #eaeaea;
+    }
+
+    &:focus {
+      outline: 0;
+      color: #fff;
+      background: #1111ff;
+    }
+  `;
+
   return (
-    <div>
-      <button onClick={logout}>Log out</button>
+    <div
+      className={css`
+        width: 200px;
+      `}
+    >
+      <button
+        className={profileActionStyle}
+        onClick={() => {
+          logout();
+          onClickItem();
+        }}
+      >
+        <Icon.LogOut /> Log out
+      </button>
+
+      <Link onClick={onClickItem} className={profileActionStyle} to="/me">
+        <Icon.Person /> Profile
+      </Link>
     </div>
   );
 }
