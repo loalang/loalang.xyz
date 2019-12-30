@@ -11,7 +11,6 @@ App()
   .then(element => ReactDOM.render(element, root))
   .catch(e => {
     console.error(e);
-    return alert("Something went wrong during initialization!");
   });
 
 serviceWorker.register();

@@ -41,7 +41,7 @@ export default async function App() {
     storage: window.localStorage as any
   });
 
-  if (!didRefresh()) {
+  if (!didRefresh() || !navigator.onLine) {
     await persistor.restore();
   }
 
@@ -55,11 +55,13 @@ export default async function App() {
 
   return (
     <Reset>
-      <BrowserRouter>
-        <ApolloProvider client={client}>
-          <RootView />
-        </ApolloProvider>
-      </BrowserRouter>
+      <React.Suspense fallback="">
+        <BrowserRouter>
+          <ApolloProvider client={client}>
+            <RootView />
+          </ApolloProvider>
+        </BrowserRouter>
+      </React.Suspense>
     </Reset>
   );
 }
