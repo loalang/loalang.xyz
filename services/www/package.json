@@ -7,6 +7,7 @@
     "@loalang/ui-toolbox": "^0.1.4",
     "@types/react-router-dom": "^5.1.3",
     "apollo-cache-inmemory": "^1.6.3",
+    "apollo-cache-persist": "^0.1.1",
     "apollo-client": "^2.6.4",
     "apollo-link-http": "^1.5.16",
     "emotion": "^10.0.27",

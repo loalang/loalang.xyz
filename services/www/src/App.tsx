@@ -9,13 +9,11 @@ import {
 } from "apollo-cache-inmemory";
 import { Reset } from "@loalang/ui-toolbox/Reset";
 import { BrowserRouter } from "react-router-dom";
+import { CachePersistor } from "apollo-cache-persist";
+import { didRefresh } from "./didRefresh";
 
-const client = new ApolloClient({
-  link: new HttpLink({
-    uri: getAPIUrl(),
-    credentials: "include"
-  }),
-  cache: new InMemoryCache({
+export default async function App() {
+  const cache = new InMemoryCache({
     fragmentMatcher: new IntrospectionFragmentMatcher({
       introspectionQueryResultData: {
         __schema: {
@@ -36,10 +34,25 @@ const client = new ApolloClient({
         }
       }
     })
-  })
-});
+  });
 
-export default function App() {
+  const persistor = new CachePersistor({
+    cache,
+    storage: window.localStorage as any
+  });
+
+  if (!didRefresh()) {
+    await persistor.restore();
+  }
+
+  const client = new ApolloClient({
+    link: new HttpLink({
+      uri: getAPIUrl(),
+      credentials: "include"
+    }),
+    cache
+  });
+
   return (
     <Reset>
       <BrowserRouter>
