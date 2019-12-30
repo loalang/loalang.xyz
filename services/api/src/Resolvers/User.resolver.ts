@@ -1,8 +1,9 @@
 import Context from "../Context";
+import LoggedInUser from "../Authentication/LoggedInUser";
 
 export default {
   Query: {
-    me(_: any, __: any, { user }: Context) {
+    me(_: any, __: any, { user }: Context): LoggedInUser | null {
       if (user.isLoggedIn()) {
         return user;
       } else {

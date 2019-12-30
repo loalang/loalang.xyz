@@ -1,0 +1,45 @@
+type User {
+  notebooks: [Notebook!]!
+}
+
+type Notebook {
+  id: String!
+  author: User!
+
+  title: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+
+  blocks: [NotebookBlock!]!
+}
+
+union NotebookBlock = CodeNotebookBlock
+
+type CodeNotebookBlock {
+  id: String!
+  code: String!
+}
+
+type Mutation {
+  publishNotebook(notebook: NotebookInput!): Notebook!
+  deleteNotebook(id: String!): DeleteNotebookResponse!
+}
+
+enum DeleteNotebookResponse {
+  OK
+}
+
+input NotebookInput {
+  id: String!
+  title: String!
+  blocks: [NotebookBlockInput!]!
+}
+
+input NotebookBlockInput {
+  code: CodeNotebookBlockInput
+}
+
+input CodeNotebookBlockInput {
+  id: String!
+  code: String!
+}

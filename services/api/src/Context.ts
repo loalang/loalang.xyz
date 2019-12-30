@@ -5,6 +5,7 @@ import Authentication from "./Authentication/Authentication";
 import User from "./Resolvers/User";
 import parseCookies from "cookies";
 import Documentation from "./Documentation/Documentation";
+import NotebooksDatabase from "./Notebooks/NotebooksDatabase";
 
 export default interface Context {
   search: Search;
@@ -12,6 +13,7 @@ export default interface Context {
   auth: Authentication;
   docs: Documentation;
   user: User;
+  notebooks: NotebooksDatabase;
 }
 
 export async function createContext(
@@ -23,12 +25,14 @@ export async function createContext(
   const docs = Documentation.create();
   const auth = Authentication.create(parseCookies(req, res));
   const user = await auth.user();
+  const notebooks = NotebooksDatabase.create();
 
   return {
     search,
     pkg,
     auth,
     docs,
-    user
+    user,
+    notebooks
   };
 }
