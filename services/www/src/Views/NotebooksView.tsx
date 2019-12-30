@@ -1,11 +1,11 @@
 import React from "react";
-import { Header } from "../Components/Header";
 import { SafeArea } from "@loalang/ui-toolbox/SafeArea";
+import { Title } from "../Components/Title";
 
 export function NotebooksView() {
   return (
     <>
-      <Header>Notebooks</Header>
+      <Title>Notebooks</Title>
       <SafeArea left right bottom>
         Notebooks
       </SafeArea>

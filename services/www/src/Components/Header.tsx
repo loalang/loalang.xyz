@@ -1,5 +1,4 @@
 import React, { useState, useEffect, FormEvent, ReactNode } from "react";
-import Helmet from "react-helmet";
 import { SafeArea } from "@loalang/ui-toolbox/SafeArea";
 import { Logo } from "@loalang/ui-toolbox/Icons/Logo";
 import { Search } from "@loalang/ui-toolbox/Search/Search";
@@ -15,7 +14,7 @@ import {
   useLogout
 } from "../Hooks/useAuth";
 import { Icon } from "@loalang/ui-toolbox/Icons/Icon";
-import { Link, useRouteMatch } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { EmailInput } from "@loalang/ui-toolbox/Forms/EmailInput";
 import { PasswordInput } from "@loalang/ui-toolbox/Forms/PasswordInput";
 import { Label } from "@loalang/ui-toolbox/Typography/TextStyle/Label";
@@ -40,96 +39,100 @@ const NAV_ITEMS = [
   }
 ];
 
-export function Header({ children }: { children?: string }) {
+export function Header() {
   const isWide = useMediaQuery("(min-width: 680px)");
   const isInstalled = Boolean((navigator as any).standalone);
 
   return (
-    <header
+    <div
       className={css`
-        position: sticky;
-        top: 0px;
+        position: relative;
+        height: calc(${isWide ? 56 : 82}px + env(safe-area-inset-top));
       `}
     >
-      <Helmet>
-        <title>
-          {children != null
-            ? `${children} | Loa Programming Language`
-            : "Loa Programming Language"}
-        </title>
-      </Helmet>
-
-      <div
+      <header
         className={css`
-          background: #1111ff;
-          padding: ${isWide ? 10 : 9}px;
-          position: relative;
+          position: fixed;
+          top: 0px;
+          width: 100%;
         `}
       >
-        <SafeArea top left right>
-          <div
-            className={css`
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-              margin: 0 -6px;
-
-              & > * {
-                margin: 0 6px;
-              }
-            `}
-          >
+        <div
+          className={css`
+            background: #1111ff;
+            padding: ${isWide ? 10 : 9}px;
+            position: relative;
+          `}
+        >
+          <SafeArea top left right>
             <div
               className={css`
                 display: flex;
                 align-items: center;
-                color: #fff;
-                flex: 0 0 auto;
+                justify-content: space-between;
+                margin: 0 -6px;
+
+                & > * {
+                  margin: 0 6px;
+                }
               `}
             >
-              <Link to="/">
-                <Logo size={isWide ? 36 : 27} />
-              </Link>
+              <div
+                className={css`
+                  display: flex;
+                  align-items: center;
+                  color: #fff;
+                  flex: 0 0 auto;
+                `}
+              >
+                <Link
+                  aria-label="Loa Programming Language"
+                  className={css`
+                    display: inline-flex;
+                    align-items: center;
+                  `}
+                  to="/"
+                >
+                  <Logo size={isWide ? 36 : 27} />
 
-              {isWide && (
-                <>
-                  <span
-                    className={css`
-                      margin-left: 6px;
-                      font-size: 20px;
-                      font-weight: bold;
-                    `}
-                  >
-                    Loa
-                  </span>
+                  {isWide && (
+                    <span
+                      className={css`
+                        margin-left: 6px;
+                        font-size: 20px;
+                        font-weight: bold;
+                      `}
+                    >
+                      Loa
+                    </span>
+                  )}
+                </Link>
+                {isWide && <DesktopMenu />}
+              </div>
 
-                  <DesktopMenu />
-                </>
-              )}
+              <div
+                className={css`
+                  flex: 0 1 400px;
+                `}
+              >
+                <GlobalSearch />
+              </div>
+
+              <div>
+                <ProfileMenu />
+              </div>
             </div>
+          </SafeArea>
+        </div>
 
-            <div
-              className={css`
-                flex: 0 1 400px;
-              `}
-            >
-              <GlobalSearch />
-            </div>
-
-            <div>
-              <ProfileMenu />
-            </div>
-          </div>
-        </SafeArea>
-      </div>
-
-      {!isWide && (isInstalled ? <NativeMobileMenu /> : <WebMobileMenu />)}
-    </header>
+        {!isWide && (isInstalled ? <NativeMobileMenu /> : <WebMobileMenu />)}
+      </header>
+    </div>
   );
 }
 
 function NativeMobileMenu() {
-  const { path: currentPath } = useRouteMatch();
+  const { pathname: currentPath } = useLocation();
 
   useEffect(() => {
     document.body.style.paddingBottom = "53px";
@@ -167,7 +170,7 @@ function NativeMobileMenu() {
                   flex-direction: column;
                   align-items: center;
                   font-size: 26px;
-                  color: ${currentPath !== "/" && path.startsWith(currentPath)
+                  color: ${currentPath !== "/" && currentPath.startsWith(path)
                     ? "#1111ff"
                     : "#000"};
 
@@ -189,7 +192,7 @@ function NativeMobileMenu() {
 }
 
 function DesktopMenu() {
-  const { path: currentPath } = useRouteMatch();
+  const { pathname: currentPath } = useLocation();
 
   return (
     <div
@@ -205,7 +208,7 @@ function DesktopMenu() {
               display: inline-flex;
               align-items: center;
               font-size: 21px;
-              color: ${currentPath !== "/" && path.startsWith(currentPath)
+              color: ${currentPath !== "/" && currentPath.startsWith(path)
                 ? "#fff"
                 : "rgba(255,255,255,0.5)"};
 
@@ -226,7 +229,7 @@ function DesktopMenu() {
 }
 
 function WebMobileMenu() {
-  const { path: currentPath } = useRouteMatch();
+  const { pathname: currentPath } = useLocation();
 
   return (
     <SafeArea left right>
@@ -252,7 +255,7 @@ function WebMobileMenu() {
                 display: inline-flex;
                 align-items: center;
                 font-size: 21px;
-                color: ${currentPath !== "/" && path.startsWith(currentPath)
+                color: ${currentPath !== "/" && currentPath.startsWith(path)
                   ? "#1111ff"
                   : "#000"};
 

@@ -1,11 +1,11 @@
 import React from "react";
-import { Header } from "../Components/Header";
 import { SafeArea } from "@loalang/ui-toolbox/SafeArea";
+import { Title } from "../Components/Title";
 
 export function LearnView() {
   return (
     <>
-      <Header>Learn</Header>
+      <Title>Learn</Title>
       <SafeArea left right bottom>
         {Array.from(new Array(1000), () => "Lorem ipsum")}
       </SafeArea>

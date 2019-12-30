@@ -1,11 +1,11 @@
 import React from "react";
-import { Header } from "../Components/Header";
 import { SafeArea } from "@loalang/ui-toolbox/SafeArea";
+import { Title } from "../Components/Title";
 
 export function HomeView() {
   return (
     <>
-      <Header />
+      <Title />
       <SafeArea left right bottom>
         Home
       </SafeArea>
