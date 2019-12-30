@@ -442,7 +442,6 @@ function LoginForm() {
   ] = useRegister();
 
   const isSubmitting = isLoggingIn || isRegistering;
-  const failed = failedLogin || failedRegistration;
 
   const validationFailed =
     email === "" ||
