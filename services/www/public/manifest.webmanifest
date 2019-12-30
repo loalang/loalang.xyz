@@ -3,7 +3,10 @@
   "short_name": "Loa",
   "description": "The Loa Programming Language website.",
   "lang": "en-US",
-  "categories": ["documentation", "technology"],
+  "categories": [
+    "documentation",
+    "technology"
+  ],
   "dir": "ltr",
   "orientation": "portrait-primary",
   "display": "standalone",
@@ -50,6 +53,18 @@
     {
       "src": "%PUBLIC_URL%/images/Screenshot2.png",
       "sizes": "1280x720",
+      "type": "image/png"
+    }
+  ],
+  "icons": [
+    {
+      "src": "generated-images/manifest-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "generated-images/manifest-icon-512.png",
+      "sizes": "512x512",
       "type": "image/png"
     }
   ]
