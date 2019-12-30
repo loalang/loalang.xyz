@@ -14,6 +14,7 @@ build() {
 
         # Build new builder
         docker build \
+            --build-arg VERSION=$VERSION \
             --cache-from "registry.gitlab.com/loalang/loalang.xyz/$SERVICE-builder:latest" \
             -t "registry.gitlab.com/loalang/loalang.xyz/$SERVICE-builder:latest" \
             -f infra/docker/services/$SERVICE/builder.dockerfile .
@@ -30,6 +31,7 @@ build() {
 
         # Build new app
         docker build \
+            --build-arg VERSION=$VERSION \
             --cache-from "registry.gitlab.com/loalang/loalang.xyz/$SERVICE:latest" \
             -t "registry.gitlab.com/loalang/loalang.xyz/$SERVICE:latest" \
             -t "registry.gitlab.com/loalang/loalang.xyz/$SERVICE:$VERSION" \

@@ -38,10 +38,11 @@ export default async function App() {
 
   const persistor = new CachePersistor({
     cache,
-    storage: window.localStorage as any
+    storage: window.localStorage as any,
+    key: `LOA_STATE_${process.env.REACT_APP_VERSION}`
   });
 
-  if (!didRefresh() || !navigator.onLine) {
+  if (!navigator.onLine) {
     await persistor.restore();
   }
 

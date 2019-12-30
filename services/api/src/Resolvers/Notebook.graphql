@@ -1,5 +1,6 @@
 type User {
   notebooks: [Notebook!]!
+  notebook(id: String!): Notebook
 }
 
 type Notebook {
