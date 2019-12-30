@@ -1,13 +1,29 @@
 import React from "react";
-import { SafeArea } from "@loalang/ui-toolbox/SafeArea";
 import { Title } from "../Components/Title";
+import { SafeArea } from "@loalang/ui-toolbox/SafeArea";
+import { Heading } from "@loalang/ui-toolbox/Typography/Heading";
+import { PageHeading } from "@loalang/ui-toolbox/Typography/TextStyle/PageHeading";
+import { Body } from "@loalang/ui-toolbox/Typography/TextStyle/Body";
+import { css } from "emotion";
 
 export function LearnView() {
   return (
     <>
       <Title>Learn</Title>
       <SafeArea left right bottom>
-        {Array.from(new Array(1000), () => "Lorem ipsum")}
+        <div
+          className={css`
+            padding: 9px;
+          `}
+        >
+          <Heading>
+            <PageHeading>Learn</PageHeading>
+          </Heading>
+
+          <p>
+            <Body>TBD</Body>
+          </p>
+        </div>
       </SafeArea>
     </>
   );

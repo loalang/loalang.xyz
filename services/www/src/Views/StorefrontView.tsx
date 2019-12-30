@@ -6,10 +6,10 @@ import { PageHeading } from "@loalang/ui-toolbox/Typography/TextStyle/PageHeadin
 import { Body } from "@loalang/ui-toolbox/Typography/TextStyle/Body";
 import { css } from "emotion";
 
-export function DocsView() {
+export function StorefrontView() {
   return (
     <>
-      <Title>Docs</Title>
+      <Title />
       <SafeArea left right bottom>
         <div
           className={css`
@@ -17,7 +17,7 @@ export function DocsView() {
           `}
         >
           <Heading>
-            <PageHeading>Docs</PageHeading>
+            <PageHeading>Loa</PageHeading>
           </Heading>
 
           <p>

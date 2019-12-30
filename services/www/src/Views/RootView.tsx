@@ -1,6 +1,6 @@
 import React from "react";
 import { Switch, Route } from "react-router-dom";
-import { HomeView } from "./HomeView";
+import { StorefrontView } from "./StorefrontView";
 import { LearnView } from "./LearnView";
 import { DocsView } from "./DocsView";
 import { ProfileView } from "./ProfileView";
@@ -15,7 +15,7 @@ export default function RootView() {
 
       <Switch>
         <Route path="/" exact>
-          <HomeView />
+          <StorefrontView />
         </Route>
         <Route path="/docs">
           <DocsView />

@@ -47,7 +47,9 @@ export function Header() {
     <div
       className={css`
         position: relative;
-        height: calc(${isWide ? 56 : 82}px + env(safe-area-inset-top));
+        height: calc(
+          ${isWide ? 56 : isInstalled ? 45 : 82}px + env(safe-area-inset-top)
+        );
       `}
     >
       <header
