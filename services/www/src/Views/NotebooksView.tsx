@@ -5,12 +5,19 @@ import { Heading } from "@loalang/ui-toolbox/Typography/Heading";
 import { ItemHeading } from "@loalang/ui-toolbox/Typography/TextStyle/ItemHeading";
 import { Section } from "@loalang/ui-toolbox/Typography/Section";
 import { css } from "emotion";
-import { useNotebooks } from "../Hooks/useNotebooks";
+import { useNotebooks, usePublishNotebook } from "../Hooks/useNotebooks";
 import { Link, Switch, Route } from "react-router-dom";
 import { NotebookView } from "./NotebookView";
+import { Button } from "@loalang/ui-toolbox/Forms/Button";
+import { Icon } from "@loalang/ui-toolbox/Icons/Icon";
+import uuid from "uuid/v4";
+import { useHistory } from "react-router-dom";
 
 export function NotebooksView() {
   const { notebooks, isLoading } = useNotebooks();
+  const history = useHistory();
+
+  const [publish] = usePublishNotebook();
 
   return (
     <>
@@ -30,6 +37,22 @@ export function NotebooksView() {
             <Heading>
               <ItemHeading>My Notebooks</ItemHeading>
             </Heading>
+
+            <Button
+              onClick={() => {
+                const id = uuid();
+
+                publish({
+                  id,
+                  title: "New Notebook",
+                  blocks: []
+                });
+
+                history.push(`/notebooks/${id}`);
+              }}
+            >
+              <Icon.Edit /> Create
+            </Button>
 
             {isLoading && "Loading..."}
 

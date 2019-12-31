@@ -10,7 +10,6 @@ import {
 import { Reset } from "@loalang/ui-toolbox/Reset";
 import { BrowserRouter } from "react-router-dom";
 import { CachePersistor } from "apollo-cache-persist";
-import { didRefresh } from "./didRefresh";
 
 export default async function App() {
   const cache = new InMemoryCache({
