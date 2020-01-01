@@ -1,36 +1,45 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Title } from "../Components/Title";
-import { useNotebook, useDeleteNotebook } from "../Hooks/useNotebooks";
-import { useRouteMatch } from "react-router-dom";
+import {
+  useNotebook,
+  useDeleteNotebook,
+  Notebook,
+  usePublishNotebook
+} from "../Hooks/useNotebooks";
+import { useRouteMatch, useHistory } from "react-router-dom";
 import { NotFoundView } from "./NotFoundView";
 import { Code } from "@loalang/ui-toolbox/Code/Code";
 import { Heading } from "@loalang/ui-toolbox/Typography/Heading";
 import { PageHeading } from "@loalang/ui-toolbox/Typography/TextStyle/PageHeading";
-import { BooleanInput } from "@loalang/ui-toolbox/Forms/BooleanInput";
 import { Button } from "@loalang/ui-toolbox/Forms/Button";
+import { Form } from "@loalang/ui-toolbox/Forms/Form";
+import { EditableText } from "../Components/EditableText";
+import { useTimeout } from "../Hooks/useTimeout";
 
 export function NotebookView() {
   const {
     params: { id }
   } = useRouteMatch<{ id: string }>();
 
-  const { isLoading, notebook } = useNotebook(id);
-
-  const [isSaving, setIsSaving] = useState(false);
-
-  const [isDirty, setIsDirty] = useState(false);
+  const { isLoading, notebook: savedNotebook } = useNotebook(id);
+  const [publish] = usePublishNotebook();
 
   const [deleteNotebook] = useDeleteNotebook();
+  const history = useHistory();
+  const [notebook, setNotebook] = useState(savedNotebook);
 
   useEffect(() => {
-    if (!isSaving && isDirty) {
-      setIsSaving(true);
-      setTimeout(() => {
-        setIsSaving(false);
-        setIsDirty(false);
-      }, 3000);
-    }
-  }, [isSaving, isDirty]);
+    setNotebook(savedNotebook);
+  }, [savedNotebook]);
+
+  useTimeout(
+    1000,
+    useCallback(() => {
+      if (notebook != null && notebook !== savedNotebook) {
+        publish(notebook);
+      }
+    }, [notebook, savedNotebook, publish])
+  );
 
   return (
     <>
@@ -39,17 +48,33 @@ export function NotebookView() {
       ) : notebook == null ? (
         <NotFoundView />
       ) : (
-        <>
+        <Form value={notebook} onChange={setNotebook}>
           <Title>{`${notebook.title} by ${notebook.author.email}`}</Title>
           <Heading>
-            <PageHeading>{notebook.title}</PageHeading>
+            <Form.Input<Notebook, "title"> field="title">
+              {({ value, onChange }) => (
+                <PageHeading>
+                  <EditableText
+                    placeholder="Untitled Notebook"
+                    onChange={onChange}
+                  >
+                    {value}
+                  </EditableText>
+                </PageHeading>
+              )}
+            </Form.Input>
           </Heading>
-          <Button onClick={() => deleteNotebook(notebook.id)}>Delete</Button>
-          <BooleanInput value={isDirty} onChange={setIsDirty}>
-            Dirty
-          </BooleanInput>
+          <Button
+            onClick={() => {
+              deleteNotebook(notebook.id);
+
+              history.push("/notebooks");
+            }}
+          >
+            Delete
+          </Button>
           <Code>{JSON.stringify(notebook, null, 2)}</Code>
-        </>
+        </Form>
       )}
     </>
   );

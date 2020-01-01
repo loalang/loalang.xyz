@@ -44,7 +44,7 @@ export function NotebooksView() {
 
                 publish({
                   id,
-                  title: "New Notebook",
+                  title: "",
                   blocks: []
                 });
 
@@ -59,7 +59,9 @@ export function NotebooksView() {
             <ul>
               {notebooks.map(notebook => (
                 <li key={notebook.id}>
-                  <Link to={`/notebooks/${notebook.id}`}>{notebook.title}</Link>
+                  <Link to={`/notebooks/${notebook.id}`}>
+                    {notebook.title || "Untitled Notebook"}
+                  </Link>
                 </li>
               ))}
             </ul>

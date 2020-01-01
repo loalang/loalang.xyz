@@ -101,12 +101,12 @@ const FIND_NOTEBOOK_QUERY = gql`
 
 export function useNotebook(
   id: string
-): { isLoading: boolean; error: Error | null; notebook: Notebook } {
+): { isLoading: boolean; error: Error | null; notebook: Notebook | null } {
   const { loading, error, data } = useQuery(FIND_NOTEBOOK_QUERY, {
     variables: { id }
   });
 
-  const notebook = data == null || data.me == null ? [] : data.me.notebook;
+  const notebook = data == null || data.me == null ? null : data.me.notebook;
 
   if (notebook != null) {
     notebook.createdAt = new Date(notebook.createdAt);
@@ -131,7 +131,11 @@ const PUBLISH_NOTEBOOK_MUTATION = gql`
 `;
 
 export function usePublishNotebook(): [
-  (notebook: { id: string; title: string; blocks: NotebookBlock[] }) => void,
+  (notebook: {
+    id: string;
+    title: string;
+    blocks: NotebookBlock[];
+  }) => Promise<void>,
   { isPublishing: boolean; error: Error | null }
 ] {
   const [mutate, { loading, error }] = useMutation(PUBLISH_NOTEBOOK_MUTATION);
@@ -140,8 +144,12 @@ export function usePublishNotebook(): [
   const { user } = useUser();
 
   return [
-    notebook => {
-      mutate({
+    async notebook => {
+      if (user == null) {
+        throw new Error("Only logged in users can publish notebooks");
+      }
+
+      const mutating = mutate({
         variables: {
           notebook: {
             id: notebook.id,
@@ -172,23 +180,30 @@ export function usePublishNotebook(): [
         data: {
           me: {
             __typename: "User",
-            id: user!.id,
-            notebooks: [
-              ...existingListings,
-              {
-                __typename: "Notebook",
-                id: notebook.id,
-                title: notebook.title,
-                author: {
-                  __typename: "User",
-                  id: user!.id,
-                  email: user!.email
-                }
-              }
-            ]
+            id: user.id,
+            notebooks: Array.from(
+              new Map(
+                [
+                  ...existingListings,
+                  {
+                    __typename: "Notebook",
+                    id: notebook.id,
+                    title: notebook.title,
+                    author: {
+                      __typename: "User",
+                      id: user.id,
+                      email: user.email
+                    }
+                  }
+                ].map(n => [n.id, n])
+              ),
+              ([_, n]) => n
+            )
           }
         }
       });
+
+      await mutating;
     },
     { isPublishing: loading, error: error || null }
   ];
@@ -201,14 +216,46 @@ const DELETE_NOTEBOOK_MUTATION = gql`
 `;
 
 export function useDeleteNotebook(): [
-  (id: string) => void,
+  (id: string) => Promise<void>,
   { isDeleting: boolean; error: Error | null }
 ] {
   const [mutate, { loading, error }] = useMutation(DELETE_NOTEBOOK_MUTATION);
+  const client = useApolloClient();
+  const { user } = useUser();
+  const { notebooks: existingListings } = useNotebooks();
 
   return [
-    id => {
-      mutate({ variables: { id } });
+    async id => {
+      if (user == null) {
+        throw new Error("Only logged in users can publish notebooks");
+      }
+
+      const mutating = mutate({ variables: { id } });
+
+      client.cache.writeQuery({
+        query: FIND_NOTEBOOK_QUERY,
+        data: {
+          me: {
+            __typename: "User",
+            id: user.id,
+            notebook: null
+          }
+        },
+        variables: { id }
+      });
+
+      client.cache.writeQuery({
+        query: GET_NOTEBOOKS_QUERY,
+        data: {
+          me: {
+            __typename: "User",
+            id: user.id,
+            notebooks: existingListings.filter(n => n.id !== id)
+          }
+        }
+      });
+
+      await mutating;
     },
     {
       isDeleting: loading,
