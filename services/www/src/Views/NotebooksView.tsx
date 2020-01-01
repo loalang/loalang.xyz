@@ -12,12 +12,14 @@ import { Button } from "@loalang/ui-toolbox/Forms/Button";
 import { Icon } from "@loalang/ui-toolbox/Icons/Icon";
 import uuid from "uuid/v4";
 import { useHistory } from "react-router-dom";
+import { useIsOffline } from "../Hooks/useIsOffline";
 
 export function NotebooksView() {
   const { notebooks, isLoading } = useNotebooks();
   const history = useHistory();
 
   const [publish] = usePublishNotebook();
+  const isOffline = useIsOffline();
 
   return (
     <>
@@ -39,6 +41,7 @@ export function NotebooksView() {
             </Heading>
 
             <Button
+              isDisabled={isOffline}
               onClick={() => {
                 const id = uuid();
 

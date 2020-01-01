@@ -15,6 +15,7 @@ import { Button } from "@loalang/ui-toolbox/Forms/Button";
 import { Form } from "@loalang/ui-toolbox/Forms/Form";
 import { EditableText } from "../Components/EditableText";
 import { useTimeout } from "../Hooks/useTimeout";
+import { useIsOffline } from "../Hooks/useIsOffline";
 
 export function NotebookView() {
   const {
@@ -27,6 +28,7 @@ export function NotebookView() {
   const [deleteNotebook] = useDeleteNotebook();
   const history = useHistory();
   const [notebook, setNotebook] = useState(savedNotebook);
+  const isOffline = useIsOffline();
 
   useEffect(() => {
     setNotebook(savedNotebook);
@@ -65,6 +67,7 @@ export function NotebookView() {
             </Form.Input>
           </Heading>
           <Button
+            isDisabled={isOffline}
             onClick={() => {
               deleteNotebook(notebook.id);
 
