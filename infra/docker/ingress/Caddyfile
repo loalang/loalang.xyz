@@ -5,6 +5,12 @@ loalang.xyz {
 
     gzip
 
+    header / -Server
+
+    expires {
+        match .css|.js$ 1y
+    }
+
     proxy / www
 }
 
@@ -14,6 +20,8 @@ api.loalang.xyz {
     }
 
     gzip
+
+    header / -Server
 
     proxy / api
 }
