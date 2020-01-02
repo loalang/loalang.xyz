@@ -4,6 +4,7 @@ loalang.xyz {
     }
 
     gzip
+    cache
 
     proxy / www
 }
