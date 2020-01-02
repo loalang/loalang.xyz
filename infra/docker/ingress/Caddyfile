@@ -3,13 +3,7 @@ loalang.xyz {
         dns cloudflare
     }
 
-    gzip
-
     header / -Server
-
-    expires {
-        match .css|.js$ 1y
-    }
 
     proxy / www
 }
