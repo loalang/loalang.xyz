@@ -9,6 +9,7 @@ The hosted services for Loa tooling.
 - [auth](./services/auth) – Internal authentication service
 - [pkg](./services/pkg) – Internal package manager service
 - [search](./services/search) – Internal search service
+- [docs](./services/docs) – Internal documentation service
 
 ## Development
 
@@ -27,7 +28,10 @@ In development, the services will be exposed on these ports:
 - `auth` – [:8092](https://localhost:8092)
 - `search` – [:8093](https://localhost:8093)
 - `pkg` – [:8094](https://localhost:8094)
+- `docs` – [:8095](https://localhost:8095)
 
-Also, in development, a local database will be spun up as:
+Also, in development, local databases will be spun up as:
 
 - `postgres` – [:5432](https://localhost:5432)
+- `redis` – [:6379](https://localhost:6379)
+- `neo4j` – [:7687](https://localhost:7687) and [:7474](https://localhost:7474)
