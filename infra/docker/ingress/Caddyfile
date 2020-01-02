@@ -3,6 +3,8 @@ loalang.xyz {
         dns cloudflare
     }
 
+    gzip
+
     proxy / www
 }
 
@@ -10,6 +12,8 @@ api.loalang.xyz {
     tls {
         dns cloudflare
     }
+
+    gzip
 
     proxy / api
 }
