@@ -6,20 +6,24 @@ import { ItemHeading } from "@loalang/ui-toolbox/Typography/TextStyle/ItemHeadin
 import { Section } from "@loalang/ui-toolbox/Typography/Section";
 import { css } from "emotion";
 import { useNotebooks, usePublishNotebook } from "../Hooks/useNotebooks";
-import { Link, Switch, Route } from "react-router-dom";
+import { Link, Switch, Route, useLocation } from "react-router-dom";
 import { NotebookView } from "./NotebookView";
 import { Button } from "@loalang/ui-toolbox/Forms/Button";
 import { Icon } from "@loalang/ui-toolbox/Icons/Icon";
 import uuid from "uuid/v4";
 import { useHistory } from "react-router-dom";
 import { useIsOffline } from "../Hooks/useIsOffline";
+import { useMediaQuery } from "@loalang/ui-toolbox/useMediaQuery";
 
 export function NotebooksView() {
   const { notebooks, isLoading } = useNotebooks();
   const history = useHistory();
+  const { pathname } = useLocation();
 
   const [publish] = usePublishNotebook();
   const isOffline = useIsOffline();
+
+  const isWide = useMediaQuery("(min-width: 700px)");
 
   return (
     <>
@@ -32,8 +36,11 @@ export function NotebooksView() {
         >
           <div
             className={css`
+              display: ${!isWide && pathname !== "/notebooks"
+                ? "none"
+                : "block"};
               padding: 9px;
-              flex: 0 1 300px;
+              flex: 0 1 200px;
             `}
           >
             <Heading>

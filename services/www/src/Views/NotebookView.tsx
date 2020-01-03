@@ -10,17 +10,16 @@ import {
 } from "../Hooks/useNotebooks";
 import { useRouteMatch, useHistory } from "react-router-dom";
 import { NotFoundView } from "./NotFoundView";
-import { Code } from "@loalang/ui-toolbox/Code/Code";
 import { Heading } from "@loalang/ui-toolbox/Typography/Heading";
 import { PageHeading } from "@loalang/ui-toolbox/Typography/TextStyle/PageHeading";
 import { Button } from "@loalang/ui-toolbox/Forms/Button";
 import { Form } from "@loalang/ui-toolbox/Forms/Form";
-import { TextInput } from "@loalang/ui-toolbox/Forms/TextInput";
+import { CodeInput } from "@loalang/ui-toolbox/Code/CodeInput";
 import { EditableText } from "../Components/EditableText";
 import { useTimeout } from "../Hooks/useTimeout";
 import { useIsOffline } from "../Hooks/useIsOffline";
 import uuid from "uuid/v4";
-import { Icon } from "@loalang/ui-toolbox/Icons/Icon";
+import { css } from "emotion";
 
 export function NotebookView() {
   const {
@@ -37,7 +36,7 @@ export function NotebookView() {
 
   useEffect(() => {
     setNotebook(savedNotebook);
-  }, [savedNotebook]);
+  }, [savedNotebook, setNotebook]);
 
   useTimeout(
     1000,
@@ -49,14 +48,20 @@ export function NotebookView() {
   );
 
   return (
-    <>
-      {isLoading ? (
+    <div
+      className={css`
+        padding: 30px;
+      `}
+    >
+      {isLoading && notebook == null ? (
         "Loading..."
       ) : notebook == null ? (
         <NotFoundView />
       ) : (
         <Form value={notebook} onChange={setNotebook}>
-          <Title>{`${notebook.title} by ${notebook.author.email}`}</Title>
+          <Title>{`${notebook.title || "Untitled Notebook"} by ${
+            notebook.author.email
+          }`}</Title>
           <Heading>
             <Form.Input<Notebook, "title"> field="title">
               {({ value, onChange }) => (
@@ -71,16 +76,23 @@ export function NotebookView() {
               )}
             </Form.Input>
           </Heading>
-          <Button
-            isDisabled={isOffline}
-            onClick={() => {
-              deleteNotebook(notebook.id);
 
-              history.push("/notebooks");
-            }}
+          <div
+            className={css`
+              margin: 10px 0;
+            `}
           >
-            Delete
-          </Button>
+            <Button
+              isDisabled={isOffline}
+              onClick={() => {
+                deleteNotebook(notebook.id);
+
+                history.push("/notebooks");
+              }}
+            >
+              Delete
+            </Button>
+          </div>
 
           <Form.Array<Notebook, "blocks"> field="blocks">
             {({ items, insert, unshift, push }) => (
@@ -106,7 +118,8 @@ export function NotebookView() {
                                 "code"
                               > field="code">
                                 {({ value, onChange }) => (
-                                  <TextInput
+                                  <CodeInput
+                                    language="loa"
                                     value={value}
                                     onChange={onChange}
                                   />
@@ -125,11 +138,9 @@ export function NotebookView() {
               </>
             )}
           </Form.Array>
-
-          <Code>{JSON.stringify(notebook, null, 2)}</Code>
         </Form>
       )}
-    </>
+    </div>
   );
 }
 
@@ -139,7 +150,25 @@ function CreateBlockButton({
   onCreate: (block: NotebookBlock) => void;
 }) {
   return (
-    <Button
+    <button
+      aria-label="Create Block"
+      type="button"
+      className={css`
+        width: 100%;
+        height: 2px;
+        box-sizing: content-box;
+        border: 9px solid #fff;
+        border-left: 0;
+        border-right: 0;
+        background-color: transparent;
+        margin: 2px 0;
+
+        &:hover,
+        &:focus {
+          outline: 0;
+          background-color: rgba(0, 0, 214, 0.2);
+        }
+      `}
       onClick={() =>
         onCreate({
           __typename: "CodeNotebookBlock",
@@ -147,9 +176,6 @@ function CreateBlockButton({
           code: ""
         })
       }
-    >
-      <Icon.Edit />
-      Create Block
-    </Button>
+    />
   );
 }

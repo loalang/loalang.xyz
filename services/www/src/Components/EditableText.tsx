@@ -12,7 +12,6 @@ export function EditableText({
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const buttonRef = useRef<HTMLButtonElement | null>(null);
   const measureRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -22,13 +21,10 @@ export function EditableText({
   }, [isEditing]);
 
   useLayoutEffect(() => {
-    if (measureRef.current != null) {
+    if (measureRef.current != null && isEditing) {
       const { width } = measureRef.current.getBoundingClientRect();
       if (inputRef.current != null) {
         inputRef.current.style.width = `${width}px`;
-      }
-      if (buttonRef.current != null) {
-        buttonRef.current.style.width = `${width}px`;
       }
     }
   }, [value, isEditing]);
@@ -63,7 +59,6 @@ export function EditableText({
 
       {!isEditing ? (
         <button
-          ref={buttonRef}
           className={css`
             text-align: left;
             display: inline-block;

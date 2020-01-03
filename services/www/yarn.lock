@@ -1312,13 +1312,14 @@
   dependencies:
     emotion "^10.0.23"
 
-"@loalang/ui-toolbox@^0.1.8":
-  version "0.1.8"
-  resolved "https://registry.yarnpkg.com/@loalang/ui-toolbox/-/ui-toolbox-0.1.8.tgz#db3bd7080b5f1980c16a8e726eabca0806456154"
-  integrity sha512-foMMouyWVgY/62EgBsfV859l9Kfz5UB/6A75Bd+gdEaVoumvNwqbTmjJ+6ueRh2qKhWZukTkVkU+iX8XhRDB8g==
+"@loalang/ui-toolbox@^0.1.11":
+  version "0.1.11"
+  resolved "https://registry.yarnpkg.com/@loalang/ui-toolbox/-/ui-toolbox-0.1.11.tgz#290b11e476bf094924c7f93557acd0361ab5543d"
+  integrity sha512-LYL8j3SwT7zt5Ya5cEHs4GFD5M8K+DQsm1EtA4ADpKmrzKlY3Zn+i1zzeyYWKX2YEjptT/reofpteCedejEpCg==
   dependencies:
     emotion "^10.0.23"
     highlight.js "^9.17.1"
+    misbehave "^0.3.0"
 
 "@mrmlnc/readdir-enhanced@^2.2.1":
   version "2.2.1"
@@ -3044,6 +3045,11 @@ combined-stream@^1.0.6, combined-stream@~1.0.6:
   integrity sha512-FQN4MRfuJeHf7cBbBMJFXhKSDq+2kAArBlmRBvcvFE5BB1HZKXtSFASDhdlz9zOYwxh8lDdnvmMOe/+5cdoEdg==
   dependencies:
     delayed-stream "~1.0.0"
+
+combokeys@2.4.6:
+  version "2.4.6"
+  resolved "https://registry.yarnpkg.com/combokeys/-/combokeys-2.4.6.tgz#a5c47599632af7a36d1d9c2f98518c95b253d83b"
+  integrity sha1-pcR1mWMq96NtHZwvmFGMlbJT2Ds=
 
 commander@2.17.x:
   version "2.17.1"
@@ -6890,6 +6896,14 @@ minizlib@^1.2.1:
   dependencies:
     minipass "^2.9.0"
 
+misbehave@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/misbehave/-/misbehave-0.3.0.tgz#4e143e0af6228a516bfe6d098513c0a2af85c53c"
+  integrity sha1-ThQ+CvYiilFr/m0JhRPAoq+FxTw=
+  dependencies:
+    combokeys "2.4.6"
+    undo-manager "1.0.5"
+
 mississippi@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/mississippi/-/mississippi-3.0.0.tgz#ea0a3291f97e0b5e8776b363d5f0a12d94c67022"
@@ -10427,6 +10441,11 @@ uglify-js@^3.1.4:
   dependencies:
     commander "~2.20.3"
     source-map "~0.6.1"
+
+undo-manager@1.0.5:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/undo-manager/-/undo-manager-1.0.5.tgz#c348cf5bbd745d0d5163bf733d95f20ec0caa71c"
+  integrity sha1-w0jPW710XQ1RY79zPZXyDsDKpxw=
 
 unicode-canonical-property-names-ecmascript@^1.0.4:
   version "1.0.4"

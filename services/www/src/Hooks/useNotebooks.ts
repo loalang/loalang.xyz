@@ -165,13 +165,6 @@ export function usePublishNotebook(): [
               }
             })
           }
-        },
-        optimisticResponse: {
-          __typename: "Mutation",
-          publishNotebook: {
-            __typename: "Notebook",
-            ...notebook
-          }
         }
       });
 
