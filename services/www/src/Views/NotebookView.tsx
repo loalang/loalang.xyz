@@ -8,7 +8,7 @@ import {
   CodeNotebookBlock,
   NotebookBlock
 } from "../Hooks/useNotebooks";
-import { useRouteMatch, useHistory } from "react-router-dom";
+import { useRouteMatch, useHistory, Link } from "react-router-dom";
 import { NotFoundView } from "./NotFoundView";
 import { Heading } from "@loalang/ui-toolbox/Typography/Heading";
 import { PageHeading } from "@loalang/ui-toolbox/Typography/TextStyle/PageHeading";
@@ -20,6 +20,9 @@ import { useTimeout } from "../Hooks/useTimeout";
 import { useIsOffline } from "../Hooks/useIsOffline";
 import uuid from "uuid/v4";
 import { css } from "emotion";
+import { Label } from "@loalang/ui-toolbox/Typography/TextStyle/Label";
+import { Icon } from "@loalang/ui-toolbox/Icons/Icon";
+import { useMediaQuery } from "@loalang/ui-toolbox/useMediaQuery";
 
 export function NotebookView() {
   const {
@@ -33,6 +36,8 @@ export function NotebookView() {
   const history = useHistory();
   const [notebook, setNotebook] = useState(savedNotebook);
   const isOffline = useIsOffline();
+
+  const isWide = useMediaQuery("(min-width: 800px)");
 
   useEffect(() => {
     setNotebook(savedNotebook);
@@ -62,6 +67,21 @@ export function NotebookView() {
           <Title>{`${notebook.title || "Untitled Notebook"} by ${
             notebook.author.email
           }`}</Title>
+
+          {!isWide && (
+            <div
+              className={css`
+                margin-bottom: 15px;
+              `}
+            >
+              <Link to="/notebooks">
+                <Label>
+                  <Icon.ArrowLeft /> My Notebooks
+                </Label>
+              </Link>
+            </div>
+          )}
+
           <Heading>
             <Form.Input<Notebook, "title"> field="title">
               {({ value, onChange }) => (
@@ -90,7 +110,9 @@ export function NotebookView() {
                 history.push("/notebooks");
               }}
             >
-              Delete
+              <Label>
+                <Icon.Trash /> Delete
+              </Label>
             </Button>
           </div>
 

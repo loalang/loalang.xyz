@@ -3,6 +3,7 @@ import { Title } from "../Components/Title";
 import { SafeArea } from "@loalang/ui-toolbox/SafeArea";
 import { Heading } from "@loalang/ui-toolbox/Typography/Heading";
 import { ItemHeading } from "@loalang/ui-toolbox/Typography/TextStyle/ItemHeading";
+import { SectionHeading } from "@loalang/ui-toolbox/Typography/TextStyle/SectionHeading";
 import { Section } from "@loalang/ui-toolbox/Typography/Section";
 import { css } from "emotion";
 import { useNotebooks, usePublishNotebook } from "../Hooks/useNotebooks";
@@ -14,6 +15,7 @@ import uuid from "uuid/v4";
 import { useHistory } from "react-router-dom";
 import { useIsOffline } from "../Hooks/useIsOffline";
 import { useMediaQuery } from "@loalang/ui-toolbox/useMediaQuery";
+import { Label } from "@loalang/ui-toolbox/Typography/TextStyle/Label";
 
 export function NotebooksView() {
   const { notebooks, isLoading } = useNotebooks();
@@ -23,7 +25,7 @@ export function NotebooksView() {
   const [publish] = usePublishNotebook();
   const isOffline = useIsOffline();
 
-  const isWide = useMediaQuery("(min-width: 700px)");
+  const isWide = useMediaQuery("(min-width: 800px)");
 
   return (
     <>
@@ -40,29 +42,38 @@ export function NotebooksView() {
                 ? "none"
                 : "block"};
               padding: 9px;
+              padding-top: 35px;
               flex: 0 1 200px;
             `}
           >
             <Heading>
-              <ItemHeading>My Notebooks</ItemHeading>
+              <SectionHeading>My Notebooks</SectionHeading>
             </Heading>
 
-            <Button
-              isDisabled={isOffline}
-              onClick={() => {
-                const id = uuid();
-
-                publish({
-                  id,
-                  title: "",
-                  blocks: []
-                });
-
-                history.push(`/notebooks/${id}`);
-              }}
+            <div
+              className={css`
+                margin: 10px 0;
+              `}
             >
-              <Icon.Edit /> Create
-            </Button>
+              <Button
+                isDisabled={isOffline}
+                onClick={() => {
+                  const id = uuid();
+
+                  publish({
+                    id,
+                    title: "",
+                    blocks: []
+                  });
+
+                  history.push(`/notebooks/${id}`);
+                }}
+              >
+                <Label>
+                  <Icon.Plus /> Create
+                </Label>
+              </Button>
+            </div>
 
             {isLoading && "Loading..."}
 
@@ -70,7 +81,9 @@ export function NotebooksView() {
               {notebooks.map(notebook => (
                 <li key={notebook.id}>
                   <Link to={`/notebooks/${notebook.id}`}>
-                    {notebook.title || "Untitled Notebook"}
+                    <ItemHeading>
+                      {notebook.title || "Untitled Notebook"}
+                    </ItemHeading>
                   </Link>
                 </li>
               ))}
