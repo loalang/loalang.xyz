@@ -16,7 +16,7 @@ import { Button } from "@loalang/ui-toolbox/Forms/Button";
 import { Form } from "@loalang/ui-toolbox/Forms/Form";
 import { CodeInput } from "@loalang/ui-toolbox/Code/CodeInput";
 import { EditableText } from "../Components/EditableText";
-import { useTimeout } from "../Hooks/useTimeout";
+import { useTimeout, useDebouncedMemo } from "../Hooks/useTimeout";
 import { useIsOffline } from "../Hooks/useIsOffline";
 import uuid from "uuid/v4";
 import { css } from "emotion";
@@ -24,23 +24,27 @@ import { Label } from "@loalang/ui-toolbox/Typography/TextStyle/Label";
 import { Icon } from "@loalang/ui-toolbox/Icons/Icon";
 import { useMediaQuery } from "@loalang/ui-toolbox/useMediaQuery";
 import { Server } from "@loalang/loa";
+import { Code } from "@loalang/ui-toolbox/Code/Code";
 
-let server: {} | null = null;
-const gettingServer = Server.load().then((s: any) => (server = s));
+let server: {
+  set(uri: string, code: string): void;
+  evaluate(uri: string): string;
+} | null = null;
+const gettingServer = Server.load()
+  .then((s: any) => (server = s))
+  .then(() => console.log(server));
 
 export default function NotebookView() {
+  if (server == null) {
+    throw gettingServer;
+  }
+
   const {
     params: { id }
   } = useRouteMatch<{ id: string }>();
 
   const { isLoading, notebook: savedNotebook } = useNotebook(id);
   const [publish] = usePublishNotebook();
-
-  if (server == null) {
-    throw gettingServer;
-  }
-
-  console.log(server);
 
   const [deleteNotebook] = useDeleteNotebook();
   const history = useHistory();
@@ -121,7 +125,7 @@ export default function NotebookView() {
               }}
             >
               <Label>
-                <Icon.Trash /> Delete
+                <Icon.Trash /> Delete Notebook
               </Label>
             </Button>
           </div>
@@ -131,33 +135,56 @@ export default function NotebookView() {
               <>
                 <CreateBlockButton onCreate={unshift} />
                 <ol>
-                  {items.map(({ value, onChange }, index) => {
-                    const addBetween =
+                  {items.map(({ value, onChange, remove }, index) => {
+                    const addBetweenButton =
                       index === 0 ? null : (
                         <CreateBlockButton
                           onCreate={block => insert(index, block)}
                         />
                       );
 
+                    const blockId = `${notebook.id}:${value.id}`;
+
+                    const deleteBlockButton = (
+                      <DeleteBlockButton
+                        onClick={() => {
+                          server!.set(blockId, "");
+                          remove();
+                        }}
+                      />
+                    );
+
                     switch (value.__typename) {
                       case "CodeNotebookBlock":
                         return (
                           <li key={value.id}>
-                            {addBetween}
-                            <Form value={value} onChange={onChange}>
-                              <Form.Input<
-                                CodeNotebookBlock,
-                                "code"
-                              > field="code">
-                                {({ value, onChange }) => (
-                                  <CodeInput
-                                    language="loa"
-                                    value={value}
-                                    onChange={onChange}
-                                  />
-                                )}
-                              </Form.Input>
-                            </Form>
+                            {addBetweenButton}
+                            <div
+                              className={css`
+                                position: relative;
+                              `}
+                            >
+                              {deleteBlockButton}
+                              <Form value={value} onChange={onChange}>
+                                <Form.Input<
+                                  CodeNotebookBlock,
+                                  "code"
+                                > field="code">
+                                  {({ value, onChange }) => (
+                                    <>
+                                      <CodeInput
+                                        language="loa"
+                                        value={value}
+                                        onChange={onChange}
+                                      />
+                                      <EvaluateCode id={blockId}>
+                                        {value}
+                                      </EvaluateCode>
+                                    </>
+                                  )}
+                                </Form.Input>
+                              </Form>
+                            </div>
                           </li>
                         );
 
@@ -173,6 +200,72 @@ export default function NotebookView() {
         </Form>
       )}
     </div>
+  );
+}
+
+function EvaluateCode({
+  id,
+  children: code
+}: {
+  id: string;
+  children: string;
+}) {
+  const [result, title] = useDebouncedMemo(
+    200,
+    useCallback(() => {
+      server!.set(id, code);
+      try {
+        return [server!.evaluate(id), "Result"];
+      } catch (e) {
+        console.log(e);
+        return Array.isArray(e) ? [e.join("\n"), "Error"] : [null, null];
+      }
+    }, [id, code])
+  );
+  if (result == null) {
+    return null;
+  }
+  return (
+    <div
+      className={css`
+        color: ${title === "Error" ? "#FF0048" : "#000"};
+        margin: 10px 14px 0;
+      `}
+    >
+      <Label>{title}</Label>
+      <output>
+        <Code raw block>
+          {result}
+        </Code>
+      </output>
+    </div>
+  );
+}
+
+function DeleteBlockButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      aria-label="Delete Block"
+      type="button"
+      className={css`
+        cursor: pointer;
+        position: absolute;
+        z-index: 10;
+        right: 5px;
+        top: 5px;
+        width: 1.2em;
+        height: 1.2em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        overflow: hidden;
+        box-shadow: 0 2px 3px rgba(0, 0, 0, 0.3);
+      `}
+      onClick={() => onClick()}
+    >
+      <Icon.Trash />
+    </button>
   );
 }
 
@@ -194,6 +287,7 @@ function CreateBlockButton({
         border-right: 0;
         background-color: transparent;
         margin: 2px 0;
+        cursor: pointer;
 
         &:hover,
         &:focus {
@@ -208,6 +302,17 @@ function CreateBlockButton({
           code: ""
         })
       }
-    />
+    >
+      <div
+        className={css`
+          background: #fff;
+          display: inline;
+          position: relative;
+          top: -0.5em;
+        `}
+      >
+        <Icon.Plus />
+      </div>
+    </button>
   );
 }

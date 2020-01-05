@@ -1,4 +1,4 @@
-import { EffectCallback, useEffect } from "react";
+import { EffectCallback, useEffect, useCallback, useState } from "react";
 
 export function useTimeout(ms: number, cb: EffectCallback) {
   useEffect(() => {
@@ -13,4 +13,15 @@ export function useTimeout(ms: number, cb: EffectCallback) {
       }
     };
   }, [ms, cb]);
+}
+
+export function useDebouncedMemo<T>(ms: number, factory: () => T): T {
+  const [state, setState] = useState(factory);
+  useTimeout(
+    ms,
+    useCallback(() => {
+      setState(factory());
+    }, [factory])
+  );
+  return state;
 }
