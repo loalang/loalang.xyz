@@ -23,14 +23,24 @@ import { css } from "emotion";
 import { Label } from "@loalang/ui-toolbox/Typography/TextStyle/Label";
 import { Icon } from "@loalang/ui-toolbox/Icons/Icon";
 import { useMediaQuery } from "@loalang/ui-toolbox/useMediaQuery";
+import { Server } from "@loalang/loa";
 
-export function NotebookView() {
+let server: {} | null = null;
+const gettingServer = Server.load().then((s: any) => (server = s));
+
+export default function NotebookView() {
   const {
     params: { id }
   } = useRouteMatch<{ id: string }>();
 
   const { isLoading, notebook: savedNotebook } = useNotebook(id);
   const [publish] = usePublishNotebook();
+
+  if (server == null) {
+    throw gettingServer;
+  }
+
+  console.log(server);
 
   const [deleteNotebook] = useDeleteNotebook();
   const history = useHistory();

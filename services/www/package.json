@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@loalang/docs": "^0.0.3",
+    "@loalang/loa": "^0.1.4",
     "@loalang/ui-toolbox": "^0.1.13",
     "@types/react-router-dom": "^5.1.3",
     "apollo-cache-inmemory": "^1.6.3",

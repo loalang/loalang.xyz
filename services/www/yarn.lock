@@ -1305,6 +1305,11 @@
     "@loalang/ui-toolbox" "^0.1.0"
     emotion "^10.0.23"
 
+"@loalang/loa@^0.1.4":
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/@loalang/loa/-/loa-0.1.4.tgz#9807d0bff43110e97638cdbe7ec3a4a0b7d8eec3"
+  integrity sha512-wUZbeNx+8u/1VTeGMAgSVmiiSO5wmDTYA92s+r/SkijaI7nsZ0sLi11RxSBMBsIyvCuTj9Na+sxeKksgVyK07Q==
+
 "@loalang/ui-toolbox@^0.1.0":
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/@loalang/ui-toolbox/-/ui-toolbox-0.1.0.tgz#d09441ec3b03b7b8a2806036536ccbf65eb4c85e"
