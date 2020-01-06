@@ -24,7 +24,7 @@ globalThis.addEventListener("message", async event => {
           uri: payload.uri,
           result
         };
-        globalThis.postMessage(JSON.stringify(response), "*");
+        (globalThis as any).postMessage(JSON.stringify(response));
       } catch (e) {
         if (Array.isArray(e)) {
           const response: OnDiagnosticsEventPayload = {
@@ -32,7 +32,7 @@ globalThis.addEventListener("message", async event => {
             uri: payload.uri,
             diagnostics: e
           };
-          globalThis.postMessage(JSON.stringify(response), "*");
+          (globalThis as any).postMessage(JSON.stringify(response));
         } else {
           throw e;
         }
