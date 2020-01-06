@@ -237,7 +237,7 @@ function EvaluateCode({
   diagnostics: string[];
 }) {
   useTimeout(
-    1000,
+    300,
     useCallback(() => {
       if (compiler != null) {
         compiler.set(id, code);
