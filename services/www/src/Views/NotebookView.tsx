@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Title } from "../Components/Title";
 import {
   useNotebook,
@@ -27,43 +27,53 @@ import { Code } from "@loalang/ui-toolbox/Code/Code";
 import { Compiler } from "../Compiler";
 
 export default function NotebookView() {
-  const [diagnostics, setDiagnostics] = useState<Record<string, string[]>>({});
-  const [results, setResults] = useState<Record<string, string | null>>({});
-  const compilerRef = useRef<Compiler | null>(null);
-
-  useEffect(() => {
-    const compiler = Compiler.create({
-      onResult(uri, result) {
-        setResults(d => ({
-          ...d,
-          [uri]: result
-        }));
-        setDiagnostics(d => ({
-          ...d,
-          [uri]: []
-        }));
-      },
-      onDiagnostics(uri, diagnostics) {
-        setDiagnostics(d => ({
-          ...d,
-          [uri]: diagnostics
-        }));
-      }
-    });
-    compilerRef.current = compiler;
-    return () => compiler.dispose();
-  }, []);
-
   const {
     params: { id }
   } = useRouteMatch<{ id: string }>();
 
-  const { isLoading, notebook: savedNotebook } = useNotebook(id);
-  const [publish] = usePublishNotebook();
+  const [diagnostics, setDiagnostics] = useState<Record<string, string[]>>({});
+  const [results, setResults] = useState<Record<string, string | null>>({});
+  const [compiler, setCompiler] = useState<Compiler | null>(null);
 
-  const [deleteNotebook] = useDeleteNotebook();
-  const history = useHistory();
+  const { isLoading, notebook: savedNotebook } = useNotebook(id);
   const [notebook, setNotebook] = useState(savedNotebook);
+
+  useEffect(() => {
+    if (notebook != null) {
+      const c = Compiler.create({
+        onResult(uri, result) {
+          setResults(d => ({
+            ...d,
+            [uri]: result
+          }));
+          setDiagnostics(d => ({
+            ...d,
+            [uri]: []
+          }));
+        },
+        onDiagnostics(uri, diagnostics) {
+          setDiagnostics(d => ({
+            ...d,
+            [uri]: diagnostics
+          }));
+        }
+      });
+      for (const block of notebook.blocks) {
+        if (block.__typename === "CodeNotebookBlock") {
+          const blockId = `${notebook.id}:${block.id}`;
+          c.set(blockId, block.code);
+          c.evaluate(blockId);
+        }
+      }
+      setCompiler(c);
+      return () => c.dispose();
+    }
+  }, [notebook]);
+
+  const [publish] = usePublishNotebook();
+  const [deleteNotebook] = useDeleteNotebook();
+
+  const history = useHistory();
   const isOffline = useIsOffline();
 
   const isWide = useMediaQuery("(min-width: 800px)");
@@ -163,7 +173,7 @@ export default function NotebookView() {
                     const deleteBlockButton = (
                       <DeleteBlockButton
                         onClick={() => {
-                          compilerRef.current!.set(blockId, "");
+                          compiler!.set(blockId, "");
                           remove();
                         }}
                       />
@@ -194,7 +204,7 @@ export default function NotebookView() {
                                       />
                                       <EvaluateCode
                                         id={blockId}
-                                        compiler={compilerRef.current}
+                                        compiler={compiler}
                                         diagnostics={diagnostics[blockId] || []}
                                         result={results[blockId] || null}
                                       >
