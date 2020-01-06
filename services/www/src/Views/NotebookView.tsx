@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Title } from "../Components/Title";
 import {
   useNotebook,
@@ -16,28 +16,43 @@ import { Button } from "@loalang/ui-toolbox/Forms/Button";
 import { Form } from "@loalang/ui-toolbox/Forms/Form";
 import { CodeInput } from "@loalang/ui-toolbox/Code/CodeInput";
 import { EditableText } from "../Components/EditableText";
-import { useTimeout, useDebouncedMemo } from "../Hooks/useTimeout";
+import { useTimeout } from "../Hooks/useTimeout";
 import { useIsOffline } from "../Hooks/useIsOffline";
 import uuid from "uuid/v4";
 import { css } from "emotion";
 import { Label } from "@loalang/ui-toolbox/Typography/TextStyle/Label";
 import { Icon } from "@loalang/ui-toolbox/Icons/Icon";
 import { useMediaQuery } from "@loalang/ui-toolbox/useMediaQuery";
-import { Server } from "@loalang/loa";
 import { Code } from "@loalang/ui-toolbox/Code/Code";
-
-let server: {
-  set(uri: string, code: string): void;
-  evaluate(uri: string): string;
-} | null = null;
-const gettingServer = Server.load()
-  .then((s: any) => (server = s))
-  .then(() => console.log(server));
+import { Compiler } from "../Compiler";
 
 export default function NotebookView() {
-  if (server == null) {
-    throw gettingServer;
-  }
+  const [diagnostics, setDiagnostics] = useState<Record<string, string[]>>({});
+  const [results, setResults] = useState<Record<string, string | null>>({});
+  const compilerRef = useRef<Compiler | null>(null);
+
+  useEffect(() => {
+    const compiler = Compiler.create({
+      onResult(uri, result) {
+        setResults(d => ({
+          ...d,
+          [uri]: result
+        }));
+        setDiagnostics(d => ({
+          ...d,
+          [uri]: []
+        }));
+      },
+      onDiagnostics(uri, diagnostics) {
+        setDiagnostics(d => ({
+          ...d,
+          [uri]: diagnostics
+        }));
+      }
+    });
+    compilerRef.current = compiler;
+    return () => compiler.dispose();
+  }, []);
 
   const {
     params: { id }
@@ -148,7 +163,7 @@ export default function NotebookView() {
                     const deleteBlockButton = (
                       <DeleteBlockButton
                         onClick={() => {
-                          server!.set(blockId, "");
+                          compilerRef.current!.set(blockId, "");
                           remove();
                         }}
                       />
@@ -177,7 +192,12 @@ export default function NotebookView() {
                                         value={value}
                                         onChange={onChange}
                                       />
-                                      <EvaluateCode id={blockId}>
+                                      <EvaluateCode
+                                        id={blockId}
+                                        compiler={compilerRef.current}
+                                        diagnostics={diagnostics[blockId] || []}
+                                        result={results[blockId] || null}
+                                      >
                                         {value}
                                       </EvaluateCode>
                                     </>
@@ -205,40 +225,58 @@ export default function NotebookView() {
 
 function EvaluateCode({
   id,
-  children: code
+  children: code,
+  compiler,
+  result,
+  diagnostics
 }: {
   id: string;
   children: string;
+  compiler: Compiler | null;
+  result: string | null;
+  diagnostics: string[];
 }) {
-  const [result, title] = useDebouncedMemo(
-    200,
+  useTimeout(
+    1000,
     useCallback(() => {
-      server!.set(id, code);
-      try {
-        return [server!.evaluate(id), "Result"];
-      } catch (e) {
-        console.log(e);
-        return Array.isArray(e) ? [e.join("\n"), "Error"] : [null, null];
+      if (compiler != null) {
+        compiler.set(id, code);
+        compiler.evaluate(id);
       }
-    }, [id, code])
+    }, [id, code, compiler])
   );
-  if (result == null) {
-    return null;
-  }
   return (
-    <div
-      className={css`
-        color: ${title === "Error" ? "#FF0048" : "#000"};
-        margin: 10px 14px 0;
-      `}
-    >
-      <Label>{title}</Label>
-      <output>
-        <Code raw block>
-          {result}
-        </Code>
-      </output>
-    </div>
+    <>
+      {result != null && (
+        <div
+          className={css`
+            margin: 10px 14px 0;
+          `}
+        >
+          <Label>Result</Label>
+          <output>
+            <Code raw block>
+              {result}
+            </Code>
+          </output>
+        </div>
+      )}
+      {diagnostics.length > 0 && (
+        <div
+          className={css`
+            color: #ff0048;
+            margin: 10px 14px 0;
+          `}
+        >
+          <Label>Error</Label>
+          <output>
+            <Code raw block>
+              {diagnostics.join("\n")}
+            </Code>
+          </output>
+        </div>
+      )}
+    </>
   );
 }
 
