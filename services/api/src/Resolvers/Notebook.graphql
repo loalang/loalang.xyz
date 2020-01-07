@@ -14,11 +14,16 @@ type Notebook {
   blocks: [NotebookBlock!]!
 }
 
-union NotebookBlock = CodeNotebookBlock
+union NotebookBlock = CodeNotebookBlock | TextNotebookBlock
 
 type CodeNotebookBlock {
   id: String!
   code: String!
+}
+
+type TextNotebookBlock {
+  id: String!
+  text: String!
 }
 
 type Mutation {
@@ -38,9 +43,15 @@ input NotebookInput {
 
 input NotebookBlockInput {
   code: CodeNotebookBlockInput
+  text: TextNotebookBlockInput
 }
 
 input CodeNotebookBlockInput {
   id: String!
   code: String!
+}
+
+input TextNotebookBlockInput {
+  id: String!
+  text: String!
 }

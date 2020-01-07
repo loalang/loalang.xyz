@@ -32,14 +32,17 @@ export interface NotebookInput {
 
 export interface NotebookBlockInput {
   code?: CodeNotebookBlock;
+  text?: TextNotebookBlock;
 }
 
-export type NotebookBlock = CodeNotebookBlock;
+export type NotebookBlock = CodeNotebookBlock | TextNotebookBlock;
 
 export namespace NotebookBlock {
   export function fromInput(block: NotebookBlockInput): NotebookBlock | null {
     if (block.code != null) {
       return block.code;
+    } else if (block.text != null) {
+      return block.text;
     } else {
       return null;
     }
@@ -55,4 +58,9 @@ export namespace NotebookBlock {
 export interface CodeNotebookBlock {
   id: string;
   code: string;
+}
+
+export interface TextNotebookBlock {
+  id: string;
+  text: string;
 }

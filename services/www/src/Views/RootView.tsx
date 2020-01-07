@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { Switch, Route } from "react-router-dom";
 import { StorefrontView } from "./StorefrontView";
 import { LearnView } from "./LearnView";
@@ -13,26 +13,28 @@ export default function RootView() {
     <>
       <Header />
 
-      <Switch>
-        <Route path="/" exact>
-          <StorefrontView />
-        </Route>
-        <Route path="/docs">
-          <DocsView />
-        </Route>
-        <Route path="/me">
-          <ProfileView />
-        </Route>
-        <Route path="/learn">
-          <LearnView />
-        </Route>
-        <Route path="/notebooks">
-          <NotebooksView />
-        </Route>
-        <Route>
-          <NotFoundView />
-        </Route>
-      </Switch>
+      <Suspense fallback={""}>
+        <Switch>
+          <Route path="/" exact>
+            <StorefrontView />
+          </Route>
+          <Route path="/docs">
+            <DocsView />
+          </Route>
+          <Route path="/me">
+            <ProfileView />
+          </Route>
+          <Route path="/learn">
+            <LearnView />
+          </Route>
+          <Route path="/notebooks">
+            <NotebooksView />
+          </Route>
+          <Route>
+            <NotFoundView />
+          </Route>
+        </Switch>
+      </Suspense>
     </>
   );
 }

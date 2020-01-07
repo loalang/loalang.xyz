@@ -6,7 +6,8 @@ import {
   Notebook,
   usePublishNotebook,
   CodeNotebookBlock,
-  NotebookBlock
+  NotebookBlock,
+  TextNotebookBlock
 } from "../Hooks/useNotebooks";
 import { useRouteMatch, useHistory, Link } from "react-router-dom";
 import { NotFoundView } from "./NotFoundView";
@@ -24,6 +25,7 @@ import { Label } from "@loalang/ui-toolbox/Typography/TextStyle/Label";
 import { Icon } from "@loalang/ui-toolbox/Icons/Icon";
 import { useMediaQuery } from "@loalang/ui-toolbox/useMediaQuery";
 import { Code } from "@loalang/ui-toolbox/Code/Code";
+import { TextInput } from "@loalang/ui-toolbox/Forms/TextInput";
 import { Compiler } from "../Compiler";
 
 export default function NotebookView() {
@@ -180,6 +182,34 @@ export default function NotebookView() {
                     );
 
                     switch (value.__typename) {
+                      case "TextNotebookBlock":
+                        return (
+                          <li key={value.id}>
+                            {addBetweenButton}
+                            <div
+                              className={css`
+                                position: relative;
+                                margin-bottom: 2px;
+                              `}
+                            >
+                              {deleteBlockButton}
+                              <Form value={value} onChange={onChange}>
+                                <Form.Input<
+                                  TextNotebookBlock,
+                                  "text"
+                                > field="text">
+                                  {({ value, onChange }) => (
+                                    <CodeInput
+                                      value={value}
+                                      onChange={onChange}
+                                    />
+                                  )}
+                                </Form.Input>
+                              </Form>
+                            </div>
+                          </li>
+                        );
+
                       case "CodeNotebookBlock":
                         return (
                           <li key={value.id}>
@@ -202,14 +232,10 @@ export default function NotebookView() {
                                         value={value}
                                         onChange={onChange}
                                       />
-                                      <EvaluateCode
-                                        id={blockId}
-                                        compiler={compiler}
+                                      <EvaluationResult
                                         diagnostics={diagnostics[blockId] || []}
                                         result={results[blockId] || null}
-                                      >
-                                        {value}
-                                      </EvaluateCode>
+                                      />
                                     </>
                                   )}
                                 </Form.Input>
@@ -233,28 +259,13 @@ export default function NotebookView() {
   );
 }
 
-function EvaluateCode({
-  id,
-  children: code,
-  compiler,
+function EvaluationResult({
   result,
   diagnostics
 }: {
-  id: string;
-  children: string;
-  compiler: Compiler | null;
   result: string | null;
   diagnostics: string[];
 }) {
-  useTimeout(
-    300,
-    useCallback(() => {
-      if (compiler != null) {
-        compiler.set(id, code);
-        compiler.evaluate(id);
-      }
-    }, [id, code, compiler])
-  );
   return (
     <>
       {result != null && (
@@ -299,8 +310,8 @@ function DeleteBlockButton({ onClick }: { onClick: () => void }) {
         cursor: pointer;
         position: absolute;
         z-index: 10;
-        right: 5px;
-        top: 5px;
+        right: -0.6em;
+        top: -0.6em;
         width: 1.2em;
         height: 1.2em;
         display: flex;
@@ -322,45 +333,83 @@ function CreateBlockButton({
 }: {
   onCreate: (block: NotebookBlock) => void;
 }) {
+  const [isDropped, setIsDropped] = useState(false);
   return (
-    <button
-      aria-label="Create Block"
-      type="button"
+    <div
       className={css`
-        width: 100%;
-        height: 2px;
-        box-sizing: content-box;
-        border: 9px solid #fff;
-        border-left: 0;
-        border-right: 0;
-        background-color: transparent;
-        margin: 2px 0;
-        cursor: pointer;
-
-        &:hover,
-        &:focus {
-          outline: 0;
-          background-color: rgba(0, 0, 214, 0.2);
-        }
+        position: relative;
       `}
-      onClick={() =>
-        onCreate({
-          __typename: "CodeNotebookBlock",
-          id: uuid(),
-          code: ""
-        })
-      }
     >
-      <div
+      <button
+        aria-label="Create Block"
+        type="button"
         className={css`
-          background: #fff;
-          display: inline;
-          position: relative;
-          top: -0.5em;
+          width: 100%;
+          height: 2px;
+          box-sizing: content-box;
+          border: 9px solid #fff;
+          border-left: 0;
+          border-right: 0;
+          background-color: transparent;
+          margin: 2px 0;
+          cursor: pointer;
+
+          &:hover,
+          &:focus {
+            outline: 0;
+            background-color: rgba(0, 0, 214, 0.2);
+          }
         `}
+        onClick={() => setIsDropped(!isDropped)}
       >
-        <Icon.Plus />
-      </div>
-    </button>
+        <div
+          className={css`
+            background: #fff;
+            display: inline;
+            position: relative;
+            top: -0.6em;
+          `}
+        >
+          <Icon.Plus />
+        </div>
+      </button>
+      {isDropped && (
+        <ul
+          className={css`
+            position: absolute;
+            z-index: 20;
+          `}
+        >
+          <li>
+            <Button
+              onClick={() => {
+                onCreate({
+                  __typename: "CodeNotebookBlock",
+                  id: uuid(),
+                  code: ""
+                });
+                setIsDropped(false);
+              }}
+            >
+              Code Block
+            </Button>
+          </li>
+          <li>
+            <Button
+              onClick={() => {
+                onCreate({
+                  __typename: "TextNotebookBlock",
+                  id: uuid(),
+                  text: ""
+                });
+                setIsDropped(false);
+              }}
+            >
+              Text Block
+            </Button>
+          </li>
+        </ul>
+      )}
+    </div>
   );
 }

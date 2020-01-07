@@ -4,7 +4,11 @@ import Context from "../Context";
 export default {
   NotebookBlock: {
     __resolveType(result: object) {
-      return "CodeNotebookBlock";
+      if ("code" in result) {
+        return "CodeNotebookBlock";
+      } else {
+        return "TextNotebookBlock";
+      }
     }
   },
 

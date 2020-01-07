@@ -25,12 +25,18 @@ export interface Notebook {
   blocks: NotebookBlock[];
 }
 
-export type NotebookBlock = CodeNotebookBlock;
+export type NotebookBlock = CodeNotebookBlock | TextNotebookBlock;
 
 export interface CodeNotebookBlock {
   __typename: "CodeNotebookBlock";
   id: string;
   code: string;
+}
+
+export interface TextNotebookBlock {
+  __typename: "TextNotebookBlock";
+  id: string;
+  text: string;
 }
 
 const GET_NOTEBOOKS_QUERY = gql`
@@ -81,6 +87,11 @@ const NOTEBOOK_FRAGMENT = gql`
       ... on CodeNotebookBlock {
         id
         code
+      }
+
+      ... on TextNotebookBlock {
+        id
+        text
       }
     }
   }
@@ -159,6 +170,10 @@ export function usePublishNotebook(): [
                 case "CodeNotebookBlock":
                   return {
                     code: { id: block.id, code: block.code }
+                  };
+                case "TextNotebookBlock":
+                  return {
+                    text: { id: block.id, text: block.text }
                   };
                 default:
                   return {};
