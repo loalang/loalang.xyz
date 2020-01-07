@@ -29,6 +29,17 @@ const server = http.createServer(async (req, res) => {
         notebook.updatedAt.toJSON() === notebook.createdAt.toJSON() ? 201 : 200
       );
       res.write(JSON.stringify({ message: "OK", notebook }));
+    } else if ((match = /^GET \/notebooks/.exec(header))) {
+      const author = url.searchParams.get("author");
+      if (author == null) {
+        throw {
+          name: "ValidationError",
+          details: ["Expected author search param"]
+        };
+      }
+      const notebooks = await database.notebooksByAuthor(author);
+      res.writeHead(200);
+      res.write(JSON.stringify({ message: "OK", notebooks }));
     } else if ((match = /^GET \/notebooks\/([^/]+)$/.exec(header))) {
       const [, id] = match;
       const notebook = await database.findNotebook(id);

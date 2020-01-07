@@ -1,6 +1,7 @@
 import { Pool } from "pg";
 import { readFileSync } from "fs";
-import { Notebook, NotebookPatch } from "./Notebook";
+import { Notebook, NotebookPatch, NotebookBlock } from "./Notebook";
+import { createDeflate } from "zlib";
 
 export default class Database {
   private constructor(private readonly _pool: Pool) {}
@@ -34,7 +35,7 @@ export default class Database {
       title: string;
       created_at: Date;
       updated_at: Date;
-      blocks: any;
+      blocks: NotebookBlock[];
     }>("select * from notebooks where id = $1 limit 1", [id]);
 
     if (result.rowCount === 0) {
@@ -49,18 +50,14 @@ export default class Database {
       blocks
     } = result.rows[0];
 
-    const { error, value } = Notebook.SCHEMA.validate({
+    return {
       id,
       title,
       author,
       createdAt,
       updatedAt,
       blocks
-    });
-    if (error != null) {
-      throw error;
-    }
-    return value;
+    };
   }
 
   async upsertNotebook(patch: NotebookPatch): Promise<Notebook> {
@@ -70,7 +67,7 @@ export default class Database {
       title: string;
       created_at: Date;
       updated_at: Date;
-      blocks: any;
+      blocks: NotebookBlock[];
     }>(
       `
         insert into notebooks
@@ -117,17 +114,47 @@ export default class Database {
       blocks
     } = result.rows[0];
 
-    const { error, value } = Notebook.SCHEMA.validate({
+    return {
       id,
       title,
       author,
       createdAt,
       updatedAt,
       blocks
-    });
-    if (error != null) {
-      throw error;
-    }
-    return value;
+    };
+  }
+
+  async notebooksByAuthor(author: string): Promise<Notebook[]> {
+    const result = await this._pool.query<{
+      id: string;
+      author: string;
+      title: string;
+      created_at: Date;
+      updated_at: Date;
+      blocks: NotebookBlock[];
+    }>(
+      `
+        select * from notebooks where author = $1
+      `,
+      [author]
+    );
+
+    return result.rows.map(
+      ({
+        id,
+        title,
+        author,
+        created_at: createdAt,
+        updated_at: updatedAt,
+        blocks
+      }) => ({
+        id,
+        title,
+        author,
+        createdAt,
+        updatedAt,
+        blocks
+      })
+    );
   }
 }
