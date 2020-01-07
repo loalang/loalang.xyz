@@ -1,26 +1,33 @@
-import User from "./User";
+import Context from "../Context";
 
 export default class Notebook {
   public readonly id: string;
-  public title: string;
-  public updatedAt: Date;
-  public blocks: NotebookBlock[];
+  public readonly title: string;
+  public readonly createdAt: Date;
+  public readonly updatedAt: Date;
+  public readonly blocks: NotebookBlock[];
 
-  constructor(
-    public readonly author: User,
-    public readonly createdAt: Date,
-    input: NotebookInput
-  ) {
-    this.id = input.id;
-    this.title = input.title;
-    this.blocks = NotebookBlock.fromInputs(input.blocks);
-    this.updatedAt = createdAt;
+  private readonly authorId: string;
+
+  constructor(record: {
+    id: string;
+    title: string;
+    author: string;
+    createdAt: string;
+    updatedAt: string;
+    blocks: NotebookBlock[];
+  }) {
+    this.id = record.id;
+    this.title = record.title;
+    this.authorId = record.author;
+    this.createdAt = new Date(record.createdAt);
+    this.updatedAt = new Date(record.updatedAt);
+    this.blocks = record.blocks;
   }
 
-  update({ title, blocks }: NotebookInput) {
-    this.title = title;
-    this.blocks = NotebookBlock.fromInputs(blocks);
-    this.updatedAt = new Date();
+  async author({}: {}, { auth, user }: Context) {
+    console.log("Get user with id", this.authorId, "using", auth);
+    return user;
   }
 }
 

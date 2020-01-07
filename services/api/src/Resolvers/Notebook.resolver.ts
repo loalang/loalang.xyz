@@ -22,15 +22,7 @@ export default {
         throw new Error("Only logged in users can publish notebooks.");
       }
 
-      let notebook = await notebooks.find(user, notebookInput.id);
-
-      if (notebook == null) {
-        notebook = new Notebook(user, new Date(), notebookInput);
-      } else {
-        notebook.update(notebookInput);
-      }
-
-      await notebooks.publishNotebook(user, notebook);
+      const notebook = await notebooks.publishNotebook(user, notebookInput);
 
       return notebook;
     },

@@ -10,6 +10,7 @@ services:
       PKG_HOST: http://pkg
       SEARCH_HOST: http://search
       DOCS_HOST: http://docs
+      NOTEBOOKS_HOST: http://notebooks
 
   auth:
     image: registry.gitlab.com/loalang/loalang.xyz/auth:${AUTH_TAG}

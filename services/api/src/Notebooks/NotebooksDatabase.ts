@@ -1,8 +1,5 @@
-import User from "../Resolvers/User";
-import Notebook from "../Resolvers/Notebook";
+import Notebook, { NotebookInput, NotebookBlock } from "../Resolvers/Notebook";
 import LoggedInUser from "../Authentication/LoggedInUser";
-
-const DB = new Map<string, Map<string, Notebook>>();
 
 export default class NotebooksDatabase {
   static create() {
@@ -10,29 +7,56 @@ export default class NotebooksDatabase {
   }
 
   async getNotebooksBy(author: LoggedInUser): Promise<Notebook[]> {
-    return Array.from(DB.get(author.id)?.values() ?? []);
+    const response = await fetch(
+      `${process.env.NOTEBOOKS_HOST}/notebooks?author=${author.id}`
+    );
+    if (response.status !== 200) {
+      return [];
+    }
+    return (await response.json()).notebooks.map((n: any) => new Notebook(n));
   }
 
   async publishNotebook(
     author: LoggedInUser,
-    notebook: Notebook
-  ): Promise<void> {
-    const notebooks = DB.get(author.id) ?? new Map();
+    notebook: NotebookInput
+  ): Promise<Notebook> {
+    const response = await fetch(`${process.env.NOTEBOOKS_HOST}/notebooks`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        ...notebook,
+        author: author.id,
+        blocks: NotebookBlock.fromInputs(notebook.blocks)
+      })
+    });
 
-    notebooks.set(notebook.id, notebook);
+    if (![200, 201].includes(response.status)) {
+      throw new Error(await response.text());
+    }
 
-    DB.set(author.id, notebooks);
+    return new Notebook((await response.json()).notebook);
   }
 
   async deleteNotebook(author: LoggedInUser, id: string): Promise<void> {
-    const notebooks = DB.get(author.id);
-
-    if (notebooks != null) {
-      notebooks.delete(id);
-    }
+    await fetch(`${process.env.NOTEBOOKS_HOST}/notebooks/${id}`, {
+      method: "DELETE",
+      headers: {
+        "X-Author-Id": author.id
+      }
+    });
   }
 
-  async find(author: LoggedInUser, id: string): Promise<Notebook | null> {
-    return DB.get(author.id)?.get(id) ?? null;
+  async find(_author: LoggedInUser, id: string): Promise<Notebook | null> {
+    const response = await fetch(
+      `${process.env.NOTEBOOKS_HOST}/notebooks/${id}`
+    );
+
+    if (response.status !== 200) {
+      throw new Error(await response.text());
+    }
+
+    return new Notebook((await response.json()).notebook);
   }
 }
