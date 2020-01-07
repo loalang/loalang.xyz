@@ -29,6 +29,27 @@ export default class Authentication {
     return user;
   }
 
+  async findUser({
+    id,
+    email
+  }:
+    | { id: string; email?: never }
+    | { id?: never; email: string }): Promise<User | null> {
+    const url = new URL(`${AUTH_HOST}/whois`);
+    if (id != null) {
+      url.searchParams.set("id", id);
+    }
+    if (email != null) {
+      url.searchParams.set("email", email);
+    }
+    const response = await fetch(url.href);
+    if (response.status !== 200) {
+      return null;
+    }
+    const { user } = await response.json();
+    return user;
+  }
+
   async register(email: string, password: string): Promise<User | null> {
     const response = await fetch(`${AUTH_HOST}/register`, {
       method: "POST",
@@ -72,7 +93,7 @@ export default class Authentication {
   }
 
   private async _getUser(token: string): Promise<LoggedInUser | null> {
-    const whoisResponse = await fetch(`${AUTH_HOST}/whois`, {
+    const whoisResponse = await fetch(`${AUTH_HOST}/whoami`, {
       headers: {
         "X-Token": token
       }

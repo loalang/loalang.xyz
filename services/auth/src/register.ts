@@ -8,9 +8,10 @@ import FormInput from "./FormInput";
 const EMAIL_PATTERN = /.@./;
 const PASSWORD_PATTERN = /.+/;
 
-const database = Database.create();
-
-export default async function register(input: FormInput): Promise<User> {
+export default async function register(
+  database: Database,
+  input: FormInput
+): Promise<User> {
   if (!EMAIL_PATTERN.test(input.email)) {
     throw new ValidationError("Invalid email address");
   }

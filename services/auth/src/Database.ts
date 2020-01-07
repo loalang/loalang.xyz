@@ -53,4 +53,26 @@ export default class Database {
     }
     return rows.rows[0];
   }
+
+  async findUserById(id: string): Promise<User | null> {
+    const rows = await this._pool.query<User>(
+      `select id, email from users where id = $1`,
+      [id]
+    );
+    if (rows.rowCount === 0) {
+      return null;
+    }
+    return rows.rows[0];
+  }
+
+  async findUserByEmail(email: string): Promise<User | null> {
+    const rows = await this._pool.query<User>(
+      `select id, email from users where email = $1`,
+      [email]
+    );
+    if (rows.rowCount === 0) {
+      return null;
+    }
+    return rows.rows[0];
+  }
 }

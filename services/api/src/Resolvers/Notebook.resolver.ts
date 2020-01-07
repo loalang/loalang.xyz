@@ -2,6 +2,16 @@ import Notebook, { NotebookInput } from "./Notebook";
 import Context from "../Context";
 
 export default {
+  Query: {
+    notebook(
+      _: any,
+      { id }: { id: string },
+      { notebooks }: Context
+    ): Promise<Notebook | null> {
+      return notebooks.find(id);
+    }
+  },
+
   NotebookBlock: {
     __resolveType(result: object) {
       if ("code" in result) {

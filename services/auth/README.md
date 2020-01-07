@@ -68,9 +68,25 @@ User login.
 }
 ```
 
-### `GET /whois`
+### `GET /whois?[id={id}|email={email}]`
 
 User data inspection.
+
+#### Example Response
+
+```json
+{
+  "message": "OK",
+  "user": {
+    "id": "xxxxxxxx-uuid-xxxx-xxxx-xxxxxxxxxxxx",
+    "email": "email@example.com"
+  }
+}
+```
+
+### `GET /whoami`
+
+User data introspection.
 
 #### Example Request
 

@@ -14,17 +14,6 @@ export default abstract class User {
 
     return notebooks.getNotebooksBy(this);
   }
-
-  async notebook(
-    { id }: { id: string },
-    { notebooks }: Context
-  ): Promise<Notebook | null> {
-    if (!this.isLoggedIn()) {
-      return null;
-    }
-
-    return notebooks.find(this, id);
-  }
 }
 
 export class GuestUser extends User {

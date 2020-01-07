@@ -5,6 +5,9 @@ import FormInput from "./FormInput";
 import { Readable } from "stream";
 import * as t from "./token";
 import ValidationError from "./ValidationError";
+import Database from "./Database";
+
+const database = Database.create();
 
 const server = http.createServer(async (req, res) => {
   try {
@@ -18,7 +21,7 @@ const server = http.createServer(async (req, res) => {
 
       case "POST /register": {
         const input = await parseFormInput(req);
-        const user = await register(input);
+        const user = await register(database, input);
         const token = t.pack(user);
         res.writeHead(200);
         res.write(JSON.stringify({ message: "OK", token }));
@@ -27,7 +30,7 @@ const server = http.createServer(async (req, res) => {
 
       case "POST /login": {
         const input = await parseFormInput(req);
-        const user = await login(input);
+        const user = await login(database, input);
         if (user == null) {
           res.writeHead(404);
           res.write(
@@ -43,13 +46,37 @@ const server = http.createServer(async (req, res) => {
         break;
       }
 
-      case "GET /whois": {
+      case "GET /whoami": {
         const token = getToken(req);
         const { user, secondsLeftUntilExpiry } = t.unpack(token);
         res.writeHead(200);
         res.write(
           JSON.stringify({ message: "OK", user, secondsLeftUntilExpiry })
         );
+        break;
+      }
+
+      case "GET /whois": {
+        const id = url.searchParams.get("id");
+        const email = url.searchParams.get("email");
+        let user;
+        if (id != null) {
+          user = await database.findUserById(id);
+        } else if (email != null) {
+          user = await database.findUserByEmail(email);
+        } else {
+          res.writeHead(400);
+          res.write(
+            JSON.stringify({ message: "Provide an email or id search param" })
+          );
+        }
+        if (user == null) {
+          res.writeHead(404);
+          res.write(JSON.stringify({ message: "Not Found" }));
+        } else {
+          res.writeHead(200);
+          res.write(JSON.stringify({ message: "OK", user }));
+        }
         break;
       }
 

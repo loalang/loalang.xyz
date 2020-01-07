@@ -3,9 +3,10 @@ import hash from "./hash";
 import User from "./User";
 import FormInput from "./FormInput";
 
-const database = Database.create();
-
-export default async function login(input: FormInput): Promise<User | null> {
+export default async function login(
+  database: Database,
+  input: FormInput
+): Promise<User | null> {
   const password = await hash(input.password);
   const { email } = input;
 

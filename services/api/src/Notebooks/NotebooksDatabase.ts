@@ -48,7 +48,7 @@ export default class NotebooksDatabase {
     });
   }
 
-  async find(_author: LoggedInUser, id: string): Promise<Notebook | null> {
+  async find(id: string): Promise<Notebook | null> {
     const response = await fetch(
       `${process.env.NOTEBOOKS_HOST}/notebooks/${id}`
     );

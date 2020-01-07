@@ -1,6 +1,9 @@
+type Query {
+  notebook(id: String!): Notebook
+}
+
 type User {
   notebooks: [Notebook!]!
-  notebook(id: String!): Notebook
 }
 
 type Notebook {

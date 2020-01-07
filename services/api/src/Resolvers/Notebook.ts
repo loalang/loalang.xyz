@@ -25,9 +25,8 @@ export default class Notebook {
     this.blocks = record.blocks;
   }
 
-  async author({}: {}, { auth, user }: Context) {
-    console.log("Get user with id", this.authorId, "using", auth);
-    return user;
+  async author({}: {}, { auth }: Context) {
+    return auth.findUser({ id: this.authorId });
   }
 }
 

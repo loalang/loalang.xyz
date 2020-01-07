@@ -99,11 +99,8 @@ const NOTEBOOK_FRAGMENT = gql`
 
 const FIND_NOTEBOOK_QUERY = gql`
   query FindNotebook($id: String!) {
-    me {
-      id
-      notebook(id: $id) {
-        ...notebook
-      }
+    notebook(id: $id) {
+      ...notebook
     }
   }
 
@@ -117,7 +114,7 @@ export function useNotebook(
     variables: { id }
   });
 
-  const notebook = data == null || data.me == null ? null : data.me.notebook;
+  const notebook = data == null ? null : data.notebook;
 
   if (notebook != null) {
     notebook.createdAt = new Date(notebook.createdAt);
@@ -243,11 +240,7 @@ export function useDeleteNotebook(): [
       client.cache.writeQuery({
         query: FIND_NOTEBOOK_QUERY,
         data: {
-          me: {
-            __typename: "User",
-            id: user.id,
-            notebook: null
-          }
+          notebook: null
         },
         variables: { id }
       });
