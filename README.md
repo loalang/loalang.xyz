@@ -10,6 +10,7 @@ The hosted services for Loa tooling.
 - [pkg](./services/pkg) – Internal package manager service
 - [search](./services/search) – Internal search service
 - [docs](./services/docs) – Internal documentation service
+- [notebooks](./services/notebooks) – Internal notebooks service
 
 ## Development
 
@@ -29,6 +30,7 @@ In development, the services will be exposed on these ports:
 - `search` – [:8093](https://localhost:8093)
 - `pkg` – [:8094](https://localhost:8094)
 - `docs` – [:8095](https://localhost:8095)
+- `notebooks` – [:8096](https://localhost:8096)
 
 Also, in development, local databases will be spun up as:
 

@@ -93,6 +93,24 @@ services:
     depends_on:
       - redis
 
+  notebooks:
+    image: gitlab.com/loalang/loalang.xyz/notebooks-builder
+    build:
+      context: ..
+      dockerfile: ./infra/docker/services/notebooks/builder.dockerfile
+    volumes:
+      - ../services/notebooks:/project
+    command: ["yarn", "start"]
+    ports:
+      - 8096:80
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASS: <<database-password>>
+    depends_on:
+      - postgres
+
   postgres:
     image: postgres:12-alpine
     environment:
@@ -101,6 +119,7 @@ services:
     volumes:
       - ../.db/postgres:/var/lib/postgresql/data
       - ../services/auth/schema.sql:/docker-entrypoint-initdb.d/auth.sql
+      - ../services/notebooks/schema.sql:/docker-entrypoint-initdb.d/notebooks.sql
       - ./dev/pg_hba.sh:/docker-entrypoint-initdb.d/pg_hba.sh
       - ./dev/postgres.conf:/etc/postgres.conf
     ports:

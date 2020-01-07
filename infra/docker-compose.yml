@@ -32,3 +32,6 @@ services:
     image: registry.gitlab.com/loalang/loalang.xyz/docs:${DOCS_TAG}
     environment:
       AMQP_URL: ${AMQP_URL}
+
+  notebooks:
+    image: registry.gitlab.com/loalang/loalang.xyz/notebooks:${NOTEBOOKS_TAG}

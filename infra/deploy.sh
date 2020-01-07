@@ -13,6 +13,7 @@ else
   RELEASE_NAME="loalang-$SLUG"
 fi
 
+export NOTEBOOKS_TAG=${LATEST_TAG:-$(sh ./infra/id-of.sh services/notebooks)} \
 export DOCS_TAG=${LATEST_TAG:-$(sh ./infra/id-of.sh services/docs)} \
 export PKG_TAG=${LATEST_TAG:-$(sh ./infra/id-of.sh services/pkg)} \
 export SEARCH_TAG=${LATEST_TAG:-$(sh ./infra/id-of.sh services/search)} \

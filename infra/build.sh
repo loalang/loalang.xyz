@@ -43,6 +43,7 @@ build() {
     }
 }
 
+build notebooks
 build docs
 build auth
 build pkg
