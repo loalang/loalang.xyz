@@ -37,6 +37,7 @@ services:
       - 8092:80
     environment:
       POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
       POSTGRES_USER: postgres
       POSTGRES_PASS: <<database-password>>
       PASSWORD_HASH_SALT: <<salt>>

@@ -9,6 +9,7 @@ export default class Database {
       new Pool({
         host: process.env.POSTGRES_HOST,
         user: process.env.POSTGRES_USER || "postgres",
+        port: Number(process.env.POSTGRES_PORT || 5432),
         password: process.env.POSTGRES_PASS,
         database: "auth"
       })
