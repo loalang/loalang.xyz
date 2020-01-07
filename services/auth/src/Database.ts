@@ -1,5 +1,6 @@
 import { Pool } from "pg";
 import User from "./User";
+import { readFileSync } from "fs";
 
 export default class Database {
   private constructor(private readonly _pool: Pool) {}
@@ -11,7 +12,13 @@ export default class Database {
         user: process.env.POSTGRES_USER || "postgres",
         port: Number(process.env.POSTGRES_PORT || 5432),
         password: process.env.POSTGRES_PASS,
-        database: "auth"
+        database: "auth",
+        ssl:
+          process.env.POSTGRES_CA_CERT != null
+            ? {
+                ca: readFileSync(process.env.POSTGRES_CA_CERT)
+              }
+            : false
       })
     );
   }
