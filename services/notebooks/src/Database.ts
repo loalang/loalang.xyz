@@ -157,4 +157,11 @@ export default class Database {
       })
     );
   }
+
+  async deleteNotebook(id: string, authorId: string) {
+    await this._pool.query(
+      "delete from notebooks where id = $1 and author = $2",
+      [id, authorId]
+    );
+  }
 }

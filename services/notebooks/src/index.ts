@@ -50,6 +50,12 @@ const server = http.createServer(async (req, res) => {
         res.writeHead(200);
         res.write(JSON.stringify({ message: "OK", notebook }));
       }
+    } else if ((match = /^DELETE \/notebooks\/([^/]+)$/.exec(header))) {
+      const [, id] = match;
+      const authorId = String(req.headers["x-author-id"]);
+      await database.deleteNotebook(id, authorId);
+      res.writeHead(200);
+      res.write(JSON.stringify({ message: "OK" }));
     } else {
       res.writeHead(404);
       res.write(JSON.stringify({ message: "Not Found" }));

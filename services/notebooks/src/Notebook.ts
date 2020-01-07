@@ -76,7 +76,7 @@ export namespace NotebookPatch {
   export const SCHEMA = Joi.object({
     id: Joi.string().required(),
     author: Joi.string().required(),
-    title: Joi.string(),
+    title: Joi.string().allow(""),
     blocks: Joi.array().items(NotebookBlock.SCHEMA)
   });
 }
