@@ -15,6 +15,7 @@ import { useHistory } from "react-router-dom";
 import { useIsOffline } from "../Hooks/useIsOffline";
 import { useMediaQuery } from "@loalang/ui-toolbox/useMediaQuery";
 import { Label } from "@loalang/ui-toolbox/Typography/TextStyle/Label";
+import { useUser } from "../Hooks/useAuth";
 
 const NotebookView = React.lazy(() => import("./NotebookView"));
 
@@ -27,6 +28,8 @@ export function NotebooksView() {
   const isOffline = useIsOffline();
 
   const isWide = useMediaQuery("(min-width: 800px)");
+
+  const { user } = useUser();
 
   return (
     <>
@@ -47,48 +50,58 @@ export function NotebooksView() {
               flex: 0 1 200px;
             `}
           >
-            <Heading>
-              <SectionHeading>My Notebooks</SectionHeading>
-            </Heading>
+            {user != null ? (
+              <>
+                <Heading>
+                  <SectionHeading>My Notebooks</SectionHeading>
+                </Heading>
 
-            <div
-              className={css`
-                margin: 10px 0;
-              `}
-            >
-              <Button
-                isDisabled={isOffline}
-                onClick={() => {
-                  const id = uuid();
+                <div
+                  className={css`
+                    margin: 10px 0;
+                  `}
+                >
+                  <Button
+                    isDisabled={isOffline}
+                    onClick={() => {
+                      const id = uuid();
 
-                  publish({
-                    id,
-                    title: "",
-                    blocks: []
-                  });
+                      publish({
+                        id,
+                        title: "",
+                        blocks: []
+                      });
 
-                  history.push(`/notebooks/${id}`);
-                }}
-              >
-                <Label>
-                  <Icon.Plus /> Create
-                </Label>
-              </Button>
-            </div>
+                      history.push(`/notebooks/${id}`);
+                    }}
+                  >
+                    <Label>
+                      <Icon.Plus /> Create
+                    </Label>
+                  </Button>
+                </div>
 
-            {isLoading && "Loading..."}
+                {isLoading && "Loading..."}
 
-            <ul>
-              {notebooks.map(notebook => (
-                <li key={notebook.id}>
-                  <Link to={`/notebooks/${notebook.id}`}>
-                    <ItemHeading>
-                      {notebook.title || "Untitled Notebook"}
-                    </ItemHeading>
-                  </Link>
-                </li>
-              ))}
-            </ul>
+                <ul>
+                  {notebooks.map(notebook => (
+                    <li key={notebook.id}>
+                      <Link to={`/notebooks/${notebook.id}`}>
+                        <ItemHeading>
+                          {notebook.title || "Untitled Notebook"}
+                        </ItemHeading>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : (
+              <>
+                <Heading>
+                  <SectionHeading>My Notebooks</SectionHeading>
+                </Heading>
+              </>
+            )}
           </div>
 
           <div

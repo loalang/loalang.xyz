@@ -25,8 +25,10 @@ import { Label } from "@loalang/ui-toolbox/Typography/TextStyle/Label";
 import { Icon } from "@loalang/ui-toolbox/Icons/Icon";
 import { useMediaQuery } from "@loalang/ui-toolbox/useMediaQuery";
 import { Code } from "@loalang/ui-toolbox/Code/Code";
-import { TextInput } from "@loalang/ui-toolbox/Forms/TextInput";
 import { Compiler } from "../Compiler";
+import { useUser } from "../Hooks/useAuth";
+import { Body } from "@loalang/ui-toolbox/Typography/TextStyle/Body";
+import { Basic } from "@loalang/ui-toolbox/Typography/TextStyle/Basic";
 
 export default function NotebookView() {
   const {
@@ -41,7 +43,7 @@ export default function NotebookView() {
   const [notebook, setNotebook] = useState(savedNotebook);
 
   useEffect(() => {
-    if (notebook != null) {
+    if (savedNotebook != null) {
       const c = Compiler.create({
         onResult(uri, result) {
           setResults(d => ({
@@ -60,9 +62,9 @@ export default function NotebookView() {
           }));
         }
       });
-      for (const block of notebook.blocks) {
+      for (const block of savedNotebook.blocks) {
         if (block.__typename === "CodeNotebookBlock") {
-          const blockId = `${notebook.id}:${block.id}`;
+          const blockId = `${savedNotebook.id}:${block.id}`;
           c.set(blockId, block.code);
           c.evaluate(blockId);
         }
@@ -70,7 +72,7 @@ export default function NotebookView() {
       setCompiler(c);
       return () => c.dispose();
     }
-  }, [notebook]);
+  }, [savedNotebook]);
 
   const [publish] = usePublishNotebook();
   const [deleteNotebook] = useDeleteNotebook();
@@ -85,13 +87,18 @@ export default function NotebookView() {
   }, [savedNotebook, setNotebook]);
 
   useTimeout(
-    1000,
+    200,
     useCallback(() => {
       if (notebook != null && notebook !== savedNotebook) {
         publish(notebook);
       }
     }, [notebook, savedNotebook, publish])
   );
+
+  const { user } = useUser();
+
+  const isAuthor =
+    user != null && notebook != null && user.id === notebook.author.id;
 
   return (
     <div
@@ -103,7 +110,7 @@ export default function NotebookView() {
         "Loading..."
       ) : notebook == null ? (
         <NotFoundView />
-      ) : (
+      ) : isAuthor ? (
         <Form value={notebook} onChange={setNotebook}>
           <Title>{`${notebook.title || "Untitled Notebook"} by ${
             notebook.author.email
@@ -254,6 +261,78 @@ export default function NotebookView() {
             )}
           </Form.Array>
         </Form>
+      ) : (
+        <>
+          <Title>{`${notebook.title || "Untitled Notebook"} by ${
+            notebook.author.email
+          }`}</Title>
+
+          <Heading>
+            <PageHeading>{notebook.title || "Untitled Notebook"}</PageHeading>
+          </Heading>
+
+          <Basic>by {notebook.author.email}</Basic>
+
+          {user != null && (
+            <div
+              className={css`
+                margin-top: 5px;
+              `}
+            >
+              <Button
+                onClick={() => {
+                  const id = uuid();
+                  publish({
+                    id,
+                    title: notebook.title,
+                    blocks: notebook.blocks
+                  });
+                  history.push(`/notebooks/${id}`);
+                }}
+              >
+                <Label>
+                  <Icon.Edit /> Clone
+                </Label>
+              </Button>
+            </div>
+          )}
+
+          <ol
+            className={css`
+              li {
+                margin-top: 10px;
+              }
+            `}
+          >
+            {notebook.blocks.map(block => {
+              switch (block.__typename) {
+                case "CodeNotebookBlock":
+                  return (
+                    <li key={block.id}>
+                      <Code raw block language="loa">
+                        {block.code}
+                      </Code>
+                    </li>
+                  );
+                case "TextNotebookBlock": {
+                  const blockId = `${notebook.id}:${block.id}`;
+
+                  return (
+                    <li key={block.id}>
+                      <Body>{block.text}</Body>
+                      <EvaluationResult
+                        diagnostics={diagnostics[blockId] || []}
+                        result={results[blockId] || null}
+                      />
+                    </li>
+                  );
+                }
+                default:
+                  return null;
+              }
+            })}
+          </ol>
+        </>
       )}
     </div>
   );
@@ -378,6 +457,8 @@ function CreateBlockButton({
           className={css`
             position: absolute;
             z-index: 20;
+            left: 50%;
+            transform: translate(-50%);
           `}
         >
           <li>
