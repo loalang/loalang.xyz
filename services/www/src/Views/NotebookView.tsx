@@ -306,20 +306,13 @@ export default function NotebookView() {
           >
             {notebook.blocks.map(block => {
               switch (block.__typename) {
-                case "CodeNotebookBlock":
+                case "CodeNotebookBlock": {
+                  const blockId = `${notebook.id}:${block.id}`;
                   return (
                     <li key={block.id}>
                       <Code raw block language="loa">
                         {block.code}
                       </Code>
-                    </li>
-                  );
-                case "TextNotebookBlock": {
-                  const blockId = `${notebook.id}:${block.id}`;
-
-                  return (
-                    <li key={block.id}>
-                      <Body>{block.text}</Body>
                       <EvaluationResult
                         diagnostics={diagnostics[blockId] || []}
                         result={results[blockId] || null}
@@ -327,6 +320,12 @@ export default function NotebookView() {
                     </li>
                   );
                 }
+                case "TextNotebookBlock":
+                  return (
+                    <li key={block.id}>
+                      <Body>{block.text}</Body>
+                    </li>
+                  );
                 default:
                   return null;
               }
