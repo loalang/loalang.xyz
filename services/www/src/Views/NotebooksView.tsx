@@ -16,6 +16,7 @@ import { useIsOffline } from "../Hooks/useIsOffline";
 import { useMediaQuery } from "@loalang/ui-toolbox/useMediaQuery";
 import { Label } from "@loalang/ui-toolbox/Typography/TextStyle/Label";
 import { useUser } from "../Hooks/useAuth";
+import { Loading } from "@loalang/ui-toolbox/Loading";
 
 const NotebookView = React.lazy(() => import("./NotebookView"));
 
@@ -81,7 +82,7 @@ export function NotebooksView() {
                   </Button>
                 </div>
 
-                {isLoading && "Loading..."}
+                {isLoading && <Loading />}
 
                 <ul>
                   {notebooks.map(notebook => (

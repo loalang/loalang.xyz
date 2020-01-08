@@ -16,6 +16,7 @@ import { PageHeading } from "@loalang/ui-toolbox/Typography/TextStyle/PageHeadin
 import { Button } from "@loalang/ui-toolbox/Forms/Button";
 import { Form } from "@loalang/ui-toolbox/Forms/Form";
 import { CodeInput } from "@loalang/ui-toolbox/Code/CodeInput";
+import { Loading } from "@loalang/ui-toolbox/Loading";
 import { EditableText } from "../Components/EditableText";
 import { useTimeout } from "../Hooks/useTimeout";
 import { useIsOffline } from "../Hooks/useIsOffline";
@@ -107,7 +108,7 @@ export default function NotebookView() {
       `}
     >
       {isLoading && notebook == null ? (
-        "Loading..."
+        <Loading />
       ) : notebook == null ? (
         <NotFoundView />
       ) : isAuthor ? (
