@@ -1,18 +1,10 @@
 loalang.xyz {
-    tls {
-        dns cloudflare
-    }
-
     header / -Server
 
     proxy / www
 }
 
 api.loalang.xyz {
-    tls {
-        dns cloudflare
-    }
-
     gzip
 
     header / -Server
@@ -21,10 +13,6 @@ api.loalang.xyz {
 }
 
 loal.ink {
-    tls {
-        dns cloudflare
-    }
-
     header / -Server
 
     proxy / link
