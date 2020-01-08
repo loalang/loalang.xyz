@@ -1,28 +1,105 @@
 import http from "http";
 import Database from "./Database";
+import { Readable } from "stream";
+import { stringify } from "querystring";
 
 const database = Database.create();
 
 const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(`http://incoming${req.url}`);
-    res.setHeader("Content-Type", "application/json");
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
     switch (`${req.method} ${url.pathname}`) {
-      case "GET /healthz":
-        await database.checkHealth();
+      case "POST /": {
+        if (req.headers["content-type"] !== "application/json") {
+          res.writeHead(400);
+          res.write(
+            "Required header: <strong>Content-Type: application/json</strong>"
+          );
+          break;
+        }
+        const { id, target } = await parseBody<{
+          id: string;
+          target: string;
+        }>(req);
+        if (typeof id !== "string" || typeof target !== "string") {
+          res.writeHead(400);
+          res.write(
+            "Required JSON structure: <strong>{id: string, target: string}</strong>"
+          );
+          break;
+        }
+
+        const saved = await database.saveLink(id, target);
+        if (saved) {
+          res.writeHead(200);
+          res.write("OK");
+        } else {
+          res.writeHead(422);
+          res.write("Duplicate ID");
+        }
+        break;
+      }
+
+      case "GET /":
         res.writeHead(200);
-        res.write(JSON.stringify({ message: "OK" }));
+        res.write(`
+          <!DOCTYPE html>
+          <html lang="en">
+            <head>
+              <title>Loa Link Shortener</title>
+              <script>
+                async function onSubmit(event) {
+                  event.preventDefault();
+                  const response = await fetch("/", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                      id: event.target.urlId.value,
+                      target: event.target.target.value
+                    })
+                  });
+                  console.log(response.status, await response.text());
+                }
+              </script>
+            </head>
+            <body>
+              <form onsubmit="onSubmit(event)">
+                <input type="text" name="urlId" placeholder="ID">
+                <input type="text" name="target" placeholder="https://loalang.xyz/...">
+                <button type="submit">
+                  Create
+                </button>
+              </form>
+            </body>
+          </html>
+        `);
         break;
 
-      default:
-        res.writeHead(404);
-        res.write(JSON.stringify({ message: "Not Found" }));
+      default: {
+        const { pathname } = url;
+        const id = pathname.slice(1);
+        const target = await database.findLink(id);
+        if (target != null) {
+          res.writeHead(301, {
+            Location: target
+          });
+          res.write("Not Found");
+        } else {
+          res.writeHead(404);
+          res.write("Not Found");
+        }
         break;
+      }
     }
   } catch (e) {
     console.error(e);
-    res.writeHead(500);
-    res.write(JSON.stringify({ message: "Something went wrong!" }));
+    res.writeHead(500, {
+      "Content-Type": "text/html; charset=utf-8"
+    });
+    res.write("Something went wrong!");
   } finally {
     res.end();
   }
@@ -31,3 +108,13 @@ const server = http.createServer(async (req, res) => {
 server.listen(80, "0.0.0.0", () => {
   console.log("Started!");
 });
+
+function parseBody<T>(stream: Readable): Promise<T> {
+  return new Promise<string>((resolve, reject) => {
+    let buffer = "";
+    stream
+      .on("data", chunk => (buffer += chunk.toString("utf-8")))
+      .once("end", () => resolve(buffer))
+      .once("error", reject);
+  }).then(JSON.parse);
+}

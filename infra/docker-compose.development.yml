@@ -136,6 +136,7 @@ services:
       - ../.db/postgres:/var/lib/postgresql/data
       - ../services/auth/schema.sql:/docker-entrypoint-initdb.d/auth.sql
       - ../services/notebooks/schema.sql:/docker-entrypoint-initdb.d/notebooks.sql
+      - ../services/link/schema.sql:/docker-entrypoint-initdb.d/link.sql
       - ./dev/pg_hba.sh:/docker-entrypoint-initdb.d/pg_hba.sh
       - ./dev/postgres.conf:/etc/postgres.conf
     ports:
