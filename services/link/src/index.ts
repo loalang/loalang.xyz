@@ -51,16 +51,29 @@ const server = http.createServer(async (req, res) => {
               <script>
                 async function onSubmit(event) {
                   event.preventDefault();
+
+                  const id = event.target.urlId.value;
+                  const target = event.target.target.value;
+
                   const response = await fetch("/", {
                     method: "POST",
                     headers: {
                       "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({
-                      id: event.target.urlId.value,
-                      target: event.target.target.value
-                    })
+                    body: JSON.stringify({ id, target })
                   });
+
+                  switch (response.status) {
+                    case 200:
+                      alert(\`Link generated: https://loal.ink/\${id} -> \${target}\`);
+                      break;
+                    case 422:
+                      alert(\`https://loal.ink/\${id} is already in use\`);
+                      break;
+                    default:
+                      alert("Something went wrong!");
+                      break;
+                  }
                   console.log(response.status, await response.text());
                 }
               </script>
@@ -86,7 +99,7 @@ const server = http.createServer(async (req, res) => {
           res.writeHead(301, {
             Location: target
           });
-          res.write("Not Found");
+          res.write(`<a href="${target}">${target}</a>`);
         } else {
           res.writeHead(404);
           res.write("Not Found");
