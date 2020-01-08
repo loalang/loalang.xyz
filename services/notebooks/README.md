@@ -5,8 +5,10 @@ The hosted internal service for storage of Code Notebooks.
 ## Environment Variables
 
 - `POSTGRES_HOST` – The hostname of the Postgres database to use.
+- `POSTGRES_PORT` – The port to use to connect to the database.
 - `POSTGRES_USER` – The username to use to connect to the database.
 - `POSTGRES_PASS` – The password to use to connect to the database.
+- `POSTGRES_CA_CERT` – Path to CA certificate **[prod only]**
 
 ## API
 

@@ -1325,10 +1325,10 @@
   dependencies:
     emotion "^10.0.23"
 
-"@loalang/ui-toolbox@^0.1.13":
-  version "0.1.13"
-  resolved "https://registry.yarnpkg.com/@loalang/ui-toolbox/-/ui-toolbox-0.1.13.tgz#453cd06a55d3016673228bb7bb716f1014515967"
-  integrity sha512-Dyhww+IZUHAjmXeTZDYY5iyeNLtr/RWzK/8buapF6MXApeuXBLIPW/O64VXQSRxT725PxgsZ+h+7S/xh082FeQ==
+"@loalang/ui-toolbox@^0.1.14":
+  version "0.1.14"
+  resolved "https://registry.yarnpkg.com/@loalang/ui-toolbox/-/ui-toolbox-0.1.14.tgz#679de7e2831e5704612b073958fefb4109cc1e31"
+  integrity sha512-6g+svkggJVaO2iyVSIfubjPedVlRXqu/sah7ScnxJm5CDYUEPxdgxyXcQtCzp6Vl90EMuFnWbtBKuYt070CHDg==
   dependencies:
     emotion "^10.0.23"
     highlight.js "^9.17.1"

@@ -12,6 +12,9 @@ services:
       DOCS_HOST: http://docs
       NOTEBOOKS_HOST: http://notebooks
 
+  link:
+    image: registry.gitlab.com/loalang/loalang.xyz/link:${LINK_TAG}
+
   auth:
     image: registry.gitlab.com/loalang/loalang.xyz/auth:${AUTH_TAG}
     environment:

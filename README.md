@@ -6,6 +6,7 @@ The hosted services for Loa tooling.
 
 - [www](./services/www) – Public Web UI
 - [api](./services/api) – Public API, exposing the internal services through a GraphQL server
+- [link](./services/link) – Public link shortening service
 - [auth](./services/auth) – Internal authentication service
 - [pkg](./services/pkg) – Internal package manager service
 - [search](./services/search) – Internal search service
@@ -26,6 +27,7 @@ In development, the services will be exposed on these ports:
 
 - `www` – [:8090](https://localhost:8090)
 - `api` – [:8091](https://localhost:8091)
+- `link` – [:8097](https://localhost:8097)
 - `auth` – [:8092](https://localhost:8092)
 - `search` – [:8093](https://localhost:8093)
 - `pkg` – [:8094](https://localhost:8094)

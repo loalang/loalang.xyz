@@ -48,6 +48,7 @@ build docs
 build auth
 build pkg
 build search
+build link
 build api
 build www
 

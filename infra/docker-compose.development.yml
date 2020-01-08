@@ -25,6 +25,22 @@ services:
     ports:
       - 8091:80
 
+  link:
+    image: gitlab.com/loalang/loalang.xyz/link-builder
+    build:
+      context: ..
+      dockerfile: ./infra/docker/services/link/builder.dockerfile
+    volumes:
+      - ../services/link:/project
+    command: ["yarn", "start"]
+    ports:
+      - 8097:80
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASS: <<database-password>>
+
   auth:
     image: gitlab.com/loalang/loalang.xyz/auth-builder
     build:

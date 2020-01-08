@@ -20,6 +20,7 @@ export SEARCH_TAG=${LATEST_TAG:-$(sh ./infra/id-of.sh services/search)} \
 export AUTH_TAG=${LATEST_TAG:-$(sh ./infra/id-of.sh services/auth)} \
 export API_TAG=${LATEST_TAG:-$(sh ./infra/id-of.sh services/api)} \
 export WWW_TAG=${LATEST_TAG:-$(sh ./infra/id-of.sh services/www)} \
+export LINK_TAG=${LATEST_TAG:-$(sh ./infra/id-of.sh services/link)} \
 export INGRESS_TAG=${LATEST_TAG:-$(sh ./infra/id-of.sh infra/docker/ingress)} \
 
 docker-compose \

@@ -11,6 +11,16 @@ services:
       CLOUDFLARE_EMAIL: ${CLOUDFLARE_EMAIL}
       CLOUDFLARE_API_KEY: ${CLOUDFLARE_API_KEY}
 
+  link:
+    volumes:
+      - /etc/psql/ca.cert:/etc/psql/ca.cert
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASS: ${POSTGRES_PASS}
+      POSTGRES_CA_CERT: /etc/psql/ca.cert
+
   auth:
     volumes:
       - /etc/psql/ca.cert:/etc/psql/ca.cert
@@ -19,8 +29,8 @@ services:
       POSTGRES_PORT: ${POSTGRES_PORT}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASS: ${POSTGRES_PASS}
-      PASSWORD_HASH_SALT: ${PASSWORD_HASH_SALT}
       POSTGRES_CA_CERT: /etc/psql/ca.cert
+      PASSWORD_HASH_SALT: ${PASSWORD_HASH_SALT}
 
   search:
     environment:
