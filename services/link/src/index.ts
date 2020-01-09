@@ -1,7 +1,6 @@
 import http from "http";
 import Database from "./Database";
 import { Readable } from "stream";
-import { stringify } from "querystring";
 
 const database = Database.create();
 
@@ -32,7 +31,7 @@ const server = http.createServer(async (req, res) => {
 
         const saved = await database.saveLink(id, target);
         if (saved) {
-          res.writeHead(200);
+          res.writeHead(201);
           res.write("OK");
         } else {
           res.writeHead(422);
@@ -64,7 +63,7 @@ const server = http.createServer(async (req, res) => {
                   });
 
                   switch (response.status) {
-                    case 200:
+                    case 201:
                       alert(\`Link generated: https://loal.ink/\${id} -> \${target}\`);
                       break;
                     case 422:
@@ -92,6 +91,12 @@ const server = http.createServer(async (req, res) => {
         break;
 
       default: {
+        if (!["GET", "HEAD"].includes(req.method!)) {
+          res.writeHead(405);
+          res.write("Please use GET or HEAD.");
+          break;
+        }
+
         const { pathname } = url;
         const id = pathname.slice(1);
         const target = await database.findLink(id);
