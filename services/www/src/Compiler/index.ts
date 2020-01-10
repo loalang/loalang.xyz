@@ -6,7 +6,7 @@ import {
 
 export interface CompilerEvents {
   onDiagnostics(uri: string, diagnostics: string[]): void;
-  onResult(uri: string, result: string | null): void;
+  onResult(uri: string, result: string | undefined): void;
 }
 
 export class Compiler {

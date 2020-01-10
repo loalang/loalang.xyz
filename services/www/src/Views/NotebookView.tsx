@@ -37,7 +37,7 @@ export default function NotebookView() {
   } = useRouteMatch<{ id: string }>();
 
   const [diagnostics, setDiagnostics] = useState<Record<string, string[]>>({});
-  const [results, setResults] = useState<Record<string, string | null>>({});
+  const [results, setResults] = useState<Record<string, string | undefined>>({});
   const [compiler, setCompiler] = useState<Compiler | null>(null);
 
   const { isLoading, notebook: savedNotebook } = useNotebook(id);

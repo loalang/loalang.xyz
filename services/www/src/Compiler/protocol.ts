@@ -9,7 +9,7 @@ export interface OnDiagnosticsEventPayload {
 export interface OnResultEventPayload {
   __type: "RESULT";
   uri: string;
-  result: string | null;
+  result: string | undefined;
 }
 
 export type CommandPayload = SetCommandPayload | EvaluateCommandPayload;
