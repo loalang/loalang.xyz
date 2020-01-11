@@ -1325,14 +1325,15 @@
   dependencies:
     emotion "^10.0.23"
 
-"@loalang/ui-toolbox@^0.1.14":
-  version "0.1.14"
-  resolved "https://registry.yarnpkg.com/@loalang/ui-toolbox/-/ui-toolbox-0.1.14.tgz#679de7e2831e5704612b073958fefb4109cc1e31"
-  integrity sha512-6g+svkggJVaO2iyVSIfubjPedVlRXqu/sah7ScnxJm5CDYUEPxdgxyXcQtCzp6Vl90EMuFnWbtBKuYt070CHDg==
+"@loalang/ui-toolbox@^0.1.15":
+  version "0.1.15"
+  resolved "https://registry.yarnpkg.com/@loalang/ui-toolbox/-/ui-toolbox-0.1.15.tgz#b5216e2ef2422dadbcff44c553ed6aa1cb5bd97e"
+  integrity sha512-+dypyUrqoN3empukXHKYsgJvtx43ba2C3eEtRzLjXDeBzNw+P2w881OdEf8yShwWcntAhza3obiZQhE/teEgWA==
   dependencies:
     emotion "^10.0.23"
     highlight.js "^9.17.1"
     misbehave "^0.3.0"
+    resize-observer-polyfill "^1.5.1"
 
 "@mrmlnc/readdir-enhanced@^2.2.1":
   version "2.2.1"
@@ -9362,6 +9363,11 @@ requires-port@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/requires-port/-/requires-port-1.0.0.tgz#925d2601d39ac485e091cf0da5c6e694dc3dcaff"
   integrity sha1-kl0mAdOaxIXgkc8NpcbmlNw9yv8=
+
+resize-observer-polyfill@^1.5.1:
+  version "1.5.1"
+  resolved "https://registry.yarnpkg.com/resize-observer-polyfill/-/resize-observer-polyfill-1.5.1.tgz#0e9020dd3d21024458d4ebd27e23e40269810464"
+  integrity sha512-LwZrotdHOo12nQuZlHEmtuXdqGoOD0OhaxopaNFxWzInpEgaLWoVuAMbTzixuosCx2nEG58ngzW3vxdWoxIgdg==
 
 resolve-cwd@^2.0.0:
   version "2.0.0"
