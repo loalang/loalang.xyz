@@ -84,7 +84,9 @@ export default function NotebookView() {
   const isWide = useMediaQuery("(min-width: 800px)");
 
   useEffect(() => {
-    setNotebook(savedNotebook);
+    if (notebook == null) {
+      setNotebook(savedNotebook);
+    }
   }, [savedNotebook, setNotebook]);
 
   useTimeout(
