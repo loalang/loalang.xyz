@@ -37,7 +37,9 @@ export default function NotebookView() {
   } = useRouteMatch<{ id: string }>();
 
   const [diagnostics, setDiagnostics] = useState<Record<string, string[]>>({});
-  const [results, setResults] = useState<Record<string, string | undefined>>({});
+  const [results, setResults] = useState<Record<string, string | undefined>>(
+    {}
+  );
   const [compiler, setCompiler] = useState<Compiler | null>(null);
 
   const { isLoading, notebook: savedNotebook } = useNotebook(id);
@@ -87,15 +89,15 @@ export default function NotebookView() {
     if (notebook == null) {
       setNotebook(savedNotebook);
     }
-  }, [savedNotebook, setNotebook]);
+  }, [notebook, savedNotebook, setNotebook]);
 
   useTimeout(
     200,
     useCallback(() => {
-      if (notebook != null && notebook !== savedNotebook) {
+      if (notebook != null) {
         publish(notebook);
       }
-    }, [notebook, savedNotebook, publish])
+    }, [notebook, publish])
   );
 
   const { user } = useUser();
