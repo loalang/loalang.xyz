@@ -1,6 +1,7 @@
 import gql from "graphql-tag";
 import { useQuery, useMutation, useApolloClient } from "react-apollo";
 import { useUser } from "./useAuth";
+import { useCallback, useMemo } from "react";
 
 export interface NotebookListing {
   id: string;
@@ -114,12 +115,19 @@ export function useNotebook(
     variables: { id }
   });
 
-  const notebook = data == null ? null : data.notebook;
+  const notebookData = data == null ? null : data.notebook;
 
-  if (notebook != null) {
-    notebook.createdAt = new Date(notebook.createdAt);
-    notebook.updatedAt = new Date(notebook.updatedAt);
-  }
+  const notebook = useMemo(() => {
+    if (notebookData == null) {
+      return null;
+    }
+
+    return {
+      ...notebookData,
+      createdAt: new Date(notebookData.createdAt),
+      updatedAt: new Date(notebookData.updatedAt)
+    };
+  }, [notebookData]);
 
   return {
     isLoading: loading,
@@ -152,64 +160,67 @@ export function usePublishNotebook(): [
   const { user } = useUser();
 
   return [
-    async notebook => {
-      if (user == null) {
-        throw new Error("Only logged in users can publish notebooks");
-      }
-
-      const mutating = mutate({
-        variables: {
-          notebook: {
-            id: notebook.id,
-            title: notebook.title,
-            blocks: notebook.blocks.map(block => {
-              switch (block.__typename) {
-                case "CodeNotebookBlock":
-                  return {
-                    code: { id: block.id, code: block.code }
-                  };
-                case "TextNotebookBlock":
-                  return {
-                    text: { id: block.id, text: block.text }
-                  };
-                default:
-                  return {};
-              }
-            })
-          }
+    useCallback(
+      async notebook => {
+        if (user == null) {
+          throw new Error("Only logged in users can publish notebooks");
         }
-      });
 
-      client.cache.writeQuery({
-        query: GET_NOTEBOOKS_QUERY,
-        data: {
-          me: {
-            __typename: "User",
-            id: user.id,
-            notebooks: Array.from(
-              new Map(
-                [
-                  ...existingListings,
-                  {
-                    __typename: "Notebook",
-                    id: notebook.id,
-                    title: notebook.title,
-                    author: {
-                      __typename: "User",
-                      id: user.id,
-                      email: user.email
+        const mutating = mutate({
+          variables: {
+            notebook: {
+              id: notebook.id,
+              title: notebook.title,
+              blocks: notebook.blocks.map(block => {
+                switch (block.__typename) {
+                  case "CodeNotebookBlock":
+                    return {
+                      code: { id: block.id, code: block.code }
+                    };
+                  case "TextNotebookBlock":
+                    return {
+                      text: { id: block.id, text: block.text }
+                    };
+                  default:
+                    return {};
+                }
+              })
+            }
+          }
+        });
+
+        client.cache.writeQuery({
+          query: GET_NOTEBOOKS_QUERY,
+          data: {
+            me: {
+              __typename: "User",
+              id: user.id,
+              notebooks: Array.from(
+                new Map(
+                  [
+                    ...existingListings,
+                    {
+                      __typename: "Notebook",
+                      id: notebook.id,
+                      title: notebook.title,
+                      author: {
+                        __typename: "User",
+                        id: user.id,
+                        email: user.email
+                      }
                     }
-                  }
-                ].map(n => [n.id, n])
-              ),
-              ([_, n]) => n
-            )
+                  ].map(n => [n.id, n])
+                ),
+                ([_, n]) => n
+              )
+            }
           }
-        }
-      });
+        });
 
-      await mutating;
-    },
+        await mutating;
+      },
+      [client.cache, existingListings, mutate, user]
+    ),
     { isPublishing: loading, error: error || null }
   ];
 }
