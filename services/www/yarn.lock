@@ -1252,10 +1252,10 @@
     "@loalang/ui-toolbox" "^0.1.0"
     emotion "^10.0.23"
 
-"@loalang/loa@^0.1.9":
-  version "0.1.9"
-  resolved "https://registry.yarnpkg.com/@loalang/loa/-/loa-0.1.9.tgz#aa20e9826aaa1ad767c68ec61b9fcfce31142017"
-  integrity sha512-oWA7N1Qw/GpGG4QUN+PQ15+kZNP1F9Q3Hj2JzESnOmTaOp3pL4fvhY/+Y8L2boIViXvIOYw2SsCPAFB8PEACIg==
+"@loalang/loa@^0.1.12":
+  version "0.1.12"
+  resolved "https://registry.yarnpkg.com/@loalang/loa/-/loa-0.1.12.tgz#a4e714f8a15420f4f449078a6511af501ee2e4f4"
+  integrity sha512-QI286FodjWhrI984OlQLn9eGp35wP3UTH2Thb4OuirKfUtHvJKo22u9INQsm9R1Ql134CK9hCNdqWOuHY/5nKw==
 
 "@loalang/react-scripts@3.3.4":
   version "3.3.4"
