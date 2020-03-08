@@ -2,6 +2,7 @@ version: "3.7"
 services:
   ingress:
     image: registry.gitlab.com/loalang/loalang.xyz/ingress:${INGRESS_TAG}
+    restart: always
     ports:
       - 80:80
       - 443:443
@@ -12,6 +13,7 @@ services:
       CLOUDFLARE_API_KEY: ${CLOUDFLARE_API_KEY}
 
   link:
+    restart: always
     volumes:
       - /etc/psql/ca.cert:/etc/psql/ca.cert
     environment:
@@ -22,6 +24,7 @@ services:
       POSTGRES_CA_CERT: /etc/psql/ca.cert
 
   auth:
+    restart: always
     volumes:
       - /etc/psql/ca.cert:/etc/psql/ca.cert
     environment:
@@ -33,10 +36,12 @@ services:
       PASSWORD_HASH_SALT: ${PASSWORD_HASH_SALT}
 
   search:
+    restart: always
     environment:
       ALGOLIA_INDEX: prod_search
 
   pkg:
+    restart: always
     volumes:
       - /etc/google/credentials.json:/etc/google/credentials.json
     environment:
@@ -46,12 +51,14 @@ services:
       GOOGLE_APPLICATION_CREDENTIALS: /etc/google/credentials.json
 
   docs:
+    restart: always
     environment:
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
       REDIS_PASS: ${REDIS_PASS}
 
   notebooks:
+    restart: always
     volumes:
       - /etc/psql/ca.cert:/etc/psql/ca.cert
     environment:
