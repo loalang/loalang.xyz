@@ -1,7 +1,7 @@
 version: "3.7"
 services:
   ingress:
-    image: registry.gitlab.com/loalang/loalang.xyz/ingress:${INGRESS_TAG}
+    image: docker.pkg.github.com/loalang/loalang.xyz/ingress:${INGRESS_TAG}
     restart: always
     ports:
       - 80:80

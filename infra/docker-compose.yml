@@ -1,10 +1,10 @@
 version: "3.7"
 services:
   www:
-    image: registry.gitlab.com/loalang/loalang.xyz/www:${WWW_TAG}
+    image: docker.pkg.github.com/loalang/loalang.xyz/www:${WWW_TAG}
 
   api:
-    image: registry.gitlab.com/loalang/loalang.xyz/api:${API_TAG}
+    image: docker.pkg.github.com/loalang/loalang.xyz/api:${API_TAG}
     environment:
       AUTH_HOST: http://auth
       PKG_HOST: http://pkg
@@ -13,29 +13,29 @@ services:
       NOTEBOOKS_HOST: http://notebooks
 
   link:
-    image: registry.gitlab.com/loalang/loalang.xyz/link:${LINK_TAG}
+    image: docker.pkg.github.com/loalang/loalang.xyz/link:${LINK_TAG}
 
   auth:
-    image: registry.gitlab.com/loalang/loalang.xyz/auth:${AUTH_TAG}
+    image: docker.pkg.github.com/loalang/loalang.xyz/auth:${AUTH_TAG}
     environment:
       TOKEN_ENCRYPTION_PRIVATE_KEY: ${TOKEN_ENCRYPTION_PRIVATE_KEY}
 
   search:
-    image: registry.gitlab.com/loalang/loalang.xyz/search:${SEARCH_TAG}
+    image: docker.pkg.github.com/loalang/loalang.xyz/search:${SEARCH_TAG}
     environment:
       ALGOLIA_APPLICATION_ID: ${ALGOLIA_APPLICATION_ID}
       ALGOLIA_ADMIN_KEY: ${ALGOLIA_ADMIN_KEY}
       AMQP_URL: ${AMQP_URL}
 
   pkg:
-    image: registry.gitlab.com/loalang/loalang.xyz/pkg:${PKG_TAG}
+    image: docker.pkg.github.com/loalang/loalang.xyz/pkg:${PKG_TAG}
     environment:
       AMQP_URL: ${AMQP_URL}
 
   docs:
-    image: registry.gitlab.com/loalang/loalang.xyz/docs:${DOCS_TAG}
+    image: docker.pkg.github.com/loalang/loalang.xyz/docs:${DOCS_TAG}
     environment:
       AMQP_URL: ${AMQP_URL}
 
   notebooks:
-    image: registry.gitlab.com/loalang/loalang.xyz/notebooks:${NOTEBOOKS_TAG}
+    image: docker.pkg.github.com/loalang/loalang.xyz/notebooks:${NOTEBOOKS_TAG}

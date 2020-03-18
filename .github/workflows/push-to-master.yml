@@ -1,0 +1,154 @@
+name: Push to Master
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-ingress:
+    runs-on: ubuntu-latest
+    needs: []
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Authenticate Docker
+        run: echo ${{ secrets.GITHUB_TOKEN }} | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
+
+      - name: Set VERSION
+        run: echo ::set-env name=VERSION::${{ hashFiles('infra/docker/ingress/**') }}
+
+      - name: Build ingress
+        run: |
+          docker pull "docker.pkg.github.com/loalang/loalang.xyz/ingress:$VERSION" || {
+            docker pull "docker.pkg.github.com/loalang/loalang.xyz/ingress:latest" || true
+            docker build \
+              --cache-from "docker.pkg.github.com/loalang/loalang.xyz/ingress:latest" \
+              -t "docker.pkg.github.com/loalang/loalang.xyz/ingress:latest" \
+              -t "docker.pkg.github.com/loalang/loalang.xyz/ingress:$VERSION" \
+              -f infra/docker/ingress/Dockerfile .
+
+            # Push new ingress version
+            docker push "docker.pkg.github.com/loalang/loalang.xyz/ingress:latest"
+            docker push "docker.pkg.github.com/loalang/loalang.xyz/ingress:$VERSION"
+          }
+
+  build-service:
+    runs-on: ubuntu-latest
+    needs: []
+    strategy:
+      matrix:
+        service:
+          - www
+          - api
+          - link
+          - search
+          - pkg
+          - auth
+          - docs
+          - notebooks
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Authenticate Docker
+        run: echo ${{ secrets.GITHUB_TOKEN }} | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
+
+      - name: Set VERSION
+        run: echo ::set-env name=VERSION::${{ hashFiles(format('services/{0}/**', matrix.service)) }}
+
+      - name: Build ${{ matrix.service }}
+        env:
+          SERVICE: ${{ matrix.service }}
+        run: |
+          docker pull "docker.pkg.github.com/loalang/loalang.xyz/$SERVICE:$VERSION" || {
+            # Pull latest builder version
+            docker pull "docker.pkg.github.com/loalang/loalang.xyz/$SERVICE-builder:latest" || true
+
+            # Build new builder
+            docker build \
+              --build-arg VERSION=$VERSION \
+              --cache-from "docker.pkg.github.com/loalang/loalang.xyz/$SERVICE-builder:latest" \
+              -t "docker.pkg.github.com/loalang/loalang.xyz/$SERVICE-builder:latest" \
+              -f infra/docker/services/$SERVICE/builder.dockerfile .
+
+            # Push new builder
+            docker push "docker.pkg.github.com/loalang/loalang.xyz/$SERVICE-builder:latest"
+
+            # Make local tag of builder for use in app image
+            docker tag "docker.pkg.github.com/loalang/loalang.xyz/$SERVICE-builder:latest" $SERVICE-builder
+
+
+            # Pull latest app version
+            docker pull "docker.pkg.github.com/loalang/loalang.xyz/$SERVICE:latest" || true
+
+            # Build new app
+            docker build \
+              --build-arg VERSION=$VERSION \
+              --cache-from "docker.pkg.github.com/loalang/loalang.xyz/$SERVICE:latest" \
+              -t "docker.pkg.github.com/loalang/loalang.xyz/$SERVICE:latest" \
+              -t "docker.pkg.github.com/loalang/loalang.xyz/$SERVICE:$VERSION" \
+              -f infra/docker/services/$SERVICE/app.dockerfile .
+
+            # Push new version
+            docker push "docker.pkg.github.com/loalang/loalang.xyz/$SERVICE:latest"
+            docker push "docker.pkg.github.com/loalang/loalang.xyz/$SERVICE:$VERSION"
+          }
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: 
+      - build-service
+      - build-ingress
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Authenticate Docker
+        run: echo ${{ secrets.GITHUB_TOKEN }} | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
+
+      - name: Deploy
+        env:
+          NOTEBOOKS_TAG: ${{ hashFiles('services/notebooks/**') }}
+          DOCS_TAG: ${{ hashFiles('services/docs/**') }}
+          PKG_TAG: ${{ hashFiles('services/pkg/**') }}
+          SEARCH_TAG: ${{ hashFiles('services/search/**') }}
+          AUTH_TAG: ${{ hashFiles('services/auth/**') }}
+          API_TAG: ${{ hashFiles('services/api/**') }}
+          WWW_TAG: ${{ hashFiles('services/www/**') }}
+          LINK_TAG: ${{ hashFiles('services/link/**') }}
+          INGRESS_TAG: ${{ hashFiles('infra/docker/ingress/**') }}
+
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+          TOKEN_ENCRYPTION_PRIVATE_KEY: ${{ secrets.TOKEN_ENCRYPTION_PRIVATE_KEY }}
+          ALGOLIA_APPLICATION_ID: ${{ secrets.ALGOLIA_APPLICATION_ID }}
+          ALGOLIA_ADMIN_KEY: ${{ secrets.ALGOLIA_ADMIN_KEY }}
+          AMQP_URL: ${{ secrets.AMQP_URL }}
+          CLOUDFLARE_EMAIL: ${{ secrets.CLOUDFLARE_EMAIL }}
+          CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
+          POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+          POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASS: ${{ secrets.POSTGRES_PASS }}
+          PASSWORD_HASH_SALT: ${{ secrets.PASSWORD_HASH_SALT }}
+          NEO4J_HOST: ${{ secrets.NEO4J_HOST }}
+          NEO4J_USER: ${{ secrets.NEO4J_USER }}
+          NEO4J_PASS: ${{ secrets.NEO4J_PASS }}
+          REDIS_HOST: ${{ secrets.REDIS_HOST }}
+          REDIS_PORT: ${{ secrets.REDIS_PORT }}
+          REDIS_PASS: ${{ secrets.REDIS_PASS }}
+        run: |
+          echo "$SSH_PRIVATE_KEY" > id_rsa
+          chmod 600 id_rsa
+
+          docker-compose \
+            -f infra/docker-compose.yml \
+            -f infra/docker-compose.production.yml \
+            config \
+          | ssh \
+            -o StrictHostKeyChecking=no \
+            -i id_rsa \
+            core@${{ secrets.DOCKER_SWARM_MANAGER_IP }} \
+            docker stack deploy --with-registry-auth -c - loalang

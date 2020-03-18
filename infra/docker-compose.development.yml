@@ -1,7 +1,7 @@
 version: "3.7"
 services:
   www:
-    image: gitlab.com/loalang/loalang.xyz/www-builder
+    image: loalang.xyz/www-builder
     build:
       context: ..
       dockerfile: ./infra/docker/services/www/builder.dockerfile
@@ -15,7 +15,7 @@ services:
       REACT_APP_VERSION: latest
 
   api:
-    image: gitlab.com/loalang/loalang.xyz/api-builder
+    image: loalang.xyz/api-builder
     build:
       context: ..
       dockerfile: ./infra/docker/services/api/builder.dockerfile
@@ -26,7 +26,7 @@ services:
       - 8091:80
 
   link:
-    image: gitlab.com/loalang/loalang.xyz/link-builder
+    image: loalang.xyz/link-builder
     build:
       context: ..
       dockerfile: ./infra/docker/services/link/builder.dockerfile
@@ -42,7 +42,7 @@ services:
       POSTGRES_PASS: <<database-password>>
 
   auth:
-    image: gitlab.com/loalang/loalang.xyz/auth-builder
+    image: loalang.xyz/auth-builder
     build:
       context: ..
       dockerfile: ./infra/docker/services/auth/builder.dockerfile
@@ -61,7 +61,7 @@ services:
       - postgres
 
   search:
-    image: gitlab.com/loalang/loalang.xyz/search-builder
+    image: loalang.xyz/search-builder
     build:
       context: ..
       dockerfile: ./infra/docker/services/search/builder.dockerfile
@@ -74,7 +74,7 @@ services:
       ALGOLIA_INDEX: dev_search
 
   pkg:
-    image: gitlab.com/loalang/loalang.xyz/pkg-builder
+    image: loalang.xyz/pkg-builder
     build:
       context: ..
       dockerfile: ./infra/docker/services/pkg/builder.dockerfile
@@ -93,7 +93,7 @@ services:
       - neo4j
 
   docs:
-    image: gitlab.com/loalang/loalang.xyz/docs-builder
+    image: loalang.xyz/docs-builder
     build:
       context: ..
       dockerfile: ./infra/docker/services/docs/builder.dockerfile
@@ -110,7 +110,7 @@ services:
       - redis
 
   notebooks:
-    image: gitlab.com/loalang/loalang.xyz/notebooks-builder
+    image: loalang.xyz/notebooks-builder
     build:
       context: ..
       dockerfile: ./infra/docker/services/notebooks/builder.dockerfile
