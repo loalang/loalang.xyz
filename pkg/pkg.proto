@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package pkg;
+
+service PackageManager {
+  rpc Test(TestRequest) returns (TestResponse);
+}
+
+message TestRequest {
+  string value = 1;
+}
+
+message TestResponse {
+  string value = 1;
+}
+
+message TestTopic {
+  string value = 1;
+}

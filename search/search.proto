@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package search;
+
+service Search {
+  rpc Search(SearchRequest) returns (stream SearchResponse);
+}
+
+message SearchRequest {
+  string term = 1;
+}
+
+message SearchResponse {
+  oneof result {
+    User user_result = 1;
+    Class class_result = 2;
+  }
+}
+
+message User {
+  string username = 1;
+}
+
+message Class {
+  string qualified_name = 1;
+}
