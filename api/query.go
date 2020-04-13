@@ -39,12 +39,19 @@ var QueryType = graphql.NewObject(graphql.ObjectConfig{
 					}
 					switch r := response.Result.(type) {
 					case *search.SearchResponse_UserResult:
-						result = append(result, r.UserResult)
+						result = append(result, User(r.UserResult))
 					case *search.SearchResponse_ClassResult:
-						result = append(result, r.ClassResult)
+						result = append(result, Class(r.ClassResult))
 					}
 				}
 				return result, nil
+			},
+		},
+
+		"me": &graphql.Field{
+			Type: UserType,
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				return CurrentUser(p.Context), nil
 			},
 		},
 	},

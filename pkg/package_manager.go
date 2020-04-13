@@ -2,21 +2,23 @@ package pkg
 
 import (
 	"context"
+	"database/sql"
 	"github.com/golang/protobuf/proto"
 	"github.com/loalang/loalang.xyz/pkg/common/events"
 	"google.golang.org/grpc"
+	"os"
 )
 
 func NewServer() (*grpc.Server, error) {
 	server := grpc.NewServer()
-	e, err := events.NewClient()
+	db, err := sql.Open("postgres", os.Getenv("POSTGRES_URL"))
 	if err != nil {
 		return nil, err
 	}
+	eventsClient := events.NewClient(db)
+
 	RegisterPackageManagerServer(server, &packageManager{
-		events: e.Produce(events.ProducerOptions{
-			Topic: "test-topic",
-		}),
+		events: eventsClient.Produce(events.ProducerOptions{ Topic: "test-topic" }),
 	})
 	return server, nil
 }

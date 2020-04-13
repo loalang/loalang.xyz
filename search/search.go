@@ -1,10 +1,12 @@
 package search
 
 import (
+	"database/sql"
 	"github.com/loalang/loalang.xyz/search/common/events"
 	"github.com/loalang/loalang.xyz/search/pkg"
 	"google.golang.org/grpc"
 	"log"
+	"os"
 	"reflect"
 )
 
@@ -15,13 +17,14 @@ var users = []*User{
 }
 
 func NewServer() (*grpc.Server, error) {
-	e, err := events.NewClient()
+	db, err := sql.Open("postgres", os.Getenv("POSTGRES_URL"))
 	if err != nil {
 		return nil, err
 	}
+	eventsClient := events.NewClient(db)
 
 	go func() {
-		panic(e.Consume(events.ConsumerOptions{
+		panic(eventsClient.Consume(events.ConsumerOptions{
 			Topic:       "test-topic",
 			Group:       "search-ingestion",
 			MessageType: reflect.TypeOf(pkg.TestTopic{}),

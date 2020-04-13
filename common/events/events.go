@@ -5,7 +5,6 @@ import (
 	"github.com/golang/protobuf/proto"
 	_ "github.com/lib/pq"
 	"log"
-	"os"
 	"reflect"
 	"time"
 )
@@ -14,12 +13,8 @@ type Client struct {
 	db *sql.DB
 }
 
-func NewClient() (*Client, error) {
-	db, err := sql.Open("postgres", os.Getenv("POSTGRES_URL"))
-	if err != nil {
-		return nil, err
-	}
-	return &Client{db: db}, nil
+func NewClient(db *sql.DB) *Client {
+	return &Client{db: db}
 }
 
 type ConsumerOptions struct {

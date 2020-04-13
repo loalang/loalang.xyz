@@ -6,9 +6,10 @@ build: generate
 generate: generate/api
 	protoc --go_out=plugins=grpc:api pkg/pkg.proto
 	protoc --go_out=plugins=grpc:api search/search.proto
+	protoc --go_out=plugins=grpc:api auth/auth.proto
 
 .PHONY: generate/api
-generate/api: generate/pkg generate/search
+generate/api: generate/pkg generate/search generate/auth
 
 .PHONY: generate/pkg
 generate/pkg:
@@ -23,6 +24,12 @@ generate/search:
 	mkdir -p search/common
 	cp -r common/events search/common
 
+.PHONY: generate/auth
+generate/auth:
+	protoc --go_out=plugins=grpc:. auth/auth.proto
+	mkdir -p auth/common
+	cp -r common/events auth/common
+
 .PHONY: clean
 clean: clean
-	git clean -Xdffi
+	git clean -Xdffi *

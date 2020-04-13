@@ -25,7 +25,7 @@ func main() {
 	}
 
 	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
-		h.ContextHandler(ctxDecorator(request.Context()), writer, request)
+		h.ContextHandler(ctxDecorator(request.Context(), request, writer), writer, request)
 	})
 
 	err = http.ListenAndServe(":9091", nil)

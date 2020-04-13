@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package auth;
+
+service Authentication {
+  rpc SignUp(SignUpRequest) returns (LoggedInUser);
+  rpc LogIn(LogInRequest) returns (LoggedInUser);
+  rpc Lookup(LookupRequest) returns (User);
+  rpc DeleteAccount(DeleteAccountRequest) returns (AccountDeletionConfirmation);
+}
+
+message SignUpRequest {
+  string username = 1;
+  string email = 2;
+  string password = 3;
+}
+
+message LogInRequest {
+  string username_or_email = 1;
+  string password = 2;
+}
+
+message LookupRequest {
+  bytes token = 1;
+}
+
+message LoggedInUser {
+  User user = 1;
+  bytes token = 2;
+}
+
+message User {
+  bytes id = 1;
+  string username = 2;
+  string email = 3;
+  string name = 4;
+
+  double signed_up_at = 5;
+}
+
+message DeleteAccountRequest {
+  bytes token = 1;
+}
+
+message AccountDeletionConfirmation {
+  bool success = 1;
+}
+
+/// Topic: user-signed-up
+message UserSignedUp {
+  bytes id = 1;
+  string username = 2;
+}
+
+/// Topic: account-deleted
+message AccountDeleted {
+  bytes id = 1;
+  string username = 2;
+}
+
+message Token {
+  bytes id = 1;
+  double expires_at = 2;
+}
