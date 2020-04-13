@@ -46,16 +46,11 @@ message AccountDeletionConfirmation {
   bool success = 1;
 }
 
-/// Topic: user-signed-up
-message UserSignedUp {
+/// Topic: user-updated
+message UserUpdated {
   bytes id = 1;
   string username = 2;
-}
-
-/// Topic: account-deleted
-message AccountDeleted {
-  bytes id = 1;
-  string username = 2;
+  bool deleted = 3;
 }
 
 message Token {

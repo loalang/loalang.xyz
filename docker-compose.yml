@@ -33,6 +33,9 @@ services:
       - 9093:9093
     environment:
       - POSTGRES_URL
+      - ALGOLIA_APP_ID
+      - ALGOLIA_API_KEY
+      - ALGOLIA_INDEX
 
   auth:
     image: docker.pkg.github.com/loalang/loalang.xyz/auth:latest

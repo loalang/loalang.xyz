@@ -21,6 +21,7 @@ generate/pkg:
 generate/search:
 	protoc --go_out=plugins=grpc:. search/search.proto
 	protoc --go_out=plugins=grpc:search pkg/pkg.proto
+	protoc --go_out=plugins=grpc:search auth/auth.proto
 	mkdir -p search/common
 	cp -r common/events search/common
 

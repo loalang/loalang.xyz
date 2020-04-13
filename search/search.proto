@@ -18,7 +18,8 @@ message SearchResponse {
 }
 
 message User {
-  string username = 1;
+  bytes id = 1;
+  string username = 2;
 }
 
 message Class {

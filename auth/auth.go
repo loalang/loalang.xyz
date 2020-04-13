@@ -21,18 +21,16 @@ func NewServer() (*grpc.Server, error) {
 
 	server := grpc.NewServer()
 	RegisterAuthenticationServer(server, &authentication{
-		userSignedUp:   eventsClient.Produce(events.ProducerOptions{Topic: "user-signed-up"}),
-		accountDeleted: eventsClient.Produce(events.ProducerOptions{Topic: "account-deleted"}),
-		db:             db,
+		userUpdated: eventsClient.Produce(events.ProducerOptions{Topic: "user-updated"}),
+		db:          db,
 	})
 
 	return server, nil
 }
 
 type authentication struct {
-	userSignedUp   chan<- proto.Message
-	accountDeleted chan<- proto.Message
-	db             *sql.DB
+	userUpdated chan<- proto.Message
+	db          *sql.DB
 }
 
 func (a *authentication) SignUp(ctx context.Context, req *SignUpRequest) (*LoggedInUser, error) {
@@ -58,7 +56,7 @@ func (a *authentication) SignUp(ctx context.Context, req *SignUpRequest) (*Logge
 		return nil, err
 	}
 
-	a.userSignedUp <- &UserSignedUp{Id: user.Id, Username: user.Username}
+	a.userUpdated <- &UserUpdated{Id: user.Id, Username: user.Username, Deleted: false}
 
 	return &LoggedInUser{
 		Token: token,
@@ -156,7 +154,7 @@ func (a *authentication) DeleteAccount(ctx context.Context, req *DeleteAccountRe
 		return nil, err
 	}
 
-	a.accountDeleted <- &AccountDeleted{Id: token.Id, Username: username}
+	a.userUpdated <- &UserUpdated{Id: token.Id, Username: username, Deleted: true}
 
 	return &AccountDeletionConfirmation{Success: true}, nil
 }

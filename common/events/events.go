@@ -45,7 +45,7 @@ func (c *Client) Consume(options ConsumerOptions, cb func([]Event) error) error 
 		if err != nil {
 			return err
 		}
-		offsetRow := c.db.QueryRow(
+		offsetRow := tx.QueryRow(
 			"select \"offset\" from consumer_groups where name = $1 and topic = $2 for update",
 			options.Group,
 			options.Topic,
@@ -56,12 +56,12 @@ func (c *Client) Consume(options ConsumerOptions, cb func([]Event) error) error 
 			tx.Rollback()
 			return err
 		}
-		rows, err := c.db.Query(`
-				select timestamp, payload from events
-                where topic = $1
-                offset $2
-                limit $3
-			`, options.Topic, offset, pageSize)
+		rows, err := tx.Query(`
+			select timestamp, payload from events
+			where topic = $1
+			offset $2
+			limit $3
+		`, options.Topic, offset, pageSize)
 		if err != nil {
 			tx.Rollback()
 			return err
@@ -87,19 +87,26 @@ func (c *Client) Consume(options ConsumerOptions, cb func([]Event) error) error 
 			})
 		}
 
-		_, err = c.db.Exec(`
-				update consumer_groups
-				set "offset" = $1
-				where name = $2
-				and topic = $3
-			`, offset+uint64(len(events)), options.Group, options.Topic)
+		_, err = tx.Exec(`
+			update consumer_groups
+			set "offset" = $1
+			where name = $2
+			and topic = $3
+		`, offset+uint64(len(events)), options.Group, options.Topic)
 
 		if err != nil {
 			tx.Rollback()
 			return err
 		}
 
-		err = cb(events)
+		func() {
+			defer func() {
+				if e, ok := recover().(error); ok && e != nil {
+					err = e
+				}
+			}()
+			err = cb(events)
+		}()
 
 		if err != nil {
 			tx.Rollback()
