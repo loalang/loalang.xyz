@@ -59,6 +59,7 @@ func (c *Client) Consume(options ConsumerOptions, cb func([]Event) error) error 
 		rows, err := tx.Query(`
 			select timestamp, payload from events
 			where topic = $1
+			order by timestamp asc
 			offset $2
 			limit $3
 		`, options.Topic, offset, pageSize)

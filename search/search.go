@@ -9,6 +9,7 @@ import (
 	"github.com/loalang/loalang.xyz/search/common/events"
 	"github.com/loalang/loalang.xyz/search/pkg"
 	"google.golang.org/grpc"
+	"log"
 	"os"
 	"reflect"
 )
@@ -36,11 +37,13 @@ func NewServer() (*grpc.Server, error) {
 					return err
 				}
 				if e.Deleted {
+					log.Printf("DELETING %s (%s)", e.Username, id.String())
 					_, err := index.DeleteObject(id.String())
 					if err != nil {
 						return err
 					}
 				} else {
+					log.Printf("INGESTING %s (%s)", e.Username, id.String())
 					user := map[string]interface{}{
 						"objectID": id.String(),
 						"__type":   "USER",

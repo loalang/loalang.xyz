@@ -1,0 +1,47 @@
+name: Deploy on Push
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-service:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service:
+          - api
+          - search
+          - auth
+          - pkg
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Codegen
+        runs: make generate
+
+      - name: Set VERSION
+        run: echo ::set-env name=VERSION::${{ hashFiles(format('{0}/**', matrix.service)) }}
+
+      - name: Set SERVICE
+        run: echo ::set-env name=SERVICE::${{ matrix.service }}
+
+      - name: Authenticate Docker
+        run: echo ${{ secrets.GITHUB_TOKEN }} | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
+
+      - name: Pull latest version
+        run: docker pull docker.pkg.github.com/loalang/loalang.xyz/$SERVICE:$VERSION || true
+
+      - name: Build new version
+        run: docker build -t docker.pkg.github.com/loalang/loalang.xyz/$SERVICE:$VERSION $SERVICE
+
+      - name: Push new version
+        run: docker push docker.pkg.github.com/loalang/loalang.xyz/$SERVICE:$VERSION
+
+      - name: Deploy
+        uses: actions-hub/kubectl@master
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+        run: set image deployment/$SERVICE $SERVICE=docker.pkg.github.com/loalang/loalang.xyz/$SERVICE:$VERSION --record

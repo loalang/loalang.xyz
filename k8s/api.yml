@@ -9,7 +9,7 @@ spec:
     app: loalang-api
   ports:
     - port: 80
-      targetPort: 80
+      targetPort: 9091
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -25,9 +25,14 @@ spec:
       labels:
         app: loalang-api
     spec:
+      imagePullSecrets:
+        - name: regcred
       containers:
-      - name: nginx
-        image: digitalocean/doks-example
-        ports:
-        - containerPort: 80
-          protocol: TCP
+        - name: api
+          image: docker.pkg.github.com/loalang/loalang.xyz/api:latest
+          envFrom:
+            - secretRef:
+                name: loalang-env
+          ports:
+            - containerPort: 9091
+              protocol: TCP

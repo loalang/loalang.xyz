@@ -1,0 +1,38 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: loalang-auth
+spec:
+  type: NodePort
+  selector:
+    app: loalang-auth
+  ports:
+    - port: 80
+      targetPort: 9094
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: loalang-auth
+  template:
+    metadata:
+      labels:
+        app: loalang-auth
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: auth
+          image: docker.pkg.github.com/loalang/loalang.xyz/auth:latest
+          envFrom:
+            - secretRef:
+                name: loalang-env
+          ports:
+            - containerPort: 9094
+              protocol: TCP
