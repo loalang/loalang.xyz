@@ -1,0 +1,33 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: loalang-api
+spec:
+  type: NodePort
+  selector:
+    app: loalang-api
+  ports:
+    - port: 80
+      targetPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: loalang-api
+  template:
+    metadata:
+      labels:
+        app: loalang-api
+    spec:
+      containers:
+      - name: nginx
+        image: digitalocean/doks-example
+        ports:
+        - containerPort: 80
+          protocol: TCP

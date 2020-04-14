@@ -32,5 +32,5 @@ generate/auth:
 	cp -r common/events auth/common
 
 .PHONY: clean
-clean: clean
-	git clean -Xdffi *
+clean:
+	git clean -Xdff *
