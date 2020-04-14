@@ -45,4 +45,5 @@ jobs:
         uses: actions-hub/kubectl@master
         env:
           KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
-        run: set image deployment/$SERVICE $SERVICE=docker.pkg.github.com/loalang/loalang.xyz/$SERVICE:$VERSION --record
+        with: 
+          args: set image deployment/$SERVICE $SERVICE=docker.pkg.github.com/loalang/loalang.xyz/$SERVICE:$VERSION --record
