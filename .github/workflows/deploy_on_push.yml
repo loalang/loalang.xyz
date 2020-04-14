@@ -42,6 +42,9 @@ jobs:
       - name: Set SERVICE
         run: echo ::set-env name=SERVICE::${{ matrix.service }}
 
+      - name: Set ENVIRONMENT
+        run: echo ::set-env name=ENVIRONMENT::$(test "${{ github.ref }}" = "refs/heads/master" && echo production || echo staging)
+
       - name: Authenticate Docker
         run: echo ${{ secrets.GITHUB_TOKEN }} | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
 
@@ -59,4 +62,4 @@ jobs:
         env:
           KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
         with: 
-          args: set image deployment/${{ env.SERVICE }} ${{ env.SERVICE }}=docker.pkg.github.com/loalang/loalang.xyz/${{ env.SERVICE }}:${{ env.VERSION }} --record
+          args: --namespace ${{ env.ENVIRONMENT }} set image deployment/${{ env.SERVICE }} ${{ env.SERVICE }}=docker.pkg.github.com/loalang/loalang.xyz/${{ env.SERVICE }}:${{ env.VERSION }} --record
