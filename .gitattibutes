@@ -1,1 +1,1 @@
-*.crypt.* filter=git-crypt diff=git-crypt
+test.crypt.txt filter=git-crypt diff=git-crypt
