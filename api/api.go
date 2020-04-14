@@ -37,7 +37,7 @@ func Context() (func(context.Context, *http.Request, http.ResponseWriter) contex
 	authClient := auth.NewAuthenticationClient(authConn)
 
 	return func(ctx context.Context, request *http.Request, writer http.ResponseWriter) context.Context {
-		var currentUser User
+		var currentUser *auth.User
 
 		cookie, err := request.Cookie(AuthCookie)
 		if err == nil {
@@ -68,8 +68,8 @@ func Header(ctx context.Context) http.Header {
 	return ctx.Value(headerToken).(http.Header)
 }
 
-func CurrentUser(ctx context.Context) User {
-	u, ok := ctx.Value(userToken).(User)
+func CurrentUser(ctx context.Context) *auth.User {
+	u, ok := ctx.Value(userToken).(*auth.User)
 	if !ok {
 		return nil
 	}

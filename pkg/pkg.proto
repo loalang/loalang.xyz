@@ -3,17 +3,56 @@ syntax = "proto3";
 package pkg;
 
 service PackageManager {
-  rpc Test(TestRequest) returns (TestResponse);
+  rpc PublishRelease(PublishReleaseRequest) returns (Release);
 }
 
-message TestRequest {
-  string value = 1;
+message PublishReleaseRequest {
+  string qualified_package_name = 1;
+  Version version = 2;
+  string tarball_url = 3;
+  bytes publisher = 4;
 }
 
-message TestResponse {
-  string value = 1;
+message Version {
+  uint32 major = 1;
+  uint32 minor = 2;
+  uint32 patch = 3;
+  string prerelease = 4;
+  uint32 prerelease_version = 5;
 }
 
-message TestTopic {
-  string value = 1;
+message Release {
+  Package package = 1;
+  Version version = 2;
+  string tarball_url = 3;
+  double published_at = 4;
+
+  repeated Dependency dependencies = 5;
+  repeated Dependency development_dependencies = 6;
+
+  repeated string tags = 7;
+  string readme = 8;
+  string website = 9;
+  string repository = 10;
+  string license = 11;
+}
+
+message Dependency {
+  string qualified_package_name = 1;
+  VersionRange version_range = 2;
+}
+
+message VersionRange {
+  Version min = 1;
+  Version max = 2;
+}
+
+message Package {
+  string qualified_name = 1;
+  repeated bytes authors = 2;
+}
+
+/// Topic: release-published
+message ReleasePublished {
+  Release release = 1;
 }

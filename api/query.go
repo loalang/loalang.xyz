@@ -42,6 +42,8 @@ var QueryType = graphql.NewObject(graphql.ObjectConfig{
 						result = append(result, User(r.UserResult))
 					case *search.SearchResponse_ClassResult:
 						result = append(result, Class(r.ClassResult))
+					case *search.SearchResponse_PackageResult:
+						result = append(result, Package(r.PackageResult))
 					}
 				}
 				return result, nil

@@ -10,24 +10,57 @@ import (
 var MutationType = graphql.NewObject(graphql.ObjectConfig{
 	Name: "Mutation",
 	Fields: graphql.Fields{
-		"publishPackage": &graphql.Field{
-			Type: OKType,
+		"publishRelease": &graphql.Field{
+			Type: ReleaseType,
 			Args: graphql.FieldConfigArgument{
-				"name": &graphql.ArgumentConfig{
+				"qualifiedPackageName": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(graphql.String),
+				},
+				"version": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(VersionInputType),
+				},
+				"tarballUrl": &graphql.ArgumentConfig{
 					Type: graphql.NewNonNull(graphql.String),
 				},
 			},
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				client := PkgClient(p.Context)
-				_, err := client.Test(p.Context, &pkg.TestRequest{
-					Value: p.Args["name"].(string),
-				})
+				request := &pkg.PublishReleaseRequest{
+					QualifiedPackageName: p.Args["qualifiedPackageName"].(string),
+					Version: &pkg.Version{
+						Major: uint32(p.Args["version"].(map[string]interface{})["major"].(int)),
+						Minor: uint32(p.Args["version"].(map[string]interface{})["minor"].(int)),
+						Patch: uint32(p.Args["version"].(map[string]interface{})["patch"].(int)),
+					},
+					TarballUrl: p.Args["tarballUrl"].(string),
+					Publisher:  CurrentUser(p.Context).Id,
+				}
+
+				res, err := PkgClient(p.Context).PublishRelease(p.Context, request)
 				if err != nil {
 					return nil, err
 				}
-				return OK, nil
+
+				return Release(res), nil
 			},
 		},
+		//"publishPackage": &graphql.Field{
+		//	Type: OKType,
+		//	Args: graphql.FieldConfigArgument{
+		//		"name": &graphql.ArgumentConfig{
+		//			Type: graphql.NewNonNull(graphql.String),
+		//		},
+		//	},
+		//	Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+		//		client := PkgClient(p.Context)
+		//		_, err := client.Test(p.Context, &pkg.TestRequest{
+		//			Value: p.Args["name"].(string),
+		//		})
+		//		if err != nil {
+		//			return nil, err
+		//		}
+		//		return OK, nil
+		//	},
+		//},
 
 		// Auth
 		"signup": &graphql.Field{
@@ -85,7 +118,7 @@ var MutationType = graphql.NewObject(graphql.ObjectConfig{
 			},
 		},
 		"deleteAccount": &graphql.Field{
-			Type:    OKType,
+			Type: OKType,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				cookie, err := Request(p.Context).Cookie(AuthCookie)
 				if err != nil {

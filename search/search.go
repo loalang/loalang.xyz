@@ -2,10 +2,12 @@ package search
 
 import (
 	"database/sql"
+	"fmt"
 	algolia "github.com/algolia/algoliasearch-client-go/v3/algolia/search"
 	"github.com/google/uuid"
 	"github.com/loalang/loalang.xyz/search/auth"
 	"github.com/loalang/loalang.xyz/search/common/events"
+	"github.com/loalang/loalang.xyz/search/pkg"
 	"google.golang.org/grpc"
 	"os"
 	"reflect"
@@ -41,7 +43,7 @@ func NewServer() (*grpc.Server, error) {
 				} else {
 					user := map[string]interface{}{
 						"objectID": id.String(),
-						"__type": "USER",
+						"__type":   "USER",
 						"username": e.Username,
 					}
 
@@ -49,6 +51,39 @@ func NewServer() (*grpc.Server, error) {
 					if err != nil {
 						return err
 					}
+				}
+			}
+			return nil
+		}))
+	}()
+
+	go func() {
+		panic(eventsClient.Consume(events.ConsumerOptions{
+			Topic:       "release-published",
+			Group:       "search-ingestion",
+			MessageType: reflect.TypeOf(pkg.ReleasePublished{}),
+		}, func(events []events.Event) error {
+			for _, event := range events {
+				e := event.Payload.(*pkg.ReleasePublished)
+
+				if err != nil {
+					return err
+				}
+				pack := map[string]interface{}{
+					"objectID":      e.Release.Package.QualifiedName,
+					"__type":        "PACKAGE",
+					"qualifiedName": e.Release.Package.QualifiedName,
+					"latestVersion": fmt.Sprintf(
+						"%d.%d.%d",
+						e.Release.Version.Major,
+						e.Release.Version.Minor,
+						e.Release.Version.Patch,
+					),
+				}
+
+				_, err := index.SaveObject(pack)
+				if err != nil {
+					return err
 				}
 			}
 			return nil
@@ -71,18 +106,27 @@ func (s *search) Search(req *SearchRequest, stream Search_SearchServer) error {
 		return err
 	}
 	for _, hit := range res.Hits {
-		uid, err := uuid.Parse(hit["objectID"].(string))
-		if err != nil {
-			return err
-		}
-		id, _ := uid.MarshalBinary()
 		switch hit["__type"] {
 		case "USER":
+			uid, err := uuid.Parse(hit["objectID"].(string))
+			if err != nil {
+				return err
+			}
+			id, _ := uid.MarshalBinary()
 			err = stream.Send(&SearchResponse{
 				Result: &SearchResponse_UserResult{
 					UserResult: &User{
 						Id:       id,
 						Username: hit["username"].(string),
+					},
+				},
+			})
+		case "PACKAGE":
+			err = stream.Send(&SearchResponse{
+				Result: &SearchResponse_PackageResult{
+					PackageResult: &Package{
+						QualifiedName: hit["qualifiedName"].(string),
+						LatestVersion: hit["latestVersion"].(string),
 					},
 				},
 			})

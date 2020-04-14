@@ -5,6 +5,8 @@ services:
     build: api
     depends_on:
       - pkg
+      - search
+      - auth
     ports:
       - 9091:9091
     environment:
