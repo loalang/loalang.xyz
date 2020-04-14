@@ -49,7 +49,7 @@ jobs:
         run: docker pull docker.pkg.github.com/loalang/loalang.xyz/$SERVICE:$VERSION || true
 
       - name: Build new version
-        run: docker build -t docker.pkg.github.com/loalang/loalang.xyz/$SERVICE:$VERSION $SERVICE
+        run: docker build --cache-from docker.pkg.github.com/loalang/loalang.xyz/$SERVICE:latest -t docker.pkg.github.com/loalang/loalang.xyz/$SERVICE:$VERSION $SERVICE
 
       - name: Push new version
         run: docker push docker.pkg.github.com/loalang/loalang.xyz/$SERVICE:$VERSION
