@@ -65,7 +65,10 @@ func (a *authentication) SignUp(ctx context.Context, req *SignUpRequest) (*Signe
 		return nil, err
 	}
 
-	a.userUpdated <- &UserUpdated{Id: user.Id, Username: user.Username, Deleted: false}
+	a.userUpdated <- &UserUpdated{
+		Id: user.Id,
+		Username: user.Username,
+	}
 
 	return &SignedInUser{
 		Token: token,
@@ -229,14 +232,22 @@ func (a *authentication) UpdateUser(ctx context.Context, req *UpdateUserRequest)
 		return nil, err
 	}
 
-	return &User{
+	user := &User{
 		Id:         token.Id,
 		Username:   username,
 		Email:      email,
 		Name:       name,
 		AvatarUrl:  avatarUrl,
 		SignedUpAt: floatFromTime(signedUpAt),
-	}, nil
+	}
+
+	a.userUpdated <- &UserUpdated{
+		Id:       user.Id,
+		Username: user.Username,
+		Name:     user.Name,
+	}
+
+	return user, nil
 }
 
 func UnpackVerifiedToken(bytes []byte) (*Token, error) {

@@ -21,6 +21,7 @@ message SearchResponse {
 message User {
   bytes id = 1;
   string username = 2;
+  string name = 3;
 }
 
 message Class {

@@ -69,7 +69,8 @@ message AccountDeletionConfirmation {
 message UserUpdated {
   bytes id = 1;
   string username = 2;
-  bool deleted = 3;
+  string name = 3;
+  bool deleted = 4;
 }
 
 message Token {

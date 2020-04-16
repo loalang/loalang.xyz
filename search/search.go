@@ -48,6 +48,7 @@ func NewServer() (*grpc.Server, error) {
 						"objectID": id.String(),
 						"__type":   "USER",
 						"username": e.Username,
+						"name":     e.Name,
 					}
 
 					_, err := index.SaveObject(user)
@@ -116,12 +117,16 @@ func (s *search) Search(req *SearchRequest, stream Search_SearchServer) error {
 				return err
 			}
 			id, _ := uid.MarshalBinary()
+			user := &User{
+				Id:       id,
+				Username: hit["username"].(string),
+			}
+			if name, ok := hit["name"]; ok {
+				user.Name = name.(string)
+			}
 			err = stream.Send(&SearchResponse{
 				Result: &SearchResponse_UserResult{
-					UserResult: &User{
-						Id:       id,
-						Username: hit["username"].(string),
-					},
+					UserResult: user,
 				},
 			})
 		case "PACKAGE":
