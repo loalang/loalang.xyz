@@ -3,10 +3,11 @@ syntax = "proto3";
 package auth;
 
 service Authentication {
-  rpc SignUp(SignUpRequest) returns (LoggedInUser);
-  rpc LogIn(LogInRequest) returns (LoggedInUser);
+  rpc SignUp(SignUpRequest) returns (SignedInUser);
+  rpc SignIn(SignInRequest) returns (SignedInUser);
   rpc Lookup(LookupRequest) returns (User);
   rpc DeleteAccount(DeleteAccountRequest) returns (AccountDeletionConfirmation);
+  rpc UpdateUser(UpdateUserRequest) returns (User);
 }
 
 message SignUpRequest {
@@ -15,7 +16,7 @@ message SignUpRequest {
   string password = 3;
 }
 
-message LogInRequest {
+message SignInRequest {
   string username_or_email = 1;
   string password = 2;
 }
@@ -24,7 +25,24 @@ message LookupRequest {
   bytes token = 1;
 }
 
-message LoggedInUser {
+message UpdateUserRequest {
+  bytes token = 1;
+
+  string password = 2;
+  string current_password = 3;
+  string username = 4;
+  string email = 5;
+  string name = 6;
+  bytes avatar = 7;
+  ImageFormat avatar_format = 8;
+}
+
+enum ImageFormat {
+  PNG = 0;
+  JPEG = 1;
+}
+
+message SignedInUser {
   User user = 1;
   bytes token = 2;
 }
@@ -34,8 +52,9 @@ message User {
   string username = 2;
   string email = 3;
   string name = 4;
+  string avatar_url = 5;
 
-  double signed_up_at = 5;
+  double signed_up_at = 6;
 }
 
 message DeleteAccountRequest {

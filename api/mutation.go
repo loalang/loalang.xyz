@@ -1,10 +1,14 @@
 package api
 
 import (
+	"bytes"
 	"errors"
+	"fmt"
+	upload "github.com/eko/graphql-go-upload"
 	"github.com/graphql-go/graphql"
 	"github.com/loalang/loalang.xyz/api/auth"
 	"github.com/loalang/loalang.xyz/api/pkg"
+	"mime"
 )
 
 var MutationType = graphql.NewObject(graphql.ObjectConfig{
@@ -43,27 +47,9 @@ var MutationType = graphql.NewObject(graphql.ObjectConfig{
 				return Release(res), nil
 			},
 		},
-		//"publishPackage": &graphql.Field{
-		//	Type: OKType,
-		//	Args: graphql.FieldConfigArgument{
-		//		"name": &graphql.ArgumentConfig{
-		//			Type: graphql.NewNonNull(graphql.String),
-		//		},
-		//	},
-		//	Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-		//		client := PkgClient(p.Context)
-		//		_, err := client.Test(p.Context, &pkg.TestRequest{
-		//			Value: p.Args["name"].(string),
-		//		})
-		//		if err != nil {
-		//			return nil, err
-		//		}
-		//		return OK, nil
-		//	},
-		//},
 
 		// Auth
-		"signup": &graphql.Field{
+		"signUp": &graphql.Field{
 			Type: UserType,
 			Args: graphql.FieldConfigArgument{
 				"username": &graphql.ArgumentConfig{
@@ -92,7 +78,7 @@ var MutationType = graphql.NewObject(graphql.ObjectConfig{
 				return User(res.User), nil
 			},
 		},
-		"login": &graphql.Field{
+		"signIn": &graphql.Field{
 			Type: UserType,
 			Args: graphql.FieldConfigArgument{
 				"usernameOrEmail": &graphql.ArgumentConfig{
@@ -104,7 +90,7 @@ var MutationType = graphql.NewObject(graphql.ObjectConfig{
 			},
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				authClient := AuthClient(p.Context)
-				res, err := authClient.LogIn(p.Context, &auth.LogInRequest{
+				res, err := authClient.SignIn(p.Context, &auth.SignInRequest{
 					UsernameOrEmail: p.Args["usernameOrEmail"].(string),
 					Password:        p.Args["password"].(string),
 				})
@@ -115,6 +101,13 @@ var MutationType = graphql.NewObject(graphql.ObjectConfig{
 				SetCookie(p.Context, res.Token)
 
 				return User(res.User), nil
+			},
+		},
+		"signOut": &graphql.Field{
+			Type: OKType,
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				DeleteCookie(p.Context)
+				return OK, nil
 			},
 		},
 		"deleteAccount": &graphql.Field{
@@ -136,6 +129,108 @@ var MutationType = graphql.NewObject(graphql.ObjectConfig{
 				} else {
 					return nil, errors.New("not logged in")
 				}
+			},
+		},
+		"updateMe": &graphql.Field{
+			Type: UserType,
+			Args: graphql.FieldConfigArgument{
+				"password": &graphql.ArgumentConfig{
+					Type: graphql.NewInputObject(graphql.InputObjectConfig{
+						Name: "PasswordUpdate",
+						Fields: graphql.InputObjectConfigFieldMap{
+							"current": &graphql.InputObjectFieldConfig{
+								Type: graphql.NewNonNull(graphql.String),
+							},
+							"new": &graphql.InputObjectFieldConfig{
+								Type: graphql.NewNonNull(graphql.String),
+							},
+						},
+					}),
+				},
+				"username": &graphql.ArgumentConfig{
+					Type: graphql.String,
+				},
+				"email": &graphql.ArgumentConfig{
+					Type: graphql.String,
+				},
+				"name": &graphql.ArgumentConfig{
+					Type: graphql.String,
+				},
+				"avatar": &graphql.ArgumentConfig{
+					Type: UploadType,
+				},
+			},
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				cookie, err := Request(p.Context).Cookie(AuthCookie)
+				if err != nil {
+					return nil, err
+				}
+				token := DecodeToken(cookie.Value)
+
+				var currentPassword string
+				var password string
+				if p, ok := p.Args["password"]; ok {
+					currentPassword = p.(map[string]interface{})["current"].(string)
+					password = p.(map[string]interface{})["new"].(string)
+				}
+
+				var username string
+				if p, ok := p.Args["username"]; ok {
+					username = p.(string)
+				}
+
+				var email string
+				if p, ok := p.Args["email"]; ok {
+					email = p.(string)
+				}
+
+				var name string
+				if p, ok := p.Args["name"]; ok {
+					name = p.(string)
+				}
+
+				var avatar bytes.Buffer
+				var format auth.ImageFormat
+				if p, ok := p.Args["avatar"]; ok {
+					upload := p.(*upload.GraphQLUpload)
+					fileType, _, err := mime.ParseMediaType(upload.MIMEType)
+					if err != nil {
+						return nil, err
+					}
+					switch fileType {
+					case "image/png":
+						format = auth.ImageFormat_PNG
+					case "image/jpeg":
+						format = auth.ImageFormat_JPEG
+					default:
+						return nil, fmt.Errorf("unsupported avatar file type: %v (only image/jpeg and image/png is)", fileType)
+					}
+					reader, err := upload.GetReader()
+					if err != nil {
+						return nil, err
+					}
+					_, err = avatar.ReadFrom(reader)
+					if err != nil {
+						return nil, err
+					}
+				}
+
+				user, err := AuthClient(p.Context).UpdateUser(p.Context, &auth.UpdateUserRequest{
+					Token:           token,
+					Password:        password,
+					CurrentPassword: currentPassword,
+					Username:        username,
+					Email:           email,
+					Name:            name,
+					Avatar:          avatar.Bytes(),
+					AvatarFormat:    format,
+				})
+
+				if err != nil {
+					return nil, err
+				}
+
+				return User(user), nil
 			},
 		},
 	},

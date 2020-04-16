@@ -1,9 +1,11 @@
 package auth
 
 import (
+	"cloud.google.com/go/storage"
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"github.com/golang/protobuf/proto"
 	"github.com/google/uuid"
 	"github.com/loalang/loalang.xyz/auth/common/events"
@@ -19,10 +21,16 @@ func NewServer() (*grpc.Server, error) {
 	}
 	eventsClient := events.NewClient(db)
 
+	gcs, err := storage.NewClient(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
 	server := grpc.NewServer()
 	RegisterAuthenticationServer(server, &authentication{
 		userUpdated: eventsClient.Produce(events.ProducerOptions{Topic: "user-updated"}),
 		db:          db,
+		storage:     gcs.Bucket(os.Getenv("cdn.loalang.xyz")),
 	})
 
 	return server, nil
@@ -31,9 +39,10 @@ func NewServer() (*grpc.Server, error) {
 type authentication struct {
 	userUpdated chan<- proto.Message
 	db          *sql.DB
+	storage     *storage.BucketHandle
 }
 
-func (a *authentication) SignUp(ctx context.Context, req *SignUpRequest) (*LoggedInUser, error) {
+func (a *authentication) SignUp(ctx context.Context, req *SignUpRequest) (*SignedInUser, error) {
 	id := uuid.New()
 	password := Hash(req.Password)
 	signedUpAt := time.Now()
@@ -58,13 +67,13 @@ func (a *authentication) SignUp(ctx context.Context, req *SignUpRequest) (*Logge
 
 	a.userUpdated <- &UserUpdated{Id: user.Id, Username: user.Username, Deleted: false}
 
-	return &LoggedInUser{
+	return &SignedInUser{
 		Token: token,
 		User:  user,
 	}, nil
 }
 
-func (a *authentication) LogIn(ctx context.Context, req *LogInRequest) (*LoggedInUser, error) {
+func (a *authentication) SignIn(ctx context.Context, req *SignInRequest) (*SignedInUser, error) {
 	password := Hash(req.Password)
 	userRow := a.db.QueryRowContext(ctx, `
 		select id, username, email, signed_up_at, coalesce(name, '') from users
@@ -93,16 +102,13 @@ func (a *authentication) LogIn(ctx context.Context, req *LogInRequest) (*LoggedI
 		return nil, err
 	}
 
-	return &LoggedInUser{Token: token, User: user}, nil
+	return &SignedInUser{Token: token, User: user}, nil
 }
 
 func (a *authentication) Lookup(ctx context.Context, req *LookupRequest) (*User, error) {
-	token, err := UnpackToken(req.Token)
+	token, err := UnpackVerifiedToken(req.Token)
 	if err != nil {
 		return nil, err
-	}
-	if token.IsExpired() {
-		return nil, errors.New("token has expired")
 	}
 
 	id, err := uuid.FromBytes(token.Id)
@@ -111,15 +117,16 @@ func (a *authentication) Lookup(ctx context.Context, req *LookupRequest) (*User,
 	}
 
 	userRow := a.db.QueryRowContext(ctx, `
-		select username, email, signed_up_at, coalesce(name, '') from users
+		select username, email, signed_up_at, coalesce(avatar_url, ''), coalesce(name, '') from users
 		where id = $1
 	`, id)
 	var username string
 	var email string
 	var signedUpAt time.Time
+	var avatarUrl string
 	var name string
 
-	err = userRow.Scan(&username, &email, &signedUpAt, &name)
+	err = userRow.Scan(&username, &email, &signedUpAt, &avatarUrl, &name)
 	if err != nil {
 		return nil, err
 	}
@@ -130,16 +137,14 @@ func (a *authentication) Lookup(ctx context.Context, req *LookupRequest) (*User,
 		Email:      email,
 		Name:       name,
 		SignedUpAt: 0,
+		AvatarUrl:  avatarUrl,
 	}, nil
 }
 
 func (a *authentication) DeleteAccount(ctx context.Context, req *DeleteAccountRequest) (*AccountDeletionConfirmation, error) {
-	token, err := UnpackToken(req.Token)
+	token, err := UnpackVerifiedToken(req.Token)
 	if err != nil {
 		return nil, err
-	}
-	if token.IsExpired() {
-		return nil, errors.New("token has expired")
 	}
 
 	id, err := uuid.FromBytes(token.Id)
@@ -157,4 +162,90 @@ func (a *authentication) DeleteAccount(ctx context.Context, req *DeleteAccountRe
 	a.userUpdated <- &UserUpdated{Id: token.Id, Username: username, Deleted: true}
 
 	return &AccountDeletionConfirmation{Success: true}, nil
+}
+
+func (a *authentication) UpdateUser(ctx context.Context, req *UpdateUserRequest) (*User, error) {
+	token, err := UnpackVerifiedToken(req.Token)
+	if err != nil {
+		return nil, err
+	}
+
+	id, err := uuid.FromBytes(token.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	var password []byte
+	if req.Password != "" {
+		password = Hash(req.Password)
+	}
+	var currentPassword []byte
+	if req.CurrentPassword != "" {
+		currentPassword = Hash(req.CurrentPassword)
+	}
+
+	if len(password) > 0 && len(currentPassword) == 0 {
+		return nil, errors.New("current password must be verified to set a new one")
+	}
+
+	var avatarUrl string
+	if req.Avatar != nil {
+		var extension string
+		switch req.AvatarFormat {
+		case ImageFormat_JPEG:
+			extension = "jpg"
+		case ImageFormat_PNG:
+			extension = "png"
+		}
+		avatar := a.storage.Object(fmt.Sprintf("avatars/%v.%s", uuid.New(), extension))
+		n, err := avatar.NewWriter(ctx).Write(req.Avatar)
+		if err != nil {
+			return nil, err
+		}
+		if n < len(req.Avatar) {
+			return nil, errors.New("failed to upload avatar")
+		}
+		avatarUrl = fmt.Sprintf("https://%s/%s", avatar.BucketName(), avatar.ObjectName())
+	}
+
+	row := a.db.QueryRowContext(ctx, `
+		update users set
+			name = case when coalesce($1, '') = '' then name else $1 end,
+			username = case when coalesce($2, '') = '' then username else $2 end,
+			email = case when coalesce($3, '') = '' then email else $3 end,
+			avatar_url = case when coalesce($4, '') = '' then avatar_url else $4 end,
+			password = coalesce($5, password)
+		where id = $6 and password = coalesce($7, password)
+		returning username, email, coalesce(name, ''), coalesce(avatar_url, ''), signed_up_at
+	`, req.Name, req.Username, req.Email, avatarUrl, password, id, currentPassword)
+
+	var username string
+	var email string
+	var name string
+	var signedUpAt time.Time
+
+	err = row.Scan(&username, &email, &name, &avatarUrl, &signedUpAt)
+	if err != nil {
+		return nil, err
+	}
+
+	return &User{
+		Id:         token.Id,
+		Username:   username,
+		Email:      email,
+		Name:       name,
+		AvatarUrl:  avatarUrl,
+		SignedUpAt: floatFromTime(signedUpAt),
+	}, nil
+}
+
+func UnpackVerifiedToken(bytes []byte) (*Token, error) {
+	token, err := UnpackToken(bytes)
+	if err != nil {
+		return nil, err
+	}
+	if token.IsExpired() {
+		return nil, errors.New("token has expired")
+	}
+	return token, nil
 }

@@ -40,3 +40,17 @@ func SetCookie(ctx context.Context, token []byte) {
 	}
 	Header(ctx).Set("Set-Cookie", cookie.String())
 }
+
+func DeleteCookie(ctx context.Context) {
+	cookie := &http.Cookie{
+		Name:     AuthCookie,
+		Value:    "",
+		Path:     "/",
+		Domain:   os.Getenv("COOKIE_DOMAIN"),
+		Expires:  time.Unix(1000, 0),
+		Secure:   os.Getenv("COOKIE_SECURE") != "no",
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
+	}
+	Header(ctx).Set("Set-Cookie", cookie.String())
+}

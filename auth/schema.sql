@@ -5,6 +5,7 @@ CREATE TABLE "users" (
     "password" bytea NOT NULL,
     "signed_up_at" timestamp NOT NULL,
     "name" varchar,
+    "avatar_url" varchar,
     PRIMARY KEY ("id")
 );
 
