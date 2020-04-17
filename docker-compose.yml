@@ -1,7 +1,7 @@
 version: '3.7'
 services:
   web:
-    image: docker.pkg.github.com/loalang/loalang.xyz/www:latest
+    image: docker.pkg.github.com/loalang/loalang.xyz/web:latest
     build: web
     ports:
       - 9090:80
@@ -56,6 +56,9 @@ services:
       - POSTGRES_URL
       - PASSWORD_SALT
       - TOKEN_ENCRYPTION_PASSWORD
+      - GOOGLE_APPLICATION_CREDENTIALS=/credentials.json
+    volumes:
+      - $GOOGLE_APPLICATION_CREDENTIALS:/credentials.json
 
   postgres:
     image: postgres

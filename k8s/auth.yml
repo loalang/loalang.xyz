@@ -25,14 +25,24 @@ spec:
       labels:
         app: loalang-auth
     spec:
+      volumes:
+        - name: env-volume
+          secret:
+            secretName: loalang-env
       imagePullSecrets:
         - name: regcred
       containers:
         - name: auth
           image: docker.pkg.github.com/loalang/loalang.xyz/auth:latest
+          volumeMounts:
+            - name: env-volume
+              mountPath: /etc/env
           envFrom:
             - secretRef:
                 name: loalang-env
+          env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /etc/env/GOOGLE_APPLICATION_CREDENTIALS
           ports:
             - containerPort: 9094
               protocol: TCP

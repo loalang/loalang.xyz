@@ -48,7 +48,7 @@ jobs:
         run: echo ::set-env name=ENVIRONMENT::$(test "${{ github.ref }}" = "refs/heads/master" && echo production || echo staging)
 
       - name: Authenticate Docker
-        run: echo ${{ secrets.GITHUB_TOKEN }} | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
 
       - name: Pull latest version
         run: docker pull docker.pkg.github.com/loalang/loalang.xyz/$SERVICE:$VERSION || true

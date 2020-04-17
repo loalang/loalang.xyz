@@ -1,9 +1,17 @@
-FROM golang:1.13
+FROM golang:1.13 AS builder
 
 WORKDIR /go/src/app
+COPY go.mod go.sum ./
+
+RUN go mod download
+
 COPY . .
 
-RUN go get -d -v ./...
-RUN go install -v ./...
+RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags='-w -s -extldflags "-static"' -o /main ./main/main.go
+RUN chmod +x /main
 
-CMD ["main"]
+FROM scratch
+
+COPY --from=builder /main /main
+
+ENTRYPOINT ["/main"]
