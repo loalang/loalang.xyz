@@ -1,15 +1,25 @@
 .PHONY: build
 build: generate
-	docker-compose build
+	docker-compose -f docker-compose.yml -f docker-compose.dev.yml build --parallel
 
 .PHONY: generate
-generate: generate/api
-	protoc --go_out=plugins=grpc:api pkg/pkg.proto
-	protoc --go_out=plugins=grpc:api search/search.proto
-	protoc --go_out=plugins=grpc:api auth/auth.proto
+generate: generate/web
+
+.PHONY: generate/web
+generate/web: generate/api web/introspection-file.json
+
+web/introspection-file.json:
+	docker run \
+		-v$$(pwd)/api:/go/src/app \
+		-w/go/src/app golang:1.14-alpine \
+		go run main/main.go --print-introspection-file \
+		> web/introspection-file.json
 
 .PHONY: generate/api
 generate/api: generate/pkg generate/search generate/auth
+	protoc --go_out=plugins=grpc:api pkg/pkg.proto
+	protoc --go_out=plugins=grpc:api search/search.proto
+	protoc --go_out=plugins=grpc:api auth/auth.proto
 
 .PHONY: generate/pkg
 generate/pkg:

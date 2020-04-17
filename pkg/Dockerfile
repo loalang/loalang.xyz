@@ -1,4 +1,8 @@
-FROM golang:1.13 AS builder
+FROM golang:1.14-alpine AS builder
+
+RUN wget https://github.com/watchexec/watchexec/releases/download/1.12.0/watchexec-1.12.0-x86_64-unknown-linux-musl.tar.xz
+RUN tar -xf watchexec-1.12.0-x86_64-unknown-linux-musl.tar.xz
+RUN mv watchexec-1.12.0-x86_64-unknown-linux-musl/watchexec /usr/local/bin
 
 WORKDIR /go/src/app
 COPY go.mod go.sum ./

@@ -1,17 +1,14 @@
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
-const elmOptions = {};
+const elmRule = {
+  test: /\.elm$/,
+  exclude: [/elm-stuff/, /node_modules/],
+  use: [],
+};
 
 const config = {
   module: {
-    rules: [{
-      test: /\.elm$/,
-      exclude: [/elm-stuff/, /node_modules/],
-      use: {
-        loader: "elm-webpack-loader",
-        options: elmOptions,
-      },
-    }],
+    rules: [elmRule],
   },
   plugins: [
     new HtmlWebpackPlugin({
@@ -27,12 +24,23 @@ module.exports = (env, argv) => {
       config.output = {
         filename: "[hash].js",
       };
-      elmOptions.optimize = true;
+      elmRule.use.push({
+        loader: "elm-webpack-loader",
+        options: { optimize: true },
+      });
       break;
 
     case "development":
     case undefined:
       config.mode = "development";
+      elmRule.use.push({
+        loader: "elm-hot-webpack-loader",
+        options: {},
+      });
+      elmRule.use.push({
+        loader: "elm-webpack-loader",
+        options: {},
+      });
       break;
 
     default:

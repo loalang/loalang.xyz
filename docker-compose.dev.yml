@@ -1,0 +1,46 @@
+version: '3.7'
+services:
+  web:
+    image: docker.pkg.github.com/loalang/loalang.xyz/web:builder-latest
+    build:
+      context: web
+      target: builder
+    volumes:
+      - ./web:/web
+    command: yarn webpack-dev-server --host 0.0.0.0 --port 80 --public localhost:9090 --hot
+
+  api:
+    image: docker.pkg.github.com/loalang/loalang.xyz/api:builder-latest
+    build:
+      context: api
+      target: builder
+    volumes:
+      - ./api:/go/src/app
+    command: watchexec -w . -e go -r go run main/main.go
+
+  pkg:
+    image: docker.pkg.github.com/loalang/loalang.xyz/pkg:builder-latest
+    build:
+      context: pkg
+      target: builder
+    volumes:
+      - ./pkg:/go/src/app
+    command: watchexec -w . -e go -r go run main/main.go
+
+  search:
+    image: docker.pkg.github.com/loalang/loalang.xyz/search:builder-latest
+    build:
+      context: search
+      target: builder
+    volumes:
+      - ./search:/go/src/app
+    command: watchexec -w . -e go -r go run main/main.go
+
+  auth:
+    image: docker.pkg.github.com/loalang/loalang.xyz/auth:builder-latest
+    build:
+      context: auth
+      target: builder
+    volumes:
+      - ./auth:/go/src/app
+    command: watchexec -w . -e go -r go run main/main.go
