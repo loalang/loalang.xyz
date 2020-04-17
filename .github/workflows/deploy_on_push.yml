@@ -9,9 +9,11 @@ on:
 jobs:
   build-service:
     runs-on: ubuntu-latest
+    needs: []
     strategy:
       matrix:
         service:
+          - web
           - api
           - search
           - auth
@@ -55,7 +57,10 @@ jobs:
         run: docker build --cache-from docker.pkg.github.com/loalang/loalang.xyz/$SERVICE:latest -t docker.pkg.github.com/loalang/loalang.xyz/$SERVICE:$VERSION $SERVICE
 
       - name: Push new version
-        run: docker push docker.pkg.github.com/loalang/loalang.xyz/$SERVICE:$VERSION
+        run: |
+          docker push docker.pkg.github.com/loalang/loalang.xyz/$SERVICE:$VERSION
+          docker tag docker.pkg.github.com/loalang/loalang.xyz/$SERVICE:$VERSION docker.pkg.github.com/loalang/loalang.xyz/$SERVICE:latest
+          docker push docker.pkg.github.com/loalang/loalang.xyz/$SERVICE:latest
 
       - name: Deploy
         uses: actions-hub/kubectl@master
