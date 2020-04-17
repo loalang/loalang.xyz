@@ -1,5 +1,7 @@
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
+const elmOptions = {};
+
 const config = {
   module: {
     rules: [{
@@ -7,7 +9,7 @@ const config = {
       exclude: [/elm-stuff/, /node_modules/],
       use: {
         loader: "elm-webpack-loader",
-        options: {},
+        options: elmOptions,
       },
     }],
   },
@@ -25,11 +27,14 @@ module.exports = (env, argv) => {
       config.output = {
         filename: "[hash].js",
       };
+      elmOptions.optimize = true;
       break;
+
     case "development":
     case undefined:
       config.mode = "development";
       break;
+
     default:
       throw new Error(`Invalid mode: ${argv.mode}`);
   }
