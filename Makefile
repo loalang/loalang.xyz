@@ -1,6 +1,7 @@
 .PHONY: build
 build: generate
 	docker-compose -f docker-compose.yml -f docker-compose.dev.yml build --parallel
+	docker-compose build --parallel
 
 .PHONY: generate
 generate: generate/web

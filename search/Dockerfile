@@ -14,7 +14,7 @@ COPY . .
 RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags='-w -s -extldflags "-static"' -o /main ./main/main.go
 RUN chmod +x /main
 
-FROM scratch
+FROM alpine
 
 COPY --from=builder /main /main
 

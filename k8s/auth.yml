@@ -34,6 +34,7 @@ spec:
       containers:
         - name: auth
           image: docker.pkg.github.com/loalang/loalang.xyz/auth:latest
+          imagePullPolicy: Always
           volumeMounts:
             - name: env-volume
               mountPath: /etc/env

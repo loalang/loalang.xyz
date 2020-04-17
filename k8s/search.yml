@@ -30,6 +30,7 @@ spec:
       containers:
         - name: search
           image: docker.pkg.github.com/loalang/loalang.xyz/search:latest
+          imagePullPolicy: Always
           envFrom:
             - secretRef:
                 name: loalang-env
