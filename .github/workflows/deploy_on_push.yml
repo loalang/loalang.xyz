@@ -47,20 +47,41 @@ jobs:
       - name: Set ENVIRONMENT
         run: echo ::set-env name=ENVIRONMENT::$(test "${{ github.ref }}" = "refs/heads/master" && echo production || echo staging)
 
+      - name: Set IMAGE
+        run: echo ::set-env name=IMAGE::docker.pkg.github.com/loalang/loalang.xyz/$SERVICE
+
       - name: Authenticate Docker
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
 
       - name: Pull latest version
-        run: docker pull docker.pkg.github.com/loalang/loalang.xyz/$SERVICE:$VERSION || true
+        run: |
+          docker pull $IMAGE:latest-builder || true
+          docker pull $IMAGE:latest || true
+
+      - name: Build new builder
+        run: >
+          docker build
+          --cache-from $IMAGE:latest-builder
+          --target builder
+          --tag $IMAGE:$VERSION-builder
+          $SERVICE
 
       - name: Build new version
-        run: docker build --cache-from docker.pkg.github.com/loalang/loalang.xyz/$SERVICE:latest -t docker.pkg.github.com/loalang/loalang.xyz/$SERVICE:$VERSION $SERVICE
+        run: >
+          docker build
+          --cache-from $IMAGE:latest-builder
+          --cache-from $IMAGE:latest
+          --tag $IMAGE:$VERSION
+          $SERVICE
 
       - name: Push new version
         run: |
-          docker push docker.pkg.github.com/loalang/loalang.xyz/$SERVICE:$VERSION
-          docker tag docker.pkg.github.com/loalang/loalang.xyz/$SERVICE:$VERSION docker.pkg.github.com/loalang/loalang.xyz/$SERVICE:latest
-          docker push docker.pkg.github.com/loalang/loalang.xyz/$SERVICE:latest
+          docker tag $IMAGE:$VERSION-builder $IMAGE:latest-builder
+          docker push $IMAGE:$VERSION-builder
+          docker push $IMAGE:latest-builder
+          docker tag $IMAGE:$VERSION $IMAGE:latest
+          docker push $IMAGE:$VERSION
+          docker push $IMAGE:latest
 
       - name: Deploy
         uses: actions-hub/kubectl@master
