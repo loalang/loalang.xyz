@@ -1,5 +1,11 @@
 version: '3.7'
 services:
+  web:
+    image: docker.pkg.github.com/loalang/loalang.xyz/www:latest
+    build: web
+    ports:
+      - 9090:80
+
   api:
     image: docker.pkg.github.com/loalang/loalang.xyz/api:latest
     build: api

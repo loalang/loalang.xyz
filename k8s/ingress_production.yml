@@ -8,13 +8,20 @@ metadata:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
 spec:
   tls:
-  - hosts:
-    - api.loalang.xyz
-    secretName: api-tls
+    - hosts:
+        - api.loalang.xyz
+        - loalang.xyz
+      secretName: api-tls
   rules:
-  - host: api.loalang.xyz
-    http:
-      paths:
-      - backend:
-          serviceName: loalang-api
-          servicePort: 80
+    - host: api.loalang.xyz
+      http:
+        paths:
+          - backend:
+              serviceName: loalang-api
+              servicePort: 80
+    - host: loalang.xyz
+      http:
+        paths:
+          - backend:
+              serviceName: loalang-web
+              servicePort: 80
