@@ -1,16 +1,24 @@
-module Api exposing (request)
+module Api exposing (makeQuery, performMutation)
 
 import Array
 import Graphql.Http
-import Graphql.Operation exposing (RootQuery)
+import Graphql.Operation exposing (RootMutation, RootQuery)
 import Graphql.SelectionSet exposing (SelectionSet)
 import Url exposing (Url)
 
 
-request : Url -> SelectionSet decodesTo RootQuery -> (Result (Graphql.Http.Error decodesTo) decodesTo -> msg) -> Cmd msg
-request url query mapper =
+makeQuery : Url -> SelectionSet decodesTo RootQuery -> (Result (Graphql.Http.Error decodesTo) decodesTo -> msg) -> Cmd msg
+makeQuery url query mapper =
     query
         |> Graphql.Http.queryRequest (deriveApiUrl url.host)
+        |> Graphql.Http.withCredentials
+        |> Graphql.Http.send mapper
+
+
+performMutation : Url -> SelectionSet decodesTo RootMutation -> (Result (Graphql.Http.Error decodesTo) decodesTo -> msg) -> Cmd msg
+performMutation url query mapper =
+    query
+        |> Graphql.Http.mutationRequest (deriveApiUrl url.host)
         |> Graphql.Http.withCredentials
         |> Graphql.Http.send mapper
 

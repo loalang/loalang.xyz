@@ -28,6 +28,7 @@ main =
 
 type alias Model =
     { key : Navigation.Key
+    , url : Url
     , header : Header.Model
     , page : Page
     }
@@ -57,6 +58,7 @@ init _ url key =
     ( { key = key
       , header = header
       , page = page
+      , url = url
       }
     , Cmd.batch [ pageMsg, Cmd.map HeaderMsg headerMsg ]
     )
@@ -132,7 +134,7 @@ update msg model =
                 |> Tuple.mapFirst (\page -> { model | page = page })
 
         ( _, HeaderMsg hMsg ) ->
-            Tuple.mapBoth (updateHeader model) (Cmd.map HeaderMsg) (Header.update hMsg model.header)
+            Tuple.mapBoth (updateHeader model) (Cmd.map HeaderMsg) (Header.update model.url hMsg model.header)
 
         ( StorefrontPage sModel, StorefrontMsg sMsg ) ->
             Tuple.mapBoth (updatePage StorefrontPage model) (Cmd.map StorefrontMsg) (Page.Storefront.update sMsg sModel)
