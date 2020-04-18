@@ -52,7 +52,7 @@ init _ url key =
             initRoute (Router.parse url)
 
         ( header, headerMsg ) =
-            Header.init
+            Header.init url
     in
     ( { key = key
       , header = header

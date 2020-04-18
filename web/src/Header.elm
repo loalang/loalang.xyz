@@ -11,6 +11,7 @@ import Graphql.Operation exposing (RootQuery)
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (..)
+import Url exposing (Url)
 
 
 type Model
@@ -40,9 +41,9 @@ user =
         User.username
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( Loading, Api.request query GotResponse )
+init : Url -> ( Model, Cmd Msg )
+init url =
+    ( Loading, Api.request url query GotResponse )
 
 
 view : Model -> Html Msg
