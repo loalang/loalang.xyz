@@ -16,12 +16,18 @@ import Html.Styled.Events exposing (..)
 import Url exposing (Url)
 
 
-type Model
+type alias Model =
+    { auth : Auth
+    , isExpanded : Bool
+    , authError : Maybe (Graphql.Http.Error (Maybe User))
+    , signOutError : Maybe (Graphql.Http.Error (Maybe Scalar.Ok))
+    }
+
+
+type Auth
     = Loading
     | SignedIn User
-    | Expanded Form (Maybe (Graphql.Http.Error (Maybe User)))
-    | Collapsed Form (Maybe (Graphql.Http.Error (Maybe User)))
-    | SignOutError (Graphql.Http.Error (Maybe Scalar.Ok))
+    | SignedOut Form
     | Submitting Form
 
 
@@ -48,8 +54,8 @@ type Msg
     | UpdateForm Form
     | SubmitForm Form
     | SignOut
-    | SignedOut (Result (Graphql.Http.Error (Maybe Scalar.Ok)) (Maybe Scalar.Ok))
-    | Expand Form (Maybe (Graphql.Http.Error (Maybe User)))
+    | DidSignOut (Result (Graphql.Http.Error (Maybe Scalar.Ok)) (Maybe Scalar.Ok))
+    | Expand
 
 
 meQuery : SelectionSet (Maybe User) RootQuery
@@ -82,7 +88,13 @@ signInMutation form =
 
 init : Url -> ( Model, Cmd Msg )
 init url =
-    ( Loading, Api.makeQuery url meQuery (GotResponse (SignIn { usernameOrEmail = "", password = "" })) )
+    ( { auth = Loading
+      , isExpanded = False
+      , authError = Nothing
+      , signOutError = Nothing
+      }
+    , Api.makeQuery url meQuery (GotResponse (SignIn { usernameOrEmail = "", password = "" }))
+    )
 
 
 view : Model -> Html Msg
@@ -99,101 +111,123 @@ view model =
                 , viewLink "/pkg" [ text "Packages" ]
                 ]
             , div [ css [ flexGrow (int 0), flexShrink (int 0), flexBasis auto ] ]
-                (case model of
-                    Loading ->
-                        [ text "Loading..." ]
-
-                    Submitting _ ->
-                        [ text "Submitting..." ]
-
-                    Collapsed f e ->
-                        [ button [ onClick (Expand f e) ] [ text "Sign in" ] ]
-
+                [ case model.auth of
                     SignedIn u ->
-                        [ text u.username, button [ onClick SignOut ] [ text "Sign Out" ] ]
+                        div []
+                            [ text u.username
+                            , button [ onClick SignOut ] [ text "Sign Out" ]
+                            ]
 
-                    Expanded form error ->
-                        [ case form of
-                            SignIn ({ usernameOrEmail, password } as f) ->
-                                div []
-                                    [ input
-                                        [ type_ "email"
-                                        , value usernameOrEmail
-                                        , placeholder "Username"
-                                        , onInput (\s -> { f | usernameOrEmail = s } |> SignIn |> UpdateForm)
-                                        ]
-                                        []
-                                    , input
-                                        [ type_ "password"
-                                        , value password
-                                        , placeholder "Password"
-                                        , onInput (\s -> { f | password = s } |> SignIn |> UpdateForm)
-                                        ]
-                                        []
-                                    , button
-                                        [ onClick
-                                            ({ username = usernameOrEmail
-                                             , email = ""
-                                             , password = password
-                                             , confirmPassword = ""
-                                             }
-                                                |> SignUp
-                                                |> UpdateForm
-                                            )
-                                        ]
-                                        [ text "Sign Up" ]
-                                    , button [ onClick (SubmitForm form) ] [ text "Sign In" ]
-                                    ]
+                    _ ->
+                        if model.isExpanded then
+                            viewAuth model
 
-                            SignUp ({ username, email, password, confirmPassword } as f) ->
-                                div []
-                                    [ input
-                                        [ type_ "text"
-                                        , value username
-                                        , placeholder "Username"
-                                        , onInput (\s -> { f | username = s } |> SignUp |> UpdateForm)
-                                        ]
-                                        []
-                                    , input
-                                        [ type_ "email"
-                                        , value email
-                                        , placeholder "Email"
-                                        , onInput (\s -> { f | email = s } |> SignUp |> UpdateForm)
-                                        ]
-                                        []
-                                    , input
-                                        [ type_ "password"
-                                        , value password
-                                        , placeholder "Password"
-                                        , onInput (\s -> { f | password = s } |> SignUp |> UpdateForm)
-                                        ]
-                                        []
-                                    , input
-                                        [ type_ "password"
-                                        , value confirmPassword
-                                        , placeholder "Confirm Password"
-                                        , onInput (\s -> { f | confirmPassword = s } |> SignUp |> UpdateForm)
-                                        ]
-                                        []
-                                    , button
-                                        [ onClick
-                                            ({ usernameOrEmail = username
-                                             , password = password
-                                             }
-                                                |> SignIn
-                                                |> UpdateForm
-                                            )
-                                        ]
-                                        [ text "Sign In" ]
-                                    , button [ onClick (SubmitForm form) ] [ text "Sign Up" ]
-                                    ]
-                        , viewError error
-                        ]
+                        else
+                            button [ onClick Expand ] [ text "Sign in" ]
+                ]
+            ]
+        ]
 
-                    SignOutError error ->
-                        [ Just error |> viewError ]
+
+viewAuth : Model -> Html Msg
+viewAuth model =
+    case model.auth of
+        Loading ->
+            text "Loading..."
+
+        Submitting _ ->
+            text "Submitting..."
+
+        SignedIn _ ->
+            div [] []
+
+        SignedOut form ->
+            div []
+                [ case form of
+                    SignIn f ->
+                        viewSignInForm f
+
+                    SignUp f ->
+                        viewSignUpForm f
+                , viewError model.authError
+                ]
+
+
+viewSignInForm : SignInForm -> Html Msg
+viewSignInForm ({ usernameOrEmail, password } as f) =
+    div []
+        [ input
+            [ type_ "email"
+            , value usernameOrEmail
+            , placeholder "Username"
+            , onInput (\s -> { f | usernameOrEmail = s } |> SignIn |> UpdateForm)
+            ]
+            []
+        , input
+            [ type_ "password"
+            , value password
+            , placeholder "Password"
+            , onInput (\s -> { f | password = s } |> SignIn |> UpdateForm)
+            ]
+            []
+        , button
+            [ onClick
+                ({ username = usernameOrEmail
+                 , email = ""
+                 , password = password
+                 , confirmPassword = ""
+                 }
+                    |> SignUp
+                    |> UpdateForm
                 )
             ]
+            [ text "Sign Up" ]
+        , button [ onClick (SubmitForm (SignIn f)) ] [ text "Sign In" ]
+        ]
+
+
+viewSignUpForm : SignUpForm -> Html Msg
+viewSignUpForm ({ username, email, password, confirmPassword } as f) =
+    div []
+        [ input
+            [ type_ "text"
+            , value username
+            , placeholder "Username"
+            , onInput (\s -> { f | username = s } |> SignUp |> UpdateForm)
+            ]
+            []
+        , input
+            [ type_ "email"
+            , value email
+            , placeholder "Email"
+            , onInput (\s -> { f | email = s } |> SignUp |> UpdateForm)
+            ]
+            []
+        , input
+            [ type_ "password"
+            , value password
+            , placeholder "Password"
+            , onInput (\s -> { f | password = s } |> SignUp |> UpdateForm)
+            ]
+            []
+        , input
+            [ type_ "password"
+            , value confirmPassword
+            , placeholder "Confirm Password"
+            , onInput (\s -> { f | confirmPassword = s } |> SignUp |> UpdateForm)
+            ]
+            []
+        , button
+            [ onClick
+                ({ usernameOrEmail = username
+                 , password = password
+                 }
+                    |> SignIn
+                    |> UpdateForm
+                )
+            ]
+            [ text "Sign In" ]
+        , button [ onClick (SubmitForm (SignUp f)) ] [ text "Sign Up" ]
         ]
 
 
@@ -219,31 +253,45 @@ update : Url -> Msg -> Model -> ( Model, Cmd Msg )
 update url msg model =
     case msg of
         GotResponse _ (Ok (Just u)) ->
-            ( SignedIn u, Cmd.none )
+            ( { model | auth = SignedIn u, isExpanded = False }
+            , Cmd.none
+            )
 
         GotResponse form (Ok Nothing) ->
-            ( Collapsed form Nothing, Cmd.none )
+            ( { model | auth = SignedOut form }
+            , Cmd.none
+            )
 
         GotResponse form (Err error) ->
-            ( Expanded form (Just error), Cmd.none )
+            ( { model | auth = SignedOut form, authError = Just error }
+            , Cmd.none
+            )
 
         UpdateForm form ->
-            ( Expanded form Nothing, Cmd.none )
+            ( { model | auth = SignedOut form, authError = Nothing }
+            , Cmd.none
+            )
 
         SubmitForm (SignUp form) ->
-            ( Submitting (SignUp form), Api.performMutation url (signUpMutation form) (GotResponse (SignUp form)) )
+            ( { model | auth = Submitting (SignUp form) }
+            , Api.performMutation url (signUpMutation form) (GotResponse (SignUp form))
+            )
 
         SubmitForm (SignIn form) ->
-            ( Submitting (SignIn form), Api.performMutation url (signInMutation form) (GotResponse (SignIn form)) )
+            ( { model | auth = Submitting (SignIn form) }
+            , Api.performMutation url (signInMutation form) (GotResponse (SignIn form))
+            )
 
         SignOut ->
-            ( Collapsed (SignIn { usernameOrEmail = "", password = "" }) Nothing, Api.performMutation url Mutation.signOut SignedOut )
+            ( { model | auth = SignedOut (SignIn { usernameOrEmail = "", password = "" }) }
+            , Api.performMutation url Mutation.signOut DidSignOut
+            )
 
-        SignedOut (Ok _) ->
+        DidSignOut (Ok _) ->
             ( model, Cmd.none )
 
-        SignedOut (Err error) ->
-            ( SignOutError error, Cmd.none )
+        DidSignOut (Err error) ->
+            ( { model | signOutError = Just error }, Cmd.none )
 
-        Expand f e ->
-            ( Expanded f e, Cmd.none )
+        Expand ->
+            ( { model | isExpanded = True }, Cmd.none )
