@@ -19,4 +19,6 @@ RUN yarn webpack -p
 
 FROM nginx:1.17-alpine
 
-COPY --from=builder /web/dist /usr/share/nginx/html
+COPY conf.nginx /etc/nginx/nginx.conf
+
+COPY --from=builder /web/dist /web

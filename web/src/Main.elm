@@ -1,150 +1,156 @@
 module Main exposing (main)
 
-import Api.Object
-import Api.Object.User
-import Api.Query
 import Browser exposing (Document, UrlRequest)
-import Browser.Navigation
-import Graphql.Http
-import Graphql.Operation exposing (RootQuery)
-import Graphql.SelectionSet exposing (SelectionSet, with)
-import Html.Styled exposing (..)
-import Url
+import Browser.Navigation as Navigation
+import Css exposing (..)
+import Css.Global
+import DesignSystem.Color
+import DesignSystem.Text
+import Header
+import Html
+import Html.Styled
+import Page.NotFound
+import Page.Storefront
+import Router
+import Url exposing (Url)
 
 
 main =
     Browser.application
         { init = init
-        , onUrlChange = onUrlChange
-        , onUrlRequest = onUrlRequest
+        , onUrlChange = UrlChanged
+        , onUrlRequest = LinkClicked
         , subscriptions = subscriptions
         , update = update
         , view = view
         }
 
 
-type Model
-    = Model
-        { key : Browser.Navigation.Key
-        , meQuery : MeQueryState
-        }
+type alias Model =
+    { key : Navigation.Key
+    , header : Header.Model
+    , page : Page
+    }
 
 
-type MeQueryState
-    = Loading
-    | Yay TestQueryResponse
+type Page
+    = StorefrontPage Page.Storefront.Model
+    | NotFoundPage
 
 
 type Msg
-    = Noop
-    | GotResponse (Result (Graphql.Http.Error TestQueryResponse) TestQueryResponse)
+    = LinkClicked Browser.UrlRequest
+    | UrlChanged Url.Url
+    | HeaderMsg Header.Msg
+    | StorefrontMsg Page.Storefront.Msg
 
 
-buildApiUrl : Url.Url -> Url.Url
-buildApiUrl url =
-    case url.host of
-        "localhost" ->
-            { url | port_ = Just 9091 }
-
-        host ->
-            { url | host = apiHost host }
-
-
-apiHost : String -> String
-apiHost webHost =
+init : () -> Url -> Navigation.Key -> ( Model, Cmd Msg )
+init _ url key =
     let
-        segments =
-            webHost
-                |> String.split "."
-                |> List.reverse
+        ( page, pageMsg ) =
+            initRoute (Router.parse url)
+
+        ( header, headerMsg ) =
+            Header.init
     in
-    segments
-        |> List.drop 2
-        |> List.append (List.take 2 segments ++ [ "api" ])
-        |> List.reverse
-        |> String.join "."
-
-
-init : () -> Url.Url -> Browser.Navigation.Key -> ( Model, Cmd Msg )
-init () url key =
-    ( Model { key = key, meQuery = Loading }
-    , testQuery
-        |> Graphql.Http.queryRequest (Url.toString (buildApiUrl url))
-        |> Graphql.Http.withCredentials
-        |> Graphql.Http.send GotResponse
+    ( { key = key
+      , header = header
+      , page = page
+      }
+    , Cmd.batch [ pageMsg, Cmd.map HeaderMsg headerMsg ]
     )
+
+
+initRoute : Router.Route -> ( Page, Cmd Msg )
+initRoute route =
+    case route of
+        Router.StorefrontRoute ->
+            Tuple.mapBoth StorefrontPage (Cmd.map StorefrontMsg) Page.Storefront.init
+
+        Router.NotFoundRoute ->
+            ( NotFoundPage, Cmd.none )
 
 
 view : Model -> Document Msg
 view model =
-    { title = "Loa"
-    , body = [ toUnstyled (body model) ]
-    }
+    case model.page of
+        StorefrontPage page ->
+            { title = buildTitle (Page.Storefront.title page)
+            , body = viewContainer model ((Page.Storefront.view >> Html.Styled.map StorefrontMsg) page)
+            }
+
+        NotFoundPage ->
+            { title = buildTitle Page.NotFound.title
+            , body = viewContainer model Page.NotFound.view
+            }
 
 
-type alias TestQueryResponse =
-    { me : Maybe TestQueryUserResponse }
+viewContainer : Model -> Html.Styled.Html Msg -> List (Html.Html Msg)
+viewContainer model content =
+    [ Html.Styled.toUnstyled
+        (Html.Styled.div []
+            [ (Header.view >> Html.Styled.map HeaderMsg) model.header
+            , content
+            , Css.Global.global
+                [ Css.Global.html
+                    [ margin zero
+                    , backgroundColor DesignSystem.Color.background
+                    , color DesignSystem.Color.standardText
+                    , DesignSystem.Text.bodyM
+                    ]
+                ]
+            ]
+        )
+    ]
 
 
-type alias TestQueryUserResponse =
-    { username : String
-    }
-
-
-testQuery : SelectionSet TestQueryResponse RootQuery
-testQuery =
-    Graphql.SelectionSet.succeed TestQueryResponse
-        |> with (Api.Query.me testQueryMe)
-
-
-testQueryMe : SelectionSet TestQueryUserResponse Api.Object.User
-testQueryMe =
-    Graphql.SelectionSet.succeed TestQueryUserResponse
-        |> with Api.Object.User.username
-
-
-body : Model -> Html Msg
-body (Model m) =
-    div []
-        [ case m.meQuery of
-            Loading ->
-                text "Loading..."
-
-            Yay { me } ->
-                case me of
-                    Nothing ->
-                        text "Not logged in"
-
-                    Just { username } ->
-                        text username
-        ]
+buildTitle : Maybe String -> String
+buildTitle title =
+    title
+        |> Maybe.map List.singleton
+        |> Maybe.withDefault []
+        |> (\l -> l ++ [ "Loa Programming Language" ])
+        |> String.join " | "
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg ((Model ({ meQuery } as record)) as model) =
-    case msg of
-        Noop ->
+update msg model =
+    case ( model.page, msg ) of
+        ( _, LinkClicked urlRequest ) ->
+            case urlRequest of
+                Browser.Internal url ->
+                    ( model, Navigation.pushUrl model.key (Url.toString url) )
+
+                Browser.External href ->
+                    ( model, Navigation.load href )
+
+        ( _, UrlChanged url ) ->
+            url
+                |> Router.parse
+                |> initRoute
+                |> Tuple.mapFirst (\page -> { model | page = page })
+
+        ( _, HeaderMsg hMsg ) ->
+            Tuple.mapBoth (updateHeader model) (Cmd.map HeaderMsg) (Header.update hMsg model.header)
+
+        ( StorefrontPage sModel, StorefrontMsg sMsg ) ->
+            Tuple.mapBoth (updatePage StorefrontPage model) (Cmd.map StorefrontMsg) (Page.Storefront.update sMsg sModel)
+
+        _ ->
             ( model, Cmd.none )
 
-        GotResponse result ->
-            case result of
-                Ok value ->
-                    ( Model { record | meQuery = Yay value }, Cmd.none )
 
-                Err error ->
-                    ( model, Cmd.none )
+updatePage : (a -> Page) -> Model -> a -> Model
+updatePage map model a =
+    { model | page = map a }
+
+
+updateHeader : Model -> Header.Model -> Model
+updateHeader model header =
+    { model | header = header }
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.none
-
-
-onUrlRequest : UrlRequest -> Msg
-onUrlRequest req =
-    Noop
-
-
-onUrlChange : Url.Url -> Msg
-onUrlChange url =
-    Noop
