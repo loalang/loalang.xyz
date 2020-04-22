@@ -49,6 +49,11 @@ func main() {
 		header.Add("Access-Control-Allow-Origin", request.Header.Get("Origin"))
 		header.Add("Access-Control-Allow-Headers", "Content-Type")
 		header.Add("Access-Control-Allow-Credentials", "true")
+
+		if request.Method == "OPTIONS" {
+			return
+		}
+
 		ctx, err := api.Context(request, writer)
 		if err != nil {
 			panic(err)

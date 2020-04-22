@@ -35,6 +35,9 @@ jobs:
       - name: Setup Go for Protobuf
         run: go get -u github.com/golang/protobuf/protoc-gen-go
 
+      - name: Setup elm-graphql
+        run: yarn global add @dillonkearns/elm-graphql
+
       - name: Codegen
         run: make generate
 

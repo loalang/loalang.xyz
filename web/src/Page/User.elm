@@ -3,66 +3,109 @@ module Page.User exposing (Model, Msg, init, title, update, view)
 import Api
 import Api.Interface
 import Api.Interface.User
+import Api.Mutation
 import Api.Object
 import Api.Object.Me
 import Api.Object.NotMe
 import Api.Query
 import Graphql.Http
 import Graphql.Operation exposing (RootQuery)
+import Graphql.OptionalArgument as OptionalArgument
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import Html.Styled exposing (..)
+import Html.Styled.Attributes exposing (..)
+import Html.Styled.Events exposing (..)
 import Url exposing (Url)
 
 
 type alias Model =
     { username : String
     , data : UserData
+    , updateForm : UpdateForm
+    , error : Maybe (Graphql.Http.Error (Maybe UserData))
     }
 
 
 type UserData
     = Loading
-    | Found User
+    | FoundMe Me
+    | Found NotMe
     | NotFound
 
 
-userData : String -> SelectionSet (Maybe User) RootQuery
+userData : String -> SelectionSet UserData RootQuery
 userData username =
-    Api.Query.user { username = username } user
+    SelectionSet.map (Maybe.withDefault NotFound)
+        (Api.Query.user { username = username }
+            (Api.Interface.User.fragments
+                { onMe = SelectionSet.map FoundMe selectMe
+                , onNotMe = SelectionSet.map Found selectUser
+                }
+            )
+        )
 
 
-type alias User =
-    { me : Maybe Me
-    , username : String
+type alias UpdateForm =
+    { username : Maybe String
+    , name : Maybe String
+    , email : Maybe String
+    , password : Maybe { new : String, current : String }
+    }
+
+
+initUpdateForm : UpdateForm
+initUpdateForm =
+    { username = Nothing
+    , name = Nothing
+    , email = Nothing
+    , password = Nothing
+    }
+
+
+type alias NotMe =
+    { username : String
     , name : Maybe String
     }
 
 
-user : SelectionSet User Api.Interface.User
-user =
-    Api.Interface.User.fragments
-        { onMe = SelectionSet.map3 (Just >> User) me Api.Object.Me.username Api.Object.Me.name
-        , onNotMe = SelectionSet.map2 (User Nothing) Api.Object.NotMe.username Api.Object.NotMe.name
-        }
+selectUser : SelectionSet NotMe Api.Object.NotMe
+selectUser =
+    SelectionSet.map2 NotMe
+        Api.Object.NotMe.username
+        Api.Object.NotMe.name
 
 
 type alias Me =
-    { email : String
+    { username : String
+    , name : Maybe String
+    , email : String
     }
 
 
-me : SelectionSet Me Api.Object.Me
-me =
-    SelectionSet.map Me Api.Object.Me.email
+selectMe : SelectionSet Me Api.Object.Me
+selectMe =
+    SelectionSet.map3 Me
+        Api.Object.Me.username
+        Api.Object.Me.name
+        Api.Object.Me.email
 
 
 type Msg
-    = GotResponse (Result (Graphql.Http.Error (Maybe User)) (Maybe User))
+    = GotResponse (Result (Graphql.Http.Error UserData) UserData)
+    | SubmittedUpdate (Result (Graphql.Http.Error (Maybe UserData)) (Maybe UserData))
+    | SetUpdateForm UpdateForm
+    | SubmitUpdateForm
 
 
 init : Url -> String -> ( Model, Cmd Msg )
 init url username =
-    ( { username = username, data = Loading }, Api.makeQuery url (userData username) GotResponse )
+    ( { username = username
+      , data = Loading
+      , updateForm = initUpdateForm
+      , error = Nothing
+      }
+    , Api.makeQuery url (userData username) GotResponse
+    )
 
 
 title : Model -> Maybe String
@@ -71,7 +114,7 @@ title { username } =
 
 
 view : Model -> Html Msg
-view { data } =
+view { data, updateForm } =
     case data of
         Loading ->
             text "Loading..."
@@ -80,7 +123,35 @@ view { data } =
             text "User Not Found"
 
         Found u ->
-            div [] [ text (Maybe.withDefault u.username u.name) ]
+            div []
+                [ h1 [] [ text (Maybe.withDefault u.username u.name) ] ]
+
+        FoundMe u ->
+            div []
+                [ h1 [] [ text (Maybe.withDefault u.username u.name) ]
+                , viewUserForm u updateForm
+                ]
+
+
+viewUserForm : Me -> UpdateForm -> Html Msg
+viewUserForm me form =
+    div []
+        [ input
+            [ type_ "text"
+            , value (form.username |> Maybe.withDefault me.username)
+            , placeholder "Username"
+            , onInput (\value -> SetUpdateForm { form | username = Just value })
+            ]
+            []
+        , input
+            [ type_ "text"
+            , value (form.name |> Maybe.withDefault (me.name |> Maybe.withDefault ""))
+            , placeholder "Name"
+            , onInput (\value -> SetUpdateForm { form | name = Just value })
+            ]
+            []
+        , button [ type_ "submit", onClick SubmitUpdateForm ] [ text "Save" ]
+        ]
 
 
 update : Url -> Msg -> Model -> ( Model, Cmd Msg )
@@ -89,8 +160,35 @@ update url msg model =
         GotResponse (Err _) ->
             ( { model | data = NotFound }, Cmd.none )
 
-        GotResponse (Ok Nothing) ->
-            ( { model | data = NotFound }, Cmd.none )
+        GotResponse (Ok data) ->
+            ( { model | data = data }, Cmd.none )
 
-        GotResponse (Ok (Just u)) ->
-            ( { model | data = Found u }, Cmd.none )
+        SetUpdateForm f ->
+            ( { model | updateForm = f }, Cmd.none )
+
+        SubmitUpdateForm ->
+            ( model
+            , Api.performMutation
+                url
+                (Api.Mutation.me
+                    (\args ->
+                        { args
+                            | password = OptionalArgument.fromMaybe model.updateForm.password
+                            , username = OptionalArgument.fromMaybe model.updateForm.username
+                            , email = OptionalArgument.fromMaybe model.updateForm.email
+                            , name = OptionalArgument.fromMaybe model.updateForm.name
+                        }
+                    )
+                    (SelectionSet.map FoundMe selectMe)
+                )
+                SubmittedUpdate
+            )
+
+        SubmittedUpdate (Err error) ->
+            ( { model | error = Just error }, Cmd.none )
+
+        SubmittedUpdate (Ok (Just data)) ->
+            ( { model | data = data }, Cmd.none )
+
+        SubmittedUpdate (Ok Nothing) ->
+            ( model, Cmd.none )

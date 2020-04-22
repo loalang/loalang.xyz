@@ -8,7 +8,7 @@ RUN yarn --pure-lockfile
 
 COPY elm.json ./
 RUN mkdir src
-RUN elm make 2>/dev/null || true
+RUN yarn elm make 2>/dev/null || true
 
 COPY introspection-file.json ./
 RUN yarn elm-graphql --introspection-file introspection-file.json
