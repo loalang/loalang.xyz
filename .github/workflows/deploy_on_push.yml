@@ -36,7 +36,7 @@ jobs:
         run: go get -u github.com/golang/protobuf/protoc-gen-go
 
       - name: Setup elm-graphql
-        run: yarn global add @dillonkearns/elm-graphql
+        run: cd web && yarn --pure-lockfile
 
       - name: Codegen
         run: make generate
