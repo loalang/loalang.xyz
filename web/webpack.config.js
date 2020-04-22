@@ -7,6 +7,9 @@ const elmRule = {
 };
 
 const config = {
+  output: {
+    publicPath: "/",
+  },
   module: {
     rules: [elmRule],
   },
@@ -24,9 +27,7 @@ module.exports = (env, argv) => {
   switch (argv.mode) {
     case "production":
       config.mode = "production";
-      config.output = {
-        filename: "[hash].js",
-      };
+      config.output.filename = "[hash].js";
       elmRule.use.push({
         loader: "elm-webpack-loader",
         options: { optimize: true },
