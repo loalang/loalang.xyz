@@ -10,7 +10,7 @@ generate: generate/web
 generate/web: generate/api web/src/Api
 
 web/src/Api: web/introspection-file.json
-	( cd web; yarn elm-graphql --introspection-file introspection-file.json )
+	( cd web; yarn --pure-lockfile && yarn elm-graphql --introspection-file introspection-file.json )
 
 web/introspection-file.json:
 	docker run \
