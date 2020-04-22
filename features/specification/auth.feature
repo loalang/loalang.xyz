@@ -24,7 +24,6 @@ Feature: Authentication
 
     Then I expect to be logged in as "jane-doe"
 
-  @expectError
   Scenario: Failed Sign In
     Given a sign in form
 

@@ -58,7 +58,7 @@ func (a *authentication) SignUp(ctx context.Context, req *SignUpRequest) (*Signe
 		values ($1, $2, $3, $4, $5)
 	`, id, req.Username, req.Email, password, signedUpAt)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("invalid credentials")
 	}
 	idBytes, _ := id.MarshalBinary()
 	user := &User{
@@ -97,7 +97,7 @@ func (a *authentication) SignIn(ctx context.Context, req *SignInRequest) (*Signe
 
 	err := userRow.Scan(&id, &username, &email, &signedUpAt, &name)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("invalid credentials")
 	}
 	idBytes, _ := id.MarshalBinary()
 	user := &User{
@@ -138,7 +138,7 @@ func (a *authentication) Lookup(ctx context.Context, req *LookupRequest) (*User,
 
 	err = userRow.Scan(&username, &email, &signedUpAt, &avatarUrl, &name)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("not authenticated")
 	}
 	idBytes, _ := id.MarshalBinary()
 	return &User{

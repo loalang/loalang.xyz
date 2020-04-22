@@ -2,13 +2,13 @@ package api
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	upload "github.com/eko/graphql-go-upload"
 	"github.com/graphql-go/graphql"
 	"github.com/loalang/loalang.xyz/api/auth"
 	"github.com/loalang/loalang.xyz/api/pkg"
 	"mime"
+	"strings"
 )
 
 var MutationType = graphql.NewObject(graphql.ObjectConfig{
@@ -70,7 +70,12 @@ var MutationType = graphql.NewObject(graphql.ObjectConfig{
 					Password: p.Args["password"].(string),
 				})
 				if err != nil {
-					return nil, err
+					switch {
+					case strings.Contains(err.Error(), "invalid credentials"):
+						return nil, NewError("Invalid credentials")
+					default:
+						return nil, err
+					}
 				}
 
 				SetCookie(p.Context, res.Token)
@@ -95,7 +100,12 @@ var MutationType = graphql.NewObject(graphql.ObjectConfig{
 					Password:        p.Args["password"].(string),
 				})
 				if err != nil {
-					return nil, err
+					switch {
+					case strings.Contains(err.Error(), "invalid credentials"):
+						return nil, NewError("Invalid credentials")
+					default:
+						return nil, err
+					}
 				}
 
 				SetCookie(p.Context, res.Token)
@@ -115,8 +125,9 @@ var MutationType = graphql.NewObject(graphql.ObjectConfig{
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				cookie, err := Request(p.Context).Cookie(AuthCookie)
 				if err != nil {
-					return nil, err
+					return nil, NewError("Not logged in")
 				}
+				DeleteCookie(p.Context)
 				token := DecodeToken(cookie.Value)
 				confirmation, err := AuthClient(p.Context).DeleteAccount(p.Context, &auth.DeleteAccountRequest{
 					Token: token,
@@ -127,7 +138,7 @@ var MutationType = graphql.NewObject(graphql.ObjectConfig{
 				if confirmation.Success {
 					return OK, nil
 				} else {
-					return nil, errors.New("not logged in")
+					return nil, NewError("Not logged in")
 				}
 			},
 		},
