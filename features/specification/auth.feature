@@ -89,3 +89,10 @@ Feature: Authentication
     And I submit the form
 
     Then I expect to see "Email address or username is already associated with an account"
+
+  Scenario: Sign Out
+    Given I am logged in as "jane-doe" with email "jane@example.com" and password "my-password"
+
+    When I click "Sign Out"
+
+    Then I expect to not be logged in

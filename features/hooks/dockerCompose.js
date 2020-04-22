@@ -41,7 +41,7 @@ Before({ timeout: 200000 }, async () => {
   }
 });
 
-After(async () => {
+After({ timeout: 20000 }, async () => {
   await new Promise((resolve) =>
     dockerComposeProcess.once("exit", resolve).kill()
   );

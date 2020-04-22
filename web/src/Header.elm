@@ -120,6 +120,9 @@ view model =
                             , button [ onClick SignOut ] [ text "Sign Out" ]
                             ]
 
+                    Loading ->
+                        div [] [ text "Loading..." ]
+
                     _ ->
                         if model.isExpanded then
                             viewAuth model
