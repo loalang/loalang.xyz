@@ -87,5 +87,5 @@ jobs:
         uses: actions-hub/kubectl@master
         env:
           KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
-        with: 
+        with:
           args: --namespace ${{ env.ENVIRONMENT }} set image deployment/${{ env.SERVICE }} ${{ env.SERVICE }}=docker.pkg.github.com/loalang/loalang.xyz/${{ env.SERVICE }}:${{ env.VERSION }} --record

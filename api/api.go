@@ -38,6 +38,9 @@ func Context(request *http.Request, writer http.ResponseWriter) (context.Context
 	searchClient := search.NewSearchClient(searchConn)
 	authClient := auth.NewAuthenticationClient(authConn)
 
+	ctx = context.WithValue(ctx, requestToken, request)
+	ctx = context.WithValue(ctx, headerToken, writer.Header())
+
 	var currentUser *auth.User
 
 	if cookie, _ := request.Cookie(AuthCookie); cookie != nil {
@@ -49,11 +52,9 @@ func Context(request *http.Request, writer http.ResponseWriter) (context.Context
 			currentUser = u
 		} else {
 			fmt.Println(err)
+			DeleteCookie(ctx)
 		}
 	}
-
-	ctx = context.WithValue(ctx, requestToken, request)
-	ctx = context.WithValue(ctx, headerToken, writer.Header())
 	ctx = context.WithValue(ctx, userToken, currentUser)
 	ctx = context.WithValue(ctx, pkgToken, pkgClient)
 	ctx = context.WithValue(ctx, searchToken, searchClient)

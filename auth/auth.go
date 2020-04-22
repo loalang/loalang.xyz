@@ -12,6 +12,7 @@ import (
 	"github.com/loalang/loalang.xyz/auth/common/events"
 	"google.golang.org/grpc"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -50,6 +51,13 @@ func (a *authentication) Health(ctx context.Context, _ *empty.Empty) (*Healthine
 }
 
 func (a *authentication) SignUp(ctx context.Context, req *SignUpRequest) (*SignedInUser, error) {
+	if err := ValidateEmail(req.Email); err != nil {
+		return nil, err
+	}
+	if err := ValidatePassword(req.Password); err != nil {
+		return nil, err
+	}
+
 	id := uuid.New()
 	password := Hash(req.Password)
 	signedUpAt := time.Now()
@@ -58,7 +66,13 @@ func (a *authentication) SignUp(ctx context.Context, req *SignUpRequest) (*Signe
 		values ($1, $2, $3, $4, $5)
 	`, id, req.Username, req.Email, password, signedUpAt)
 	if err != nil {
-		return nil, errors.New("invalid credentials")
+		switch {
+		case strings.Contains(err.Error(), "users_username_key"),
+			strings.Contains(err.Error(), "users_email_key"):
+			return nil, errors.New("email or username in use")
+		default:
+			return nil, errors.New("invalid credentials")
+		}
 	}
 	idBytes, _ := id.MarshalBinary()
 	user := &User{
@@ -73,7 +87,7 @@ func (a *authentication) SignUp(ctx context.Context, req *SignUpRequest) (*Signe
 	}
 
 	a.userUpdated <- &UserUpdated{
-		Id: user.Id,
+		Id:       user.Id,
 		Username: user.Username,
 	}
 

@@ -19,6 +19,7 @@ import Url exposing (Url)
 type alias Model =
     { auth : Auth
     , isExpanded : Bool
+    , formError : Maybe String
     , authError : Maybe (Graphql.Http.Error (Maybe User))
     , signOutError : Maybe (Graphql.Http.Error (Maybe Scalar.Ok))
     }
@@ -90,6 +91,7 @@ init : Url -> ( Model, Cmd Msg )
 init url =
     ( { auth = Loading
       , isExpanded = False
+      , formError = Nothing
       , authError = Nothing
       , signOutError = Nothing
       }
@@ -149,7 +151,8 @@ viewAuth model =
 
                     SignUp f ->
                         viewSignUpForm f
-                , viewError model.authError
+                , viewApiError model.authError
+                , viewError model.formError
                 ]
 
 
@@ -231,17 +234,29 @@ viewSignUpForm ({ username, email, password, confirmPassword } as f) =
         ]
 
 
-viewError : Maybe (Graphql.Http.Error decodesTo) -> Html Msg
+viewApiError : Maybe (Graphql.Http.Error decodesTo) -> Html Msg
+viewApiError error =
+    Maybe.map unpackApiError error |> Maybe.withDefault (text "")
+
+
+viewError : Maybe String -> Html Msg
 viewError error =
+    Maybe.map viewErrorMessage error |> Maybe.withDefault (text "")
+
+
+unpackApiError : Graphql.Http.Error decodesTo -> Html Msg
+unpackApiError error =
     case error of
-        Nothing ->
-            text ""
+        Graphql.Http.GraphqlError _ errors ->
+            div [] (List.map (\e -> viewErrorMessage e.message) errors)
 
-        Just (Graphql.Http.GraphqlError _ errors) ->
-            div [] (List.map (\e -> text e.message) errors)
+        Graphql.Http.HttpError _ ->
+            viewErrorMessage "We're having trouble communicating with the server right now. Please try again later."
 
-        Just (Graphql.Http.HttpError _) ->
-            text "We're having trouble communicating with the server right now. Please try again later."
+
+viewErrorMessage : String -> Html Msg
+viewErrorMessage =
+    text
 
 
 viewLink : String -> List (Html Msg) -> Html Msg
@@ -263,19 +278,23 @@ update url msg model =
             )
 
         GotResponse form (Err error) ->
-            ( { model | auth = SignedOut form, authError = Just error }
+            ( { model | auth = SignedOut form, authError = Just error, formError = Nothing }
             , Cmd.none
             )
 
         UpdateForm form ->
-            ( { model | auth = SignedOut form, authError = Nothing }
+            ( { model | auth = SignedOut form, authError = Nothing, formError = Nothing }
             , Cmd.none
             )
 
         SubmitForm (SignUp form) ->
-            ( { model | auth = Submitting (SignUp form) }
-            , Api.performMutation url (signUpMutation form) (GotResponse (SignUp form))
-            )
+            if form.password /= form.confirmPassword then
+                ( { model | formError = Just "Passwords don't match" }, Cmd.none )
+
+            else
+                ( { model | auth = Submitting (SignUp form) }
+                , Api.performMutation url (signUpMutation form) (GotResponse (SignUp form))
+                )
 
         SubmitForm (SignIn form) ->
             ( { model | auth = Submitting (SignIn form) }

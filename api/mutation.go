@@ -73,6 +73,12 @@ var MutationType = graphql.NewObject(graphql.ObjectConfig{
 					switch {
 					case strings.Contains(err.Error(), "invalid credentials"):
 						return nil, NewError("Invalid credentials")
+					case strings.Contains(err.Error(), "invalid email address"):
+						return nil, NewError("Invalid email address")
+					case strings.Contains(err.Error(), "email or username in use"):
+						return nil, NewError("Email address or username is already associated with an account")
+					case strings.Contains(err.Error(), "invalid password"):
+						return nil, NewError("Password must be longer than 6 characters")
 					default:
 						return nil, err
 					}
