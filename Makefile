@@ -45,3 +45,8 @@ generate/auth:
 .PHONY: clean
 clean:
 	git clean -Xdff *
+
+.PHONY: test
+test:
+	( cd web; yarn build )
+	( cd features; yarn test )

@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	upload "github.com/eko/graphql-go-upload"
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/graphql/testutil"
@@ -43,18 +44,19 @@ func main() {
 		Playground: true,
 	})
 
-	ctxDecorator, err := api.Context()
-	if err != nil {
-		panic(err)
-	}
-
 	http.Handle("/", upload.Handler(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		header := writer.Header()
 		header.Add("Access-Control-Allow-Origin", request.Header.Get("Origin"))
 		header.Add("Access-Control-Allow-Headers", "Content-Type")
 		header.Add("Access-Control-Allow-Credentials", "true")
-		h.ContextHandler(ctxDecorator(request.Context(), request, writer), writer, request)
+		ctx, err := api.Context(request, writer)
+		if err != nil {
+			panic(err)
+		}
+		h.ContextHandler(ctx, writer, request)
 	})))
+
+	fmt.Println("Started!")
 
 	err = http.ListenAndServe(":9091", nil)
 	if err != nil {

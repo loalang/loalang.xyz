@@ -9,6 +9,7 @@ import DesignSystem.Text
 import Header
 import Html
 import Html.Styled
+import Html.Styled.Attributes
 import Page.NotFound
 import Page.Storefront
 import Router
@@ -91,7 +92,7 @@ view model =
 viewContainer : Model -> Html.Styled.Html Msg -> List (Html.Html Msg)
 viewContainer model content =
     [ Html.Styled.toUnstyled
-        (Html.Styled.div []
+        (Html.Styled.div [ Html.Styled.Attributes.id "root" ]
             [ (Header.view >> Html.Styled.map HeaderMsg) model.header
             , content
             , Css.Global.global

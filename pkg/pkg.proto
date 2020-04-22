@@ -1,9 +1,16 @@
 syntax = "proto3";
 
+import "google/protobuf/empty.proto";
+
 package pkg;
 
 service PackageManager {
   rpc PublishRelease(PublishReleaseRequest) returns (Release);
+  rpc Health(google.protobuf.Empty) returns (Healthiness);
+}
+
+message Healthiness {
+  bool healthy = 1;
 }
 
 message PublishReleaseRequest {

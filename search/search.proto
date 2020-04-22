@@ -1,9 +1,16 @@
 syntax = "proto3";
 
+import "google/protobuf/empty.proto";
+
 package search;
 
 service Search {
   rpc Search(SearchRequest) returns (stream SearchResponse);
+  rpc Health(google.protobuf.Empty) returns (Healthiness);
+}
+
+message Healthiness {
+  bool healthy = 1;
 }
 
 message SearchRequest {

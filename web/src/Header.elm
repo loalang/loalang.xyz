@@ -181,8 +181,8 @@ viewSignInForm ({ usernameOrEmail, password } as f) =
                     |> UpdateForm
                 )
             ]
-            [ text "Sign Up" ]
-        , button [ onClick (SubmitForm (SignIn f)) ] [ text "Sign In" ]
+            [ text "Don't have an account? Sign up instead." ]
+        , button [ type_ "submit", onClick (SubmitForm (SignIn f)) ] [ text "Submit" ]
         ]
 
 
@@ -226,8 +226,8 @@ viewSignUpForm ({ username, email, password, confirmPassword } as f) =
                     |> UpdateForm
                 )
             ]
-            [ text "Sign In" ]
-        , button [ onClick (SubmitForm (SignUp f)) ] [ text "Sign Up" ]
+            [ text "Already have an account? Sign in instead." ]
+        , button [ type_ "submit", onClick (SubmitForm (SignUp f)) ] [ text "Submit" ]
         ]
 
 

@@ -1,9 +1,11 @@
 package search
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	algolia "github.com/algolia/algoliasearch-client-go/v3/algolia/search"
+	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/google/uuid"
 	"github.com/loalang/loalang.xyz/search/auth"
 	"github.com/loalang/loalang.xyz/search/common/events"
@@ -95,13 +97,20 @@ func NewServer() (*grpc.Server, error) {
 	}()
 
 	server := grpc.NewServer()
-	RegisterSearchServer(server, &search{index: index})
+	RegisterSearchServer(server, &search{index: index, db: db})
 
 	return server, nil
 }
 
 type search struct {
+	db *sql.DB
 	index *algolia.Index
+}
+
+func (s *search) Health(ctx context.Context, _ *empty.Empty) (*Healthiness, error) {
+	return &Healthiness{
+		Healthy: s.db.PingContext(ctx) == nil,
+	}, nil
 }
 
 func (s *search) Search(req *SearchRequest, stream Search_SearchServer) error {

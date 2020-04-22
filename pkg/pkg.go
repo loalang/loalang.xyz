@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/loalang/loalang.xyz/pkg/common/events"
 	"google.golang.org/grpc"
 	"os"
@@ -19,13 +20,21 @@ func NewServer() (*grpc.Server, error) {
 
 	server := grpc.NewServer()
 	RegisterPackageManagerServer(server, &packageManager{
+		db: db,
 		releasePublished: eventsClient.Produce(events.ProducerOptions{Topic: "release-published"}),
 	})
 	return server, nil
 }
 
 type packageManager struct {
+	db *sql.DB
 	releasePublished chan<- proto.Message
+}
+
+func (p *packageManager) Health(ctx context.Context, _ *empty.Empty) (*Healthiness, error) {
+	return &Healthiness{
+		Healthy: p.db.PingContext(ctx) == nil,
+	}, nil
 }
 
 func (p *packageManager) PublishRelease(ctx context.Context, req *PublishReleaseRequest) (*Release, error) {

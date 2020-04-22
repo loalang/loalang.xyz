@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/graphql-go/graphql"
 	"github.com/loalang/loalang.xyz/api/search"
 )
@@ -54,6 +55,43 @@ var QueryType = graphql.NewObject(graphql.ObjectConfig{
 			Type: UserType,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				return CurrentUser(p.Context), nil
+			},
+		},
+
+		"health": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.NewEnum(graphql.EnumConfig{
+				Name:   "Health",
+				Values: graphql.EnumValueConfigMap{
+					"RED": &graphql.EnumValueConfig{
+						Value: "RED",
+					},
+					"YELLOW": &graphql.EnumValueConfig{
+						Value: "YELLOW",
+					},
+					"GREEN": &graphql.EnumValueConfig{
+						Value: "GREEN",
+					},
+				},
+			})),
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				healthyServices := 0
+				if svc, _ := PkgClient(p.Context).Health(p.Context, &empty.Empty{}); svc != nil && svc.Healthy {
+					healthyServices++
+				}
+				if svc, _ := AuthClient(p.Context).Health(p.Context, &empty.Empty{}); svc != nil && svc.Healthy {
+					healthyServices++
+				}
+				if svc, _ := SearchClient(p.Context).Health(p.Context, &empty.Empty{}); svc != nil && svc.Healthy {
+					healthyServices++
+				}
+				switch healthyServices {
+				case 0:
+					return "RED", nil
+				case 3:
+					return "GREEN", nil
+				default:
+					return "YELLOW", nil
+				}
 			},
 		},
 	},

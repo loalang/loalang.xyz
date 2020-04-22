@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/loalang/loalang.xyz/search"
 	"net"
 )
@@ -15,6 +16,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	fmt.Println("Started!")
 
 	server.Serve(socket)
 }

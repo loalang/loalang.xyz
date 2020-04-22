@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/google/uuid"
 	"github.com/loalang/loalang.xyz/auth/common/events"
 	"google.golang.org/grpc"
@@ -40,6 +41,12 @@ type authentication struct {
 	userUpdated chan<- proto.Message
 	db          *sql.DB
 	storage     *storage.BucketHandle
+}
+
+func (a *authentication) Health(ctx context.Context, _ *empty.Empty) (*Healthiness, error) {
+	return &Healthiness{
+		Healthy: a.db.PingContext(ctx) == nil,
+	}, nil
 }
 
 func (a *authentication) SignUp(ctx context.Context, req *SignUpRequest) (*SignedInUser, error) {

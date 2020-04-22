@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "google/protobuf/empty.proto";
+
 package auth;
 
 service Authentication {
@@ -8,6 +10,11 @@ service Authentication {
   rpc Lookup(LookupRequest) returns (User);
   rpc DeleteAccount(DeleteAccountRequest) returns (AccountDeletionConfirmation);
   rpc UpdateUser(UpdateUserRequest) returns (User);
+  rpc Health(google.protobuf.Empty) returns (Healthiness);
+}
+
+message Healthiness {
+  bool healthy = 1;
 }
 
 message SignUpRequest {

@@ -15,7 +15,7 @@ RUN yarn elm-graphql --introspection-file introspection-file.json
 
 COPY . .
 
-RUN yarn webpack -p
+RUN yarn build
 
 FROM nginx:1.17-alpine
 
