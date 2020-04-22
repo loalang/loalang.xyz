@@ -6,7 +6,7 @@ type Class interface {
 	GetQualifiedName() string
 }
 
-var ClassType = graphql.NewObject(graphql.ObjectConfig{
+var ClassObject = graphql.NewObject(graphql.ObjectConfig{
 	Name: "Class",
 	Fields: graphql.Fields{
 		"qualifiedName": &graphql.Field{

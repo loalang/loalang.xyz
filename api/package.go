@@ -7,7 +7,7 @@ type Package interface {
 	GetLatestVersion() string
 }
 
-var PackageType = graphql.NewObject(graphql.ObjectConfig{
+var PackageObject = graphql.NewObject(graphql.ObjectConfig{
 	Name: "Package",
 	Fields: graphql.Fields{
 		"qualifiedName": &graphql.Field{

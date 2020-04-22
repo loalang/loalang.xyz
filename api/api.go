@@ -40,6 +40,7 @@ func Context(request *http.Request, writer http.ResponseWriter) (context.Context
 
 	ctx = context.WithValue(ctx, requestToken, request)
 	ctx = context.WithValue(ctx, headerToken, writer.Header())
+	ctx = context.WithValue(ctx, userToken, &currentUserCell{currentUser: nil})
 
 	var currentUser *auth.User
 
@@ -55,11 +56,15 @@ func Context(request *http.Request, writer http.ResponseWriter) (context.Context
 			DeleteCookie(ctx)
 		}
 	}
-	ctx = context.WithValue(ctx, userToken, currentUser)
+	ctx = context.WithValue(ctx, userToken, &currentUserCell{currentUser})
 	ctx = context.WithValue(ctx, pkgToken, pkgClient)
 	ctx = context.WithValue(ctx, searchToken, searchClient)
 	ctx = context.WithValue(ctx, authToken, authClient)
 	return ctx, nil
+}
+
+type currentUserCell struct {
+	currentUser *auth.User
 }
 
 func Request(ctx context.Context) *http.Request {
@@ -71,11 +76,11 @@ func Header(ctx context.Context) http.Header {
 }
 
 func CurrentUser(ctx context.Context) *auth.User {
-	u, ok := ctx.Value(userToken).(*auth.User)
-	if !ok {
-		return nil
-	}
-	return u
+	return ctx.Value(userToken).(*currentUserCell).currentUser
+}
+
+func SetCurrentUser(ctx context.Context, user *auth.User) {
+	ctx.Value(userToken).(*currentUserCell).currentUser = user
 }
 
 func PkgClient(ctx context.Context) pkg.PackageManagerClient {
@@ -92,8 +97,8 @@ func AuthClient(ctx context.Context) auth.AuthenticationClient {
 
 func Schema() (*graphql.Schema, error) {
 	schema, err := graphql.NewSchema(graphql.SchemaConfig{
-		Query:    QueryType,
-		Mutation: MutationType,
+		Query:    QueryObject,
+		Mutation: MutationObject,
 	})
 
 	if err != nil {

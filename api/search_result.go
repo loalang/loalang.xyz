@@ -4,21 +4,21 @@ import (
 	"github.com/graphql-go/graphql"
 )
 
-var SearchResultType = graphql.NewUnion(graphql.UnionConfig{
+var SearchResultUnion = graphql.NewUnion(graphql.UnionConfig{
 	Name: "SearchResult",
 	Types: []*graphql.Object{
-		PackageType,
-		ClassType,
-		UserType,
+		PackageObject,
+		ClassObject,
+		MeObject,
 	},
 	ResolveType: func(p graphql.ResolveTypeParams) *graphql.Object {
 		switch p.Value.(type) {
 		case Package:
-			return PackageType
+			return PackageObject
 		case Class:
-			return ClassType
+			return ClassObject
 		case User:
-			return UserType
+			return MeObject
 		default:
 			return nil
 		}

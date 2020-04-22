@@ -7,7 +7,10 @@ build: generate
 generate: generate/web
 
 .PHONY: generate/web
-generate/web: generate/api web/introspection-file.json
+generate/web: generate/api web/src/Api
+
+web/src/Api: web/introspection-file.json
+	( cd web; yarn elm-graphql --introspection-file introspection-file.json )
 
 web/introspection-file.json:
 	docker run \

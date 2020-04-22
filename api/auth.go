@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"github.com/loalang/loalang.xyz/api/auth"
 	"net/http"
 	"os"
 	"time"
@@ -27,10 +28,10 @@ func DecodeToken(token string) []byte {
 	return decodedBuf.Bytes()
 }
 
-func SetCookie(ctx context.Context, token []byte) {
+func SetCookie(ctx context.Context, res *auth.SignedInUser) {
 	cookie := &http.Cookie{
 		Name:     AuthCookie,
-		Value:    EncodeToken(token),
+		Value:    EncodeToken(res.Token),
 		Path:     "/",
 		Domain:   os.Getenv("COOKIE_DOMAIN"),
 		Expires:  time.Now().AddDate(1, 0, 0),
@@ -39,6 +40,7 @@ func SetCookie(ctx context.Context, token []byte) {
 		SameSite: http.SameSiteStrictMode,
 	}
 	Header(ctx).Set("Set-Cookie", cookie.String())
+	SetCurrentUser(ctx, res.User)
 }
 
 func DeleteCookie(ctx context.Context) {
@@ -53,4 +55,5 @@ func DeleteCookie(ctx context.Context) {
 		SameSite: http.SameSiteStrictMode,
 	}
 	Header(ctx).Set("Set-Cookie", cookie.String())
+	SetCurrentUser(ctx, nil)
 }

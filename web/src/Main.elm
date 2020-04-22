@@ -12,6 +12,7 @@ import Html.Styled
 import Html.Styled.Attributes
 import Page.NotFound
 import Page.Storefront
+import Page.User
 import Router
 import Url exposing (Url)
 
@@ -37,6 +38,7 @@ type alias Model =
 
 type Page
     = StorefrontPage Page.Storefront.Model
+    | UserPage Page.User.Model
     | NotFoundPage
 
 
@@ -45,13 +47,14 @@ type Msg
     | UrlChanged Url.Url
     | HeaderMsg Header.Msg
     | StorefrontMsg Page.Storefront.Msg
+    | UserMsg Page.User.Msg
 
 
 init : () -> Url -> Navigation.Key -> ( Model, Cmd Msg )
 init _ url key =
     let
         ( page, pageMsg ) =
-            initRoute (Router.parse url)
+            initRoute url (Router.parse url)
 
         ( header, headerMsg ) =
             Header.init url
@@ -65,11 +68,14 @@ init _ url key =
     )
 
 
-initRoute : Router.Route -> ( Page, Cmd Msg )
-initRoute route =
+initRoute : Url -> Router.Route -> ( Page, Cmd Msg )
+initRoute url route =
     case route of
         Router.StorefrontRoute ->
             Tuple.mapBoth StorefrontPage (Cmd.map StorefrontMsg) Page.Storefront.init
+
+        Router.UserRoute username ->
+            Tuple.mapBoth UserPage (Cmd.map UserMsg) (Page.User.init url username)
 
         Router.NotFoundRoute ->
             ( NotFoundPage, Cmd.none )
@@ -81,6 +87,11 @@ view model =
         StorefrontPage page ->
             { title = buildTitle (Page.Storefront.title page)
             , body = viewContainer model ((Page.Storefront.view >> Html.Styled.map StorefrontMsg) page)
+            }
+
+        UserPage page ->
+            { title = buildTitle (Page.User.title page)
+            , body = viewContainer model ((Page.User.view >> Html.Styled.map UserMsg) page)
             }
 
         NotFoundPage ->
@@ -131,14 +142,17 @@ update msg model =
         ( _, UrlChanged url ) ->
             url
                 |> Router.parse
-                |> initRoute
+                |> initRoute url
                 |> Tuple.mapFirst (\page -> { model | page = page })
 
         ( _, HeaderMsg hMsg ) ->
             Tuple.mapBoth (updateHeader model) (Cmd.map HeaderMsg) (Header.update model.url hMsg model.header)
 
-        ( StorefrontPage sModel, StorefrontMsg sMsg ) ->
-            Tuple.mapBoth (updatePage StorefrontPage model) (Cmd.map StorefrontMsg) (Page.Storefront.update sMsg sModel)
+        ( StorefrontPage pModel, StorefrontMsg pMsg ) ->
+            Tuple.mapBoth (updatePage StorefrontPage model) (Cmd.map StorefrontMsg) (Page.Storefront.update pMsg pModel)
+
+        ( UserPage pModel, UserMsg pMsg ) ->
+            Tuple.mapBoth (updatePage UserPage model) (Cmd.map UserMsg) (Page.User.update model.url pMsg pModel)
 
         _ ->
             ( model, Cmd.none )

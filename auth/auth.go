@@ -239,7 +239,11 @@ func (a *authentication) UpdateUser(ctx context.Context, req *UpdateUserRequest)
 			email = case when coalesce($3, '') = '' then email else $3 end,
 			avatar_url = case when coalesce($4, '') = '' then avatar_url else $4 end,
 			password = coalesce($5, password)
-		where id = $6 and password = coalesce($7, password)
+		where id = $6 and password =
+			case
+				when $7 = ''::bytea then password
+				else $7
+			end
 		returning username, email, coalesce(name, ''), coalesce(avatar_url, ''), signed_up_at
 	`, req.Name, req.Username, req.Email, avatarUrl, password, id, currentPassword)
 
@@ -269,6 +273,35 @@ func (a *authentication) UpdateUser(ctx context.Context, req *UpdateUserRequest)
 	}
 
 	return user, nil
+}
+
+func (a *authentication) FindUser(ctx context.Context, req *FindUserRequest) (*User, error) {
+	row := a.db.QueryRowContext(ctx, `
+		select id, email, signed_up_at, coalesce(avatar_url, ''), coalesce(name, '') from users
+		where username = $1
+	`, req.Username)
+
+	var uid uuid.UUID
+	var email string
+	var signedUpAt time.Time
+	var avatarUrl string
+	var name string
+
+	err := row.Scan(&uid, &email, &signedUpAt, &avatarUrl, &name)
+	if err != nil {
+		return nil, err
+	}
+
+	id, _ := uid.MarshalBinary()
+
+	return &User{
+		Id:         id,
+		Username:   req.Username,
+		Email:      email,
+		Name:       name,
+		AvatarUrl:  avatarUrl,
+		SignedUpAt: floatFromTime(signedUpAt),
+	}, nil
 }
 
 func UnpackVerifiedToken(bytes []byte) (*Token, error) {

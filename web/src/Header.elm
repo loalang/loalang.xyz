@@ -2,7 +2,9 @@ module Header exposing (Model, Msg, init, update, view)
 
 import Api
 import Api.Mutation as Mutation
-import Api.Object.User as User
+import Api.Object exposing (NotMe)
+import Api.Object.Me as User
+import Api.Object.NotMe as NotMe
 import Api.Query as Query
 import Api.Scalar as Scalar
 import Css exposing (..)
@@ -13,6 +15,7 @@ import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (..)
 import Html.Styled.Events exposing (..)
+import Router
 import Url exposing (Url)
 
 
@@ -21,7 +24,7 @@ type alias Model =
     , isExpanded : Bool
     , formError : Maybe String
     , authError : Maybe (Graphql.Http.Error (Maybe User))
-    , signOutError : Maybe (Graphql.Http.Error (Maybe Scalar.Ok))
+    , signOutError : Maybe (Graphql.Http.Error (Maybe String))
     }
 
 
@@ -55,7 +58,7 @@ type Msg
     | UpdateForm Form
     | SubmitForm Form
     | SignOut
-    | DidSignOut (Result (Graphql.Http.Error (Maybe Scalar.Ok)) (Maybe Scalar.Ok))
+    | DidSignOut (Result (Graphql.Http.Error (Maybe String)) (Maybe String))
     | Expand
 
 
@@ -116,7 +119,7 @@ view model =
                 [ case model.auth of
                     SignedIn u ->
                         div []
-                            [ text u.username
+                            [ a [ href (Router.url (Router.UserRoute u.username)) ] [ text u.username ]
                             , button [ onClick SignOut ] [ text "Sign Out" ]
                             ]
 
@@ -306,7 +309,7 @@ update url msg model =
 
         SignOut ->
             ( { model | auth = SignedOut (SignIn { usernameOrEmail = "", password = "" }) }
-            , Api.performMutation url Mutation.signOut DidSignOut
+            , Api.performMutation url (Mutation.signOut NotMe.username) DidSignOut
             )
 
         DidSignOut (Ok _) ->

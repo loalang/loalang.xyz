@@ -3,15 +3,16 @@ package api
 import (
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/graphql-go/graphql"
+	"github.com/loalang/loalang.xyz/api/auth"
 	"github.com/loalang/loalang.xyz/api/search"
 )
 
-var QueryType = graphql.NewObject(graphql.ObjectConfig{
+var QueryObject = graphql.NewObject(graphql.ObjectConfig{
 	Name: "Query",
 	Fields: graphql.Fields{
 		"search": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.NewList(
-				graphql.NewNonNull(SearchResultType),
+				graphql.NewNonNull(SearchResultUnion),
 			)),
 			Args: graphql.FieldConfigArgument{
 				"term": &graphql.ArgumentConfig{
@@ -52,15 +53,33 @@ var QueryType = graphql.NewObject(graphql.ObjectConfig{
 		},
 
 		"me": &graphql.Field{
-			Type: UserType,
+			Type: MeObject,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				return CurrentUser(p.Context), nil
 			},
 		},
 
+		"user": &graphql.Field{
+			Type: UserInterface,
+			Args: graphql.FieldConfigArgument{
+				"username": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(graphql.String),
+				},
+			},
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				user, err := AuthClient(p.Context).FindUser(p.Context, &auth.FindUserRequest{
+					Username: p.Args["username"].(string),
+				})
+				if err != nil {
+					return nil, nil
+				}
+				return user, nil
+			},
+		},
+
 		"health": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.NewEnum(graphql.EnumConfig{
-				Name:   "Health",
+				Name: "Health",
 				Values: graphql.EnumValueConfigMap{
 					"RED": &graphql.EnumValueConfig{
 						Value: "RED",

@@ -11,17 +11,17 @@ import (
 	"strings"
 )
 
-var MutationType = graphql.NewObject(graphql.ObjectConfig{
+var MutationObject = graphql.NewObject(graphql.ObjectConfig{
 	Name: "Mutation",
 	Fields: graphql.Fields{
 		"publishRelease": &graphql.Field{
-			Type: ReleaseType,
+			Type: ReleaseObject,
 			Args: graphql.FieldConfigArgument{
 				"qualifiedPackageName": &graphql.ArgumentConfig{
 					Type: graphql.NewNonNull(graphql.String),
 				},
 				"version": &graphql.ArgumentConfig{
-					Type: graphql.NewNonNull(VersionInputType),
+					Type: graphql.NewNonNull(VersionInputObject),
 				},
 				"tarballUrl": &graphql.ArgumentConfig{
 					Type: graphql.NewNonNull(graphql.String),
@@ -50,7 +50,7 @@ var MutationType = graphql.NewObject(graphql.ObjectConfig{
 
 		// Auth
 		"signUp": &graphql.Field{
-			Type: UserType,
+			Type: MeObject,
 			Args: graphql.FieldConfigArgument{
 				"username": &graphql.ArgumentConfig{
 					Type: graphql.NewNonNull(graphql.String),
@@ -84,13 +84,13 @@ var MutationType = graphql.NewObject(graphql.ObjectConfig{
 					}
 				}
 
-				SetCookie(p.Context, res.Token)
+				SetCookie(p.Context, res)
 
-				return User(res.User), nil
+				return Me(res.User), nil
 			},
 		},
 		"signIn": &graphql.Field{
-			Type: UserType,
+			Type: MeObject,
 			Args: graphql.FieldConfigArgument{
 				"usernameOrEmail": &graphql.ArgumentConfig{
 					Type: graphql.NewNonNull(graphql.String),
@@ -114,20 +114,21 @@ var MutationType = graphql.NewObject(graphql.ObjectConfig{
 					}
 				}
 
-				SetCookie(p.Context, res.Token)
+				SetCookie(p.Context, res)
 
-				return User(res.User), nil
+				return Me(res.User), nil
 			},
 		},
 		"signOut": &graphql.Field{
-			Type: OKType,
+			Type: NotMeObject,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				user := CurrentUser(p.Context)
 				DeleteCookie(p.Context)
-				return OK, nil
+				return user, nil
 			},
 		},
 		"deleteAccount": &graphql.Field{
-			Type: OKType,
+			Type: OKScalar,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				cookie, err := Request(p.Context).Cookie(AuthCookie)
 				if err != nil {
@@ -148,8 +149,8 @@ var MutationType = graphql.NewObject(graphql.ObjectConfig{
 				}
 			},
 		},
-		"updateMe": &graphql.Field{
-			Type: UserType,
+		"me": &graphql.Field{
+			Type: MeObject,
 			Args: graphql.FieldConfigArgument{
 				"password": &graphql.ArgumentConfig{
 					Type: graphql.NewInputObject(graphql.InputObjectConfig{
@@ -174,7 +175,7 @@ var MutationType = graphql.NewObject(graphql.ObjectConfig{
 					Type: graphql.String,
 				},
 				"avatar": &graphql.ArgumentConfig{
-					Type: UploadType,
+					Type: UploadScalar,
 				},
 			},
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -247,7 +248,7 @@ var MutationType = graphql.NewObject(graphql.ObjectConfig{
 					return nil, err
 				}
 
-				return User(user), nil
+				return Me(user), nil
 			},
 		},
 	},

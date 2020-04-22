@@ -96,3 +96,12 @@ Feature: Authentication
     When I click "Sign Out"
 
     Then I expect to not be logged in
+
+  Scenario: Updating User Info
+    Given I am logged in as "jane-doe" with email "jane@example.com" and password "my-password"
+
+    When I click "jane-doe"
+    And I enter "Jane Doe" in the "Name" field
+    And I submit the form
+
+    Then I expect to see "Jane Doe"

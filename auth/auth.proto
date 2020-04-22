@@ -11,6 +11,7 @@ service Authentication {
   rpc DeleteAccount(DeleteAccountRequest) returns (AccountDeletionConfirmation);
   rpc UpdateUser(UpdateUserRequest) returns (User);
   rpc Health(google.protobuf.Empty) returns (Healthiness);
+  rpc FindUser(FindUserRequest) returns (User);
 }
 
 message Healthiness {
@@ -42,6 +43,10 @@ message UpdateUserRequest {
   string name = 6;
   bytes avatar = 7;
   ImageFormat avatar_format = 8;
+}
+
+message FindUserRequest {
+  string username = 1;
 }
 
 enum ImageFormat {

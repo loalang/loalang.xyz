@@ -6,7 +6,7 @@ type Release interface {
 	GetTarballUrl() string
 }
 
-var ReleaseType = graphql.NewObject(graphql.ObjectConfig{
+var ReleaseObject = graphql.NewObject(graphql.ObjectConfig{
 	Name:   "Release",
 	Fields: graphql.Fields{
 		"tarballUrl": &graphql.Field{

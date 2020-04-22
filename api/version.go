@@ -8,7 +8,7 @@ type Version interface {
 	GetPatch() uint32
 }
 
-var VersionInputType = graphql.NewInputObject(graphql.InputObjectConfig{
+var VersionInputObject = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "VersionInput",
 	Fields: graphql.InputObjectConfigFieldMap{
 		"major": &graphql.InputObjectFieldConfig{
@@ -23,7 +23,7 @@ var VersionInputType = graphql.NewInputObject(graphql.InputObjectConfig{
 	},
 })
 
-var VersionType = graphql.NewObject(graphql.ObjectConfig{
+var VersionObject = graphql.NewObject(graphql.ObjectConfig{
 	Name: "Version",
 	Fields: graphql.Fields{
 		"major": &graphql.Field{

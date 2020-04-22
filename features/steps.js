@@ -9,6 +9,7 @@ Given("a sign up form", async () => {
   const document = await puppeteer.page.getDocument();
   const signInButton = await document.getByText(/sign in/i);
   await signInButton.click();
+  await puppeteer.idle();
   const signUpButton = await document.getByText(/sign up/i);
   await signUpButton.click();
 });
@@ -27,9 +28,7 @@ Given("I enter {string} in the {string} field", async (value, fieldName) => {
 });
 
 When("I submit the form", async () => {
-  const document = await puppeteer.page.getDocument();
-  const submitButton = await document.getByText(/submit/i);
-  await submitButton.click();
+  await puppeteer.page.click("[type=submit]");
   await puppeteer.idle();
 });
 
@@ -56,12 +55,12 @@ Given(
           },
           body: JSON.stringify({
             query: `
-          mutation SignUp($username: String!, $email: String!, $password: String!) {
-            signUp(username: $username, email: $email, password: $password) {
-              username
-            }
-          }
-        `,
+              mutation SignUp($username: String!, $email: String!, $password: String!) {
+                signUp(username: $username, email: $email, password: $password) {
+                  username
+                }
+              }
+            `,
             variables: {
               username,
               email,
