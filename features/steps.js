@@ -23,6 +23,7 @@ Given("a sign in form", async () => {
 Given("I enter {string} in the {string} field", async (value, fieldName) => {
   const document = await puppeteer.page.getDocument();
   const input = await document.getByPlaceholderText(fieldName);
+  await input.evaluate(i => i.value = "");
   await input.focus();
   await puppeteer.page.keyboard.type(value);
 });
@@ -110,11 +111,17 @@ Given(
 
 Then("I expect to see {string}", async (string) => {
   const document = await puppeteer.page.getDocument();
-  await document.getByText(string);
+  await document.getAllByText(string);
 });
 
 When("I click {string}", async (string) => {
   const document = await puppeteer.page.getDocument();
   const clickable = await document.getByText(string);
   await clickable.click();
+  await puppeteer.idle();
+});
+
+Then("I expect to be on {string}", async (path) => {
+  const url = new URL(await puppeteer.page.url());
+  expect(url.pathname).toBe(path);
 });

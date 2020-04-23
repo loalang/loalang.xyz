@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/google/uuid"
 	"github.com/loalang/loalang.xyz/auth/common/events"
 	"google.golang.org/grpc"
@@ -200,12 +201,12 @@ func (a *authentication) UpdateUser(ctx context.Context, req *UpdateUserRequest)
 	}
 
 	var password []byte
-	if req.Password != "" {
-		password = Hash(req.Password)
+	if req.Password != nil {
+		password = Hash(req.Password.Value)
 	}
 	var currentPassword []byte
-	if req.CurrentPassword != "" {
-		currentPassword = Hash(req.CurrentPassword)
+	if req.CurrentPassword != nil {
+		currentPassword = Hash(req.CurrentPassword.Value)
 	}
 
 	if len(password) > 0 && len(currentPassword) == 0 {
@@ -245,7 +246,7 @@ func (a *authentication) UpdateUser(ctx context.Context, req *UpdateUserRequest)
 				else $7
 			end
 		returning username, email, coalesce(name, ''), coalesce(avatar_url, ''), signed_up_at
-	`, req.Name, req.Username, req.Email, avatarUrl, password, id, currentPassword)
+	`, unwrap(req.Name), unwrap(req.Username), unwrap(req.Email), avatarUrl, password, id, currentPassword)
 
 	var username string
 	var email string
@@ -273,6 +274,13 @@ func (a *authentication) UpdateUser(ctx context.Context, req *UpdateUserRequest)
 	}
 
 	return user, nil
+}
+
+func unwrap(value *wrappers.StringValue) string {
+	if value == nil {
+		return ""
+	}
+	return value.Value
 }
 
 func (a *authentication) FindUser(ctx context.Context, req *FindUserRequest) (*User, error) {

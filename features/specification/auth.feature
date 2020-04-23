@@ -97,7 +97,7 @@ Feature: Authentication
 
     Then I expect to not be logged in
 
-  Scenario: Updating User Info
+  Scenario: Updating Name of User
     Given I am logged in as "jane-doe" with email "jane@example.com" and password "my-password"
 
     When I click "jane-doe"
@@ -105,3 +105,13 @@ Feature: Authentication
     And I submit the form
 
     Then I expect to see "Jane Doe"
+
+  Scenario: Updating Username of User
+    Given I am logged in as "jane-doe" with email "jane@example.com" and password "my-password"
+
+    When I click "jane-doe"
+    And I enter "jane" in the "Username" field
+    And I submit the form
+
+    Then I expect to see "jane"
+    And I expect to be on "/users/jane"

@@ -13,7 +13,7 @@ async function idle() {
 
 exports.idle = idle;
 
-Before(async () => {
+Before({ timeout: 10000 }, async () => {
   inflight = 0;
 
   const browser = (exports.browser = await puppeteer.launch());

@@ -152,7 +152,27 @@ update msg model =
             Tuple.mapBoth (updatePage StorefrontPage model) (Cmd.map StorefrontMsg) (Page.Storefront.update pMsg pModel)
 
         ( UserPage pModel, UserMsg pMsg ) ->
-            Tuple.mapBoth (updatePage UserPage model) (Cmd.map UserMsg) (Page.User.update model.url pMsg pModel)
+            let
+                ( a, b, c ) =
+                    Page.User.update model.key model.url pMsg pModel
+            in
+            let
+                ( d, e ) =
+                    Tuple.mapBoth
+                        (updatePage UserPage model)
+                        (Cmd.map UserMsg)
+                        ( a, b )
+            in
+            case c of
+                Nothing ->
+                    ( d, e )
+
+                Just u ->
+                    let
+                        ( f, g ) =
+                            Header.update d.url (Header.UpdateUser { username = u.username, name = u.name }) d.header
+                    in
+                    ( { d | header = f }, Cmd.batch [ e, Cmd.map HeaderMsg g ] )
 
         _ ->
             ( model, Cmd.none )

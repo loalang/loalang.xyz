@@ -1,12 +1,10 @@
-module Header exposing (Model, Msg, init, update, view)
+module Header exposing (Model, Msg(..), init, update, view)
 
 import Api
 import Api.Mutation as Mutation
-import Api.Object exposing (NotMe)
 import Api.Object.Me as User
 import Api.Object.NotMe as NotMe
 import Api.Query as Query
-import Api.Scalar as Scalar
 import Css exposing (..)
 import DesignSystem.Color
 import Graphql.Http
@@ -50,6 +48,7 @@ type alias SignUpForm =
 
 type alias User =
     { username : String
+    , name : Maybe String
     }
 
 
@@ -60,13 +59,15 @@ type Msg
     | SignOut
     | DidSignOut (Result (Graphql.Http.Error (Maybe String)) (Maybe String))
     | Expand
+    | UpdateUser User
 
 
 meQuery : SelectionSet (Maybe User) RootQuery
 meQuery =
     Query.me
-        (SelectionSet.map User
+        (SelectionSet.map2 User
             User.username
+            User.name
         )
 
 
@@ -77,16 +78,18 @@ signUpMutation form =
         , email = form.email
         , password = form.password
         }
-        (SelectionSet.map User
+        (SelectionSet.map2 User
             User.username
+            User.name
         )
 
 
 signInMutation : SignInForm -> SelectionSet (Maybe User) RootMutation
 signInMutation form =
     Mutation.signIn form
-        (SelectionSet.map User
+        (SelectionSet.map2 User
             User.username
+            User.name
         )
 
 
@@ -119,7 +122,7 @@ view model =
                 [ case model.auth of
                     SignedIn u ->
                         div []
-                            [ a [ href (Router.url (Router.UserRoute u.username)) ] [ text u.username ]
+                            [ a [ href (Router.url (Router.UserRoute u.username)) ] [ text (u.name |> Maybe.withDefault u.username) ]
                             , button [ onClick SignOut ] [ text "Sign Out" ]
                             ]
 
@@ -320,3 +323,6 @@ update url msg model =
 
         Expand ->
             ( { model | isExpanded = True }, Cmd.none )
+
+        UpdateUser u ->
+            ( { model | auth = SignedIn u }, Cmd.none )

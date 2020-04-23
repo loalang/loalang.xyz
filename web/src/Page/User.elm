@@ -1,13 +1,13 @@
-module Page.User exposing (Model, Msg, init, title, update, view)
+module Page.User exposing (Model, Msg(..), UserData(..), init, title, update, view)
 
 import Api
-import Api.Interface
 import Api.Interface.User
 import Api.Mutation
 import Api.Object
 import Api.Object.Me
 import Api.Object.NotMe
 import Api.Query
+import Browser.Navigation as Navigation
 import Graphql.Http
 import Graphql.Operation exposing (RootQuery)
 import Graphql.OptionalArgument as OptionalArgument
@@ -15,6 +15,7 @@ import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (..)
 import Html.Styled.Events exposing (..)
+import Router
 import Url exposing (Url)
 
 
@@ -154,17 +155,17 @@ viewUserForm me form =
         ]
 
 
-update : Url -> Msg -> Model -> ( Model, Cmd Msg )
-update url msg model =
+update : Navigation.Key -> Url -> Msg -> Model -> ( Model, Cmd Msg, Maybe Me )
+update navKey url msg model =
     case msg of
         GotResponse (Err _) ->
-            ( { model | data = NotFound }, Cmd.none )
+            ( { model | data = NotFound }, Cmd.none, Nothing )
 
         GotResponse (Ok data) ->
-            ( { model | data = data }, Cmd.none )
+            ( { model | data = data }, Cmd.none, Nothing )
 
         SetUpdateForm f ->
-            ( { model | updateForm = f }, Cmd.none )
+            ( { model | updateForm = f }, Cmd.none, Nothing )
 
         SubmitUpdateForm ->
             ( model
@@ -182,13 +183,23 @@ update url msg model =
                     (SelectionSet.map FoundMe selectMe)
                 )
                 SubmittedUpdate
+            , Nothing
             )
 
         SubmittedUpdate (Err error) ->
-            ( { model | error = Just error }, Cmd.none )
+            ( { model | error = Just error }, Cmd.none, Nothing )
 
         SubmittedUpdate (Ok (Just data)) ->
-            ( { model | data = data }, Cmd.none )
+            case data of
+                FoundMe me ->
+                    if me.username /= model.username then
+                        ( { model | data = data }, Navigation.pushUrl navKey (Router.url (Router.UserRoute me.username)), Just me )
+
+                    else
+                        ( { model | data = data }, Cmd.none, Just me )
+
+                _ ->
+                    ( { model | data = data }, Cmd.none, Nothing )
 
         SubmittedUpdate (Ok Nothing) ->
-            ( model, Cmd.none )
+            ( model, Cmd.none, Nothing )

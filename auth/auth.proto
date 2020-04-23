@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
 
 package auth;
 
@@ -36,11 +37,11 @@ message LookupRequest {
 message UpdateUserRequest {
   bytes token = 1;
 
-  string password = 2;
-  string current_password = 3;
-  string username = 4;
-  string email = 5;
-  string name = 6;
+  google.protobuf.StringValue password = 2;
+  google.protobuf.StringValue current_password = 3;
+  google.protobuf.StringValue username = 4;
+  google.protobuf.StringValue email = 5;
+  google.protobuf.StringValue name = 6;
   bytes avatar = 7;
   ImageFormat avatar_format = 8;
 }

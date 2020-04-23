@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	upload "github.com/eko/graphql-go-upload"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/graphql-go/graphql"
 	"github.com/loalang/loalang.xyz/api/auth"
 	"github.com/loalang/loalang.xyz/api/pkg"
@@ -185,26 +186,34 @@ var MutationObject = graphql.NewObject(graphql.ObjectConfig{
 				}
 				token := DecodeToken(cookie.Value)
 
-				var currentPassword string
-				var password string
+				var currentPassword *wrappers.StringValue
+				var password *wrappers.StringValue
 				if p, ok := p.Args["password"]; ok {
-					currentPassword = p.(map[string]interface{})["current"].(string)
-					password = p.(map[string]interface{})["new"].(string)
+					if m, ok := p.(map[string]interface{}); ok {
+						currentPassword = &wrappers.StringValue{Value: m["current"].(string)}
+						password = &wrappers.StringValue{Value: m["new"].(string)}
+					}
 				}
 
-				var username string
+				var username *wrappers.StringValue
 				if p, ok := p.Args["username"]; ok {
-					username = p.(string)
+					if s, ok := p.(string); ok {
+						username = &wrappers.StringValue{Value: s}
+					}
 				}
 
-				var email string
+				var email *wrappers.StringValue
 				if p, ok := p.Args["email"]; ok {
-					email = p.(string)
+					if s, ok := p.(string); ok {
+						email = &wrappers.StringValue{Value: s}
+					}
 				}
 
-				var name string
+				var name *wrappers.StringValue
 				if p, ok := p.Args["name"]; ok {
-					name = p.(string)
+					if s, ok := p.(string); ok {
+						name = &wrappers.StringValue{Value: s}
+					}
 				}
 
 				var avatar bytes.Buffer
