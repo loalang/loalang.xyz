@@ -129,8 +129,8 @@ dropdown isDropped onClose children =
         )
 
 
-avatar : Int -> { compatible | avatarUrl : Maybe String, name : Maybe String, username : String } -> Html msg
-avatar size { avatarUrl, name, username } =
+avatar : Int -> { compatible | avatar : Maybe { imageCompatible | small : String }, name : Maybe String, username : String } -> Html msg
+avatar size user =
     div
         [ css
             [ height (size |> toFloat |> px)
@@ -139,10 +139,10 @@ avatar size { avatarUrl, name, username } =
             , overflow hidden
             ]
         ]
-        [ case avatarUrl of
-            Just url ->
+        [ case user.avatar of
+            Just image ->
                 img
-                    [ src url
+                    [ src image.small
                     , css
                         [ height (pct 100)
                         , width (pct 100)
@@ -164,7 +164,7 @@ avatar size { avatarUrl, name, username } =
                         , Text.headerSStyle
                         ]
                     ]
-                    [ name |> Maybe.withDefault username |> initials |> text ]
+                    [ user.name |> Maybe.withDefault user.username |> initials |> text ]
         ]
 
 

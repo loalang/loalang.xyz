@@ -3,6 +3,7 @@ module Session exposing (Session(..), SessionForm(..), User, init, performSignIn
 import Api
 import Api.Mutation
 import Api.Object
+import Api.Object.Image
 import Api.Object.Me
 import Api.Object.NotMe
 import Api.Query
@@ -45,7 +46,15 @@ selectMe =
         Api.Object.Me.username
         Api.Object.Me.email
         Api.Object.Me.name
-        Api.Object.Me.avatarUrl
+        (Api.Object.Me.avatar selectImage)
+
+
+selectImage : SelectionSet Image Api.Object.Image
+selectImage =
+    SelectionSet.map3 Image
+        Api.Object.Image.large
+        Api.Object.Image.medium
+        Api.Object.Image.small
 
 
 signIn : Session -> User -> Session
@@ -62,7 +71,14 @@ type alias User =
     { username : String
     , email : String
     , name : Maybe String
-    , avatarUrl : Maybe String
+    , avatar : Maybe Image
+    }
+
+
+type alias Image =
+    { large : String
+    , medium : String
+    , small : String
     }
 
 

@@ -38,13 +38,13 @@ func main() {
 		panic(err)
 	}
 
-	h := handler.New(&handler.Config{
+	h := upload.Handler(handler.New(&handler.Config{
 		Schema:     schema,
 		Pretty:     true,
 		Playground: true,
-	})
+	}))
 
-	http.Handle("/", upload.Handler(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+	http.Handle("/", http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		header := writer.Header()
 		header.Add("Access-Control-Allow-Origin", request.Header.Get("Origin"))
 		header.Add("Access-Control-Allow-Headers", "Content-Type")
@@ -58,8 +58,8 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		h.ContextHandler(ctx, writer, request)
-	})))
+		h.ServeHTTP(writer, request.WithContext(ctx))
+	}))
 
 	fmt.Println("Started!")
 

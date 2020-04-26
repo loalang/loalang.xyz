@@ -65,9 +65,15 @@ message User {
   string username = 2;
   string email = 3;
   string name = 4;
-  string avatar_url = 5;
+  ImageSourceSet avatar = 5;
 
   double signed_up_at = 6;
+}
+
+message ImageSourceSet {
+  string large = 1;
+  string medium = 2;
+  string small = 3;
 }
 
 message DeleteAccountRequest {

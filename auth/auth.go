@@ -1,17 +1,20 @@
 package auth
 
 import (
+	"bytes"
 	"cloud.google.com/go/storage"
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/google/uuid"
 	"github.com/loalang/loalang.xyz/auth/common/events"
 	"google.golang.org/grpc"
+	"image"
+	"image/jpeg"
+	"image/png"
 	"os"
 	"strings"
 	"time"
@@ -31,18 +34,18 @@ func NewServer() (*grpc.Server, error) {
 
 	server := grpc.NewServer()
 	RegisterAuthenticationServer(server, &authentication{
-		userUpdated: eventsClient.Produce(events.ProducerOptions{Topic: "user-updated"}),
-		db:          db,
-		storage:     gcs.Bucket(os.Getenv("cdn.loalang.xyz")),
+		userUpdated:    eventsClient.Produce(events.ProducerOptions{Topic: "user-updated"}),
+		db:             db,
+		avatarUploader: NewAvatarUploader(gcs.Bucket("cdn.loalang.xyz")),
 	})
 
 	return server, nil
 }
 
 type authentication struct {
-	userUpdated chan<- proto.Message
-	db          *sql.DB
-	storage     *storage.BucketHandle
+	userUpdated    chan<- proto.Message
+	db             *sql.DB
+	avatarUploader *AvatarUploader
 }
 
 func (a *authentication) Health(ctx context.Context, _ *empty.Empty) (*Healthiness, error) {
@@ -142,28 +145,34 @@ func (a *authentication) Lookup(ctx context.Context, req *LookupRequest) (*User,
 	}
 
 	userRow := a.db.QueryRowContext(ctx, `
-		select username, email, signed_up_at, coalesce(avatar_url, ''), coalesce(name, '') from users
+		select username, email, signed_up_at, coalesce(name, ''), coalesce(avatar_512_url, ''), coalesce(avatar_256_url, ''), coalesce(avatar_128_url, '') from users
 		where id = $1
 	`, id)
 	var username string
 	var email string
 	var signedUpAt time.Time
-	var avatarUrl string
 	var name string
+	var avatar ImageSourceSet
 
-	err = userRow.Scan(&username, &email, &signedUpAt, &avatarUrl, &name)
+	err = userRow.Scan(&username, &email, &signedUpAt, &name, &avatar.Large, &avatar.Medium, &avatar.Small)
 	if err != nil {
 		return nil, errors.New("not authenticated")
 	}
+
 	idBytes, _ := id.MarshalBinary()
-	return &User{
+	user := &User{
 		Id:         idBytes,
 		Username:   username,
 		Email:      email,
 		Name:       name,
 		SignedUpAt: 0,
-		AvatarUrl:  avatarUrl,
-	}, nil
+	}
+
+	if avatar.Small != "" {
+		user.Avatar = &avatar
+	}
+
+	return user, nil
 }
 
 func (a *authentication) DeleteAccount(ctx context.Context, req *DeleteAccountRequest) (*AccountDeletionConfirmation, error) {
@@ -213,24 +222,22 @@ func (a *authentication) UpdateUser(ctx context.Context, req *UpdateUserRequest)
 		return nil, errors.New("current password must be verified to set a new one")
 	}
 
-	var avatarUrl string
+	var avatar *Avatar
 	if req.Avatar != nil {
-		var extension string
+		var img image.Image
 		switch req.AvatarFormat {
 		case ImageFormat_JPEG:
-			extension = "jpg"
+			img, err = jpeg.Decode(bytes.NewReader(req.Avatar))
 		case ImageFormat_PNG:
-			extension = "png"
+			img, err = png.Decode(bytes.NewReader(req.Avatar))
 		}
-		avatar := a.storage.Object(fmt.Sprintf("avatars/%v.%s", uuid.New(), extension))
-		n, err := avatar.NewWriter(ctx).Write(req.Avatar)
 		if err != nil {
 			return nil, err
 		}
-		if n < len(req.Avatar) {
-			return nil, errors.New("failed to upload avatar")
+		avatar, err = a.avatarUploader.UploadAvatar(img)
+		if err != nil {
+			return nil, err
 		}
-		avatarUrl = fmt.Sprintf("https://%s/%s", avatar.BucketName(), avatar.ObjectName())
 	}
 
 	row := a.db.QueryRowContext(ctx, `
@@ -238,22 +245,25 @@ func (a *authentication) UpdateUser(ctx context.Context, req *UpdateUserRequest)
 			name = coalesce($1, name),
 			username = case when coalesce($2, '') = '' then username else $2 end,
 			email = case when coalesce($3, '') = '' then email else $3 end,
-			avatar_url = case when coalesce($4, '') = '' then avatar_url else $4 end,
-			password = case when $5 = ''::bytea then password else $5 end
-		where id = $6 and password =
+			avatar_512_url = coalesce($7, avatar_512_url),
+			avatar_256_url = coalesce($8, avatar_256_url),
+			avatar_128_url = coalesce($9, avatar_128_url),
+			password = case when $4 = ''::bytea then password else $4 end
+		where id = $5 and password =
 			case
-				when $7 = ''::bytea then password
-				else $7
+				when $6 = ''::bytea then password
+				else $6
 			end
-		returning username, email, coalesce(name, ''), coalesce(avatar_url, ''), signed_up_at
-	`, unwrap(req.Name), unwrap(req.Username), unwrap(req.Email), avatarUrl, password, id, currentPassword)
+		returning username, email, coalesce(name, ''), signed_up_at, coalesce(avatar_512_url, ''), coalesce(avatar_256_url, ''), coalesce(avatar_128_url, '')
+	`, unwrap(req.Name), unwrap(req.Username), unwrap(req.Email), password, id, currentPassword, avatar.Url512(), avatar.Url256(), avatar.Url128())
 
 	var username string
 	var email string
 	var name string
 	var signedUpAt time.Time
+	var avatarUrls ImageSourceSet
 
-	err = row.Scan(&username, &email, &name, &avatarUrl, &signedUpAt)
+	err = row.Scan(&username, &email, &name, &signedUpAt, &avatarUrls.Large, &avatarUrls.Medium, &avatarUrls.Small)
 	if err != nil {
 		return nil, err
 	}
@@ -263,7 +273,7 @@ func (a *authentication) UpdateUser(ctx context.Context, req *UpdateUserRequest)
 		Username:   username,
 		Email:      email,
 		Name:       name,
-		AvatarUrl:  avatarUrl,
+		Avatar:     &avatarUrls,
 		SignedUpAt: floatFromTime(signedUpAt),
 	}
 
@@ -286,17 +296,17 @@ func unwrap(value *wrappers.StringValue) (out sql.NullString) {
 
 func (a *authentication) FindUser(ctx context.Context, req *FindUserRequest) (*User, error) {
 	row := a.db.QueryRowContext(ctx, `
-		select id, email, signed_up_at, coalesce(avatar_url, ''), coalesce(name, '') from users
+		select id, email, signed_up_at, coalesce(name, ''), coalesce(avatar_512_url, ''), coalesce(avatar_256_url, ''), coalesce(avatar_128_url, '') from users
 		where username = $1
 	`, req.Username)
 
 	var uid uuid.UUID
 	var email string
 	var signedUpAt time.Time
-	var avatarUrl string
 	var name string
+	var avatar ImageSourceSet
 
-	err := row.Scan(&uid, &email, &signedUpAt, &avatarUrl, &name)
+	err := row.Scan(&uid, &email, &signedUpAt, &name, &avatar.Large, &avatar.Medium, &avatar.Small)
 	if err != nil {
 		return nil, err
 	}
@@ -308,7 +318,7 @@ func (a *authentication) FindUser(ctx context.Context, req *FindUserRequest) (*U
 		Username:   req.Username,
 		Email:      email,
 		Name:       name,
-		AvatarUrl:  avatarUrl,
+		Avatar:     &avatar,
 		SignedUpAt: floatFromTime(signedUpAt),
 	}, nil
 }

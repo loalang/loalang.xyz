@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	upload "github.com/eko/graphql-go-upload"
 	"github.com/golang/protobuf/ptypes/wrappers"
@@ -219,8 +220,16 @@ var MutationObject = graphql.NewObject(graphql.ObjectConfig{
 				var avatar bytes.Buffer
 				var format auth.ImageFormat
 				if p, ok := p.Args["avatar"]; ok {
-					upload := p.(*upload.GraphQLUpload)
-					fileType, _, err := mime.ParseMediaType(upload.MIMEType)
+					b, err := json.Marshal(p)
+					if err != nil {
+						return nil, err
+					}
+					var avatarUpload upload.GraphQLUpload
+					err = json.Unmarshal(b, &avatarUpload)
+					if err != nil {
+						return nil, err
+					}
+					fileType, _, err := mime.ParseMediaType(avatarUpload.MIMEType)
 					if err != nil {
 						return nil, err
 					}
@@ -232,7 +241,7 @@ var MutationObject = graphql.NewObject(graphql.ObjectConfig{
 					default:
 						return nil, fmt.Errorf("unsupported avatar file type: %v (only image/jpeg and image/png is)", fileType)
 					}
-					reader, err := upload.GetReader()
+					reader, err := avatarUpload.GetReader()
 					if err != nil {
 						return nil, err
 					}

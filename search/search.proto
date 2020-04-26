@@ -29,7 +29,13 @@ message User {
   bytes id = 1;
   string username = 2;
   string name = 3;
-  string avatar_url = 4;
+  ImageSourceSet avatar = 4;
+}
+
+message ImageSourceSet {
+  string large = 1;
+  string medium = 2;
+  string small = 3;
 }
 
 message Class {

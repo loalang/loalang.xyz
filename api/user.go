@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"context"
 	"github.com/graphql-go/graphql"
+	"github.com/loalang/loalang.xyz/api/auth"
+	"github.com/loalang/loalang.xyz/api/search"
 )
 
 type User interface {
 	GetUsername() string
 	GetName() string
-	GetAvatarUrl() string
 }
 
 var UserInterface = graphql.NewInterface(graphql.InterfaceConfig{
@@ -21,8 +22,8 @@ var UserInterface = graphql.NewInterface(graphql.InterfaceConfig{
 		"name": &graphql.Field{
 			Type: graphql.String,
 		},
-		"avatarUrl": &graphql.Field{
-			Type: graphql.String,
+		"avatar": &graphql.Field{
+			Type: ImageObject,
 		},
 	},
 })
@@ -41,6 +42,20 @@ func isSignedIn(ctx context.Context, value interface{}) bool {
 	}
 
 	return false
+}
+
+var avatarField = graphql.Field{
+	Type: ImageObject,
+	Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+		switch user := p.Source.(type) {
+		case *auth.User:
+			return Image(user.Avatar), nil
+		case *search.User:
+			return Image(user.Avatar), nil
+		default:
+			return nil, nil
+		}
+	},
 }
 
 var NotMeObject = graphql.NewObject(graphql.ObjectConfig{
@@ -63,16 +78,7 @@ var NotMeObject = graphql.NewObject(graphql.ObjectConfig{
 				return name, nil
 			},
 		},
-		"avatarUrl": &graphql.Field{
-			Type: graphql.String,
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				name := p.Source.(User).GetAvatarUrl()
-				if name == "" {
-					return nil, nil
-				}
-				return name, nil
-			},
-		},
+		"avatar": &avatarField,
 	},
 	IsTypeOf: func(p graphql.IsTypeOfParams) bool {
 		return !isSignedIn(p.Context, p.Value)
@@ -100,16 +106,7 @@ var MeObject = graphql.NewObject(graphql.ObjectConfig{
 				return p.Source.(Me).GetEmail(), nil
 			},
 		},
-		"avatarUrl": &graphql.Field{
-			Type: graphql.String,
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				name := p.Source.(Me).GetAvatarUrl()
-				if name == "" {
-					return nil, nil
-				}
-				return name, nil
-			},
-		},
+		"avatar": &avatarField,
 		"name": &graphql.Field{
 			Type: graphql.String,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {

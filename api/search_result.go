@@ -10,6 +10,7 @@ var SearchResultUnion = graphql.NewUnion(graphql.UnionConfig{
 		PackageObject,
 		ClassObject,
 		MeObject,
+		NotMeObject,
 	},
 	ResolveType: func(p graphql.ResolveTypeParams) *graphql.Object {
 		switch p.Value.(type) {
@@ -18,7 +19,11 @@ var SearchResultUnion = graphql.NewUnion(graphql.UnionConfig{
 		case Class:
 			return ClassObject
 		case User:
-			return MeObject
+			if isSignedIn(p.Context, p.Value) {
+				return MeObject
+			} else {
+				return NotMeObject
+			}
 		default:
 			return nil
 		}
