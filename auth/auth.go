@@ -235,11 +235,11 @@ func (a *authentication) UpdateUser(ctx context.Context, req *UpdateUserRequest)
 
 	row := a.db.QueryRowContext(ctx, `
 		update users set
-			name = case when coalesce($1, '') = '' then name else $1 end,
+			name = coalesce($1, name),
 			username = case when coalesce($2, '') = '' then username else $2 end,
 			email = case when coalesce($3, '') = '' then email else $3 end,
 			avatar_url = case when coalesce($4, '') = '' then avatar_url else $4 end,
-			password = coalesce($5, password)
+			password = case when $5 = ''::bytea then password else $5 end
 		where id = $6 and password =
 			case
 				when $7 = ''::bytea then password
@@ -276,11 +276,12 @@ func (a *authentication) UpdateUser(ctx context.Context, req *UpdateUserRequest)
 	return user, nil
 }
 
-func unwrap(value *wrappers.StringValue) string {
-	if value == nil {
-		return ""
+func unwrap(value *wrappers.StringValue) (out sql.NullString) {
+	if value != nil {
+		out.String = value.Value
+		out.Valid = true
 	}
-	return value.Value
+	return
 }
 
 func (a *authentication) FindUser(ctx context.Context, req *FindUserRequest) (*User, error) {

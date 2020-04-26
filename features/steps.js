@@ -12,24 +12,27 @@ Given("a sign up form", async () => {
   await puppeteer.idle();
   const signUpButton = await document.getByText(/sign up/i);
   await signUpButton.click();
+  await puppeteer.idle();
 });
 
 Given("a sign in form", async () => {
   const document = await puppeteer.page.getDocument();
   const signInButton = await document.getByText(/sign in/i);
   await signInButton.click();
+  await puppeteer.idle();
 });
 
 Given("I enter {string} in the {string} field", async (value, fieldName) => {
   const document = await puppeteer.page.getDocument();
   const input = await document.getByPlaceholderText(fieldName);
-  await input.evaluate(i => i.value = "");
+  await input.evaluate((i) => (i.value = ""));
   await input.focus();
   await puppeteer.page.keyboard.type(value);
 });
 
-When("I submit the form", async () => {
-  await puppeteer.page.click("[type=submit]");
+When("I submit the form", { timeout: 100000 }, async () => {
+  const element = await puppeteer.page.$("[type=submit]");
+  await element.click();
   await puppeteer.idle();
 });
 
@@ -40,7 +43,7 @@ Then("I expect to be logged in as {string}", async (username) => {
 
 Then("I expect to not be logged in", async () => {
   const document = await puppeteer.page.getDocument();
-  expect(await document.queryByText(/sign out/i)).toBeNull();
+  expect(await document.queryByText(/sign in/i)).not.toBeNull();
 });
 
 Given(

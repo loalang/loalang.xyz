@@ -1,10 +1,20 @@
-module DesignSystem.Text exposing (..)
+module DesignSystem.Text exposing (bodyM, bodyMStyle, bodyS, codeInput, codeM, codeS, headerL, headerM, headerS, headerSStyle, input, inputStyle, label)
 
 import Css exposing (..)
 import DesignSystem.Breakpoint exposing (whenWide)
+import Html.Styled exposing (Html, span)
+import Html.Styled.Attributes exposing (..)
 
 
-headerL =
+styledBy : Style -> Html msg -> Html msg
+styledBy style child =
+    span
+        [ css [ style, display inlineBlock ] ]
+        [ child ]
+
+
+headerLStyle : Style
+headerLStyle =
     batch
         [ fontStyle normal
         , fontWeight normal
@@ -18,7 +28,11 @@ headerL =
         ]
 
 
-headerM =
+headerL =
+    styledBy headerLStyle
+
+
+headerMStyle =
     batch
         [ fontStyle normal
         , fontWeight (int 500)
@@ -31,7 +45,11 @@ headerM =
         ]
 
 
-headerS =
+headerM =
+    styledBy headerMStyle
+
+
+headerSStyle =
     batch
         [ fontStyle normal
         , fontWeight (int 500)
@@ -44,19 +62,33 @@ headerS =
         ]
 
 
-bodyM =
+headerS =
+    styledBy headerSStyle
+
+
+bodyMNStyle =
     batch
         [ fontStyle normal
         , fontWeight normal
         , fontSize (px 16)
         , lineHeight (px 20)
+        ]
+
+
+bodyMStyle =
+    batch
+        [ bodyMNStyle
         , whenWide
             [ fontSize (px 15)
             ]
         ]
 
 
-bodyS =
+bodyM =
+    styledBy bodyMStyle
+
+
+bodySStyle =
     batch
         [ fontStyle normal
         , fontWeight normal
@@ -66,7 +98,11 @@ bodyS =
         ]
 
 
-label =
+bodyS =
+    styledBy bodySStyle
+
+
+labelStyle =
     batch
         [ fontStyle normal
         , fontWeight (int 500)
@@ -77,7 +113,11 @@ label =
         ]
 
 
-codeM =
+label =
+    styledBy labelStyle
+
+
+codeMStyle =
     batch
         [ fontFamilies [ "SF Mono", "monospace" ]
         , fontStyle normal
@@ -91,7 +131,11 @@ codeM =
         ]
 
 
-codeS =
+codeM =
+    styledBy codeMStyle
+
+
+codeSStyle =
     batch
         [ fontFamilies [ "SF Mono", "monospace" ]
         , fontStyle normal
@@ -101,11 +145,23 @@ codeS =
         ]
 
 
-input =
+codeS =
+    styledBy codeSStyle
+
+
+inputStyle =
     batch
-        [ bodyM, whenWide [ bodyS ] ]
+        [ bodyMNStyle, whenWide [ bodySStyle ] ]
+
+
+input =
+    styledBy inputStyle
+
+
+codeInputStyle =
+    batch
+        [ codeMStyle, whenWide [ codeSStyle ] ]
 
 
 codeInput =
-    batch
-        [ codeM, whenWide [ codeS ] ]
+    styledBy codeInputStyle

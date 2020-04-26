@@ -1,19 +1,29 @@
 module Main exposing (main)
 
+import Api
+import Api.Interface
+import Api.Interface.User
+import Api.Query
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Navigation
 import Css exposing (..)
-import Css.Global
 import DesignSystem.Color
+import DesignSystem.Input
 import DesignSystem.Text
-import Header
-import Html
-import Html.Styled
-import Html.Styled.Attributes
-import Page.NotFound
-import Page.Storefront
-import Page.User
+import DesignSystem.View
+import Focus
+import Graphql.Operation exposing (RootQuery)
+import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
+import Html.Styled as Html exposing (..)
+import Html.Styled.Attributes exposing (..)
+import Html.Styled.Events exposing (..)
+import Page
+import Page.UserPage
 import Router
+import Session exposing (Session)
+import Session.SignInForm
+import Session.SignUpForm
+import Task
 import Url exposing (Url)
 
 
@@ -31,163 +41,288 @@ main =
 type alias Model =
     { key : Navigation.Key
     , url : Url
-    , header : Header.Model
-    , page : Page
+    , session : Session
+    , sessionFormExpanded : Bool
+    , sessionForm : Session.SessionForm
+    , sessionFormErrors : List String
+    , page : Page.Page
     }
 
 
-type Page
-    = StorefrontPage Page.Storefront.Model
-    | UserPage Page.User.Model
-    | NotFoundPage
-
-
 type Msg
-    = LinkClicked Browser.UrlRequest
+    = Noop
+    | LinkClicked Browser.UrlRequest
     | UrlChanged Url.Url
-    | HeaderMsg Header.Msg
-    | StorefrontMsg Page.Storefront.Msg
-    | UserMsg Page.User.Msg
+    | SessionUpdated (Result (List String) Session)
+    | SessionFormUpdated Session.SessionForm
+    | SignInRequested Session.SignInForm.SignInForm
+    | SignUpRequested Session.SignUpForm.SignUpForm
+    | SignOutRequested
+    | ToggleSessionForm
+    | PageMsg Page.Msg
 
 
 init : () -> Url -> Navigation.Key -> ( Model, Cmd Msg )
 init _ url key =
     let
-        ( page, pageMsg ) =
-            initRoute url (Router.parse url)
+        ( session, sessionCmd ) =
+            Session.init url (Ok >> SessionUpdated)
 
-        ( header, headerMsg ) =
-            Header.init url
+        ( page, pageCmd ) =
+            Page.init url key
+
+        model =
+            { key = key
+            , url = url
+            , session = session
+            , sessionFormExpanded = False
+            , sessionForm = Session.SignIn Session.SignInForm.init
+            , sessionFormErrors = []
+            , page = page
+            }
     in
-    ( { key = key
-      , header = header
-      , page = page
-      , url = url
-      }
-    , Cmd.batch [ pageMsg, Cmd.map HeaderMsg headerMsg ]
+    ( model
+    , Cmd.batch
+        [ sessionCmd, Cmd.map PageMsg pageCmd ]
     )
-
-
-initRoute : Url -> Router.Route -> ( Page, Cmd Msg )
-initRoute url route =
-    case route of
-        Router.StorefrontRoute ->
-            Tuple.mapBoth StorefrontPage (Cmd.map StorefrontMsg) Page.Storefront.init
-
-        Router.UserRoute username ->
-            Tuple.mapBoth UserPage (Cmd.map UserMsg) (Page.User.init url username)
-
-        Router.NotFoundRoute ->
-            ( NotFoundPage, Cmd.none )
-
-
-view : Model -> Document Msg
-view model =
-    case model.page of
-        StorefrontPage page ->
-            { title = buildTitle (Page.Storefront.title page)
-            , body = viewContainer model ((Page.Storefront.view >> Html.Styled.map StorefrontMsg) page)
-            }
-
-        UserPage page ->
-            { title = buildTitle (Page.User.title page)
-            , body = viewContainer model ((Page.User.view >> Html.Styled.map UserMsg) page)
-            }
-
-        NotFoundPage ->
-            { title = buildTitle Page.NotFound.title
-            , body = viewContainer model Page.NotFound.view
-            }
-
-
-viewContainer : Model -> Html.Styled.Html Msg -> List (Html.Html Msg)
-viewContainer model content =
-    [ Html.Styled.toUnstyled
-        (Html.Styled.div [ Html.Styled.Attributes.id "root" ]
-            [ (Header.view >> Html.Styled.map HeaderMsg) model.header
-            , content
-            , Css.Global.global
-                [ Css.Global.html
-                    [ margin zero
-                    , backgroundColor DesignSystem.Color.background
-                    , color DesignSystem.Color.standardText
-                    , DesignSystem.Text.bodyM
-                    ]
-                ]
-            ]
-        )
-    ]
-
-
-buildTitle : Maybe String -> String
-buildTitle title =
-    title
-        |> Maybe.map List.singleton
-        |> Maybe.withDefault []
-        |> (\l -> l ++ [ "Loa Programming Language" ])
-        |> String.join " | "
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case ( model.page, msg ) of
-        ( _, LinkClicked urlRequest ) ->
-            case urlRequest of
-                Browser.Internal url ->
-                    ( model, Navigation.pushUrl model.key (Url.toString url) )
-
-                Browser.External href ->
-                    ( model, Navigation.load href )
-
-        ( _, UrlChanged url ) ->
-            url
-                |> Router.parse
-                |> initRoute url
-                |> Tuple.mapFirst (\page -> { model | page = page })
-
-        ( _, HeaderMsg hMsg ) ->
-            Tuple.mapBoth (updateHeader model) (Cmd.map HeaderMsg) (Header.update model.url hMsg model.header)
-
-        ( StorefrontPage pModel, StorefrontMsg pMsg ) ->
-            Tuple.mapBoth (updatePage StorefrontPage model) (Cmd.map StorefrontMsg) (Page.Storefront.update pMsg pModel)
-
-        ( UserPage pModel, UserMsg pMsg ) ->
-            let
-                ( a, b, c ) =
-                    Page.User.update model.key model.url pMsg pModel
-            in
-            let
-                ( d, e ) =
-                    Tuple.mapBoth
-                        (updatePage UserPage model)
-                        (Cmd.map UserMsg)
-                        ( a, b )
-            in
-            case c of
-                Nothing ->
-                    ( d, e )
-
-                Just u ->
-                    let
-                        ( f, g ) =
-                            Header.update d.url (Header.UpdateUser { username = u.username, name = u.name }) d.header
-                    in
-                    ( { d | header = f }, Cmd.batch [ e, Cmd.map HeaderMsg g ] )
-
-        _ ->
+    case msg of
+        Noop ->
             ( model, Cmd.none )
 
+        LinkClicked (Browser.Internal url) ->
+            ( model, Navigation.pushUrl model.key (Url.toString url) )
 
-updatePage : (a -> Page) -> Model -> a -> Model
-updatePage map model a =
-    { model | page = map a }
+        LinkClicked (Browser.External href) ->
+            ( model, Navigation.load href )
+
+        UrlChanged url ->
+            let
+                ( page, pageCmd ) =
+                    Page.init url model.key
+            in
+            ( { model | url = url, page = page, sessionFormExpanded = False }, Cmd.map PageMsg pageCmd )
+
+        SessionUpdated (Ok session) ->
+            ( { model | session = session, sessionFormErrors = [], sessionFormExpanded = False }, Cmd.none )
+
+        SessionUpdated (Err error) ->
+            ( { model | sessionFormErrors = error }, Cmd.none )
+
+        SessionFormUpdated sessionForm ->
+            ( { model | sessionForm = sessionForm }, Cmd.none )
+
+        SignInRequested form ->
+            ( model, Session.performSignIn model.url SessionUpdated form )
+
+        SignUpRequested form ->
+            if form.password /= form.confirmPassword then
+                ( { model | sessionFormErrors = [ "Passwords don't match" ] }, Cmd.none )
+
+            else
+                ( model, Session.performSignUp model.url SessionUpdated form )
+
+        SignOutRequested ->
+            ( model, Session.performSignOut model.url SessionUpdated )
+
+        ToggleSessionForm ->
+            ( { model | sessionFormExpanded = not model.sessionFormExpanded }, Focus.do Noop Focus.SignInForm )
+
+        PageMsg m ->
+            let
+                ( p, mm, maybeMe ) =
+                    Page.update model.page m
+            in
+            case maybeMe of
+                Nothing ->
+                    ( updatePage model p, Cmd.map PageMsg mm )
+
+                Just me ->
+                    let
+                        mod =
+                            updatePage model p
+                    in
+                    ( { mod | session = Session.updateUser mod.session me }, Cmd.map PageMsg mm )
 
 
-updateHeader : Model -> Header.Model -> Model
-updateHeader model header =
-    { model | header = header }
+updatePage : Model -> Page.Page -> Model
+updatePage model page =
+    { model | page = page }
 
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.none
+
+
+type alias User =
+    { username : String
+    }
+
+
+pickUser : SelectionSet User Api.Interface.User
+pickUser =
+    SelectionSet.map User Api.Interface.User.username
+
+
+view : Model -> Document Msg
+view model =
+    { title = "Loa Programming Language"
+    , body =
+        [ toUnstyled
+            (DesignSystem.View.reset
+                [ viewHeader model
+                , viewPage model
+                ]
+            )
+        ]
+    }
+
+
+viewHeader : Model -> Html Msg
+viewHeader model =
+    div
+        [ css
+            [ displayFlex
+            , flexDirection row
+            , justifyContent spaceBetween
+            , alignItems center
+            , backgroundColor DesignSystem.Color.primary
+            , color DesignSystem.Color.background
+            ]
+        ]
+        [ div []
+            [ a [ href (Router.url Router.StorefrontRoute) ] [ text "Home" ]
+            ]
+        , viewProfileMenu model
+        ]
+
+
+viewProfileMenu : Model -> Html Msg
+viewProfileMenu model =
+    case model.session of
+        Session.Loading ->
+            DesignSystem.View.loading
+
+        Session.SignedOut ->
+            div []
+                [ button
+                    [ onClick ToggleSessionForm ]
+                    [ text "Sign In" ]
+                , DesignSystem.View.dropdown model.sessionFormExpanded
+                    ToggleSessionForm
+                    [ div
+                        [ css
+                            [ padding (px 10)
+                            ]
+                        ]
+                        [ case model.sessionForm of
+                            Session.SignIn form ->
+                                Html.form
+                                    [ onSubmit (SignInRequested form)
+                                    , css
+                                        [ Css.property "display" "grid"
+                                        , flexDirection column
+                                        , Css.property "gap" "5px"
+                                        ]
+                                    ]
+                                    ([ DesignSystem.Input.string
+                                        "Username"
+                                        (Session.SignInForm.setUsernameOrEmail form >> Session.SignIn >> SessionFormUpdated)
+                                        form.usernameOrEmail
+                                     , DesignSystem.Input.password
+                                        "Password"
+                                        (Session.SignInForm.setPassword form >> Session.SignIn >> SessionFormUpdated)
+                                        form.password
+                                     ]
+                                        ++ viewErrors model.sessionFormErrors
+                                        ++ [ DesignSystem.View.linkButton
+                                                (model.sessionForm |> Session.switchForms |> SessionFormUpdated)
+                                                (text "Don't have an account? Sign up instead.")
+                                           , DesignSystem.View.submitButton (SignInRequested form) (text "Sign In")
+                                           ]
+                                    )
+
+                            Session.SignUp form ->
+                                Html.form
+                                    [ onSubmit (SignUpRequested form)
+                                    , css
+                                        [ Css.property "display" "grid"
+                                        , flexDirection column
+                                        , Css.property "gap" "5px"
+                                        ]
+                                    ]
+                                    ([ DesignSystem.Input.string
+                                        "Username"
+                                        (Session.SignUpForm.setUsername form >> Session.SignUp >> SessionFormUpdated)
+                                        form.username
+                                     , DesignSystem.Input.email
+                                        "Email"
+                                        (Session.SignUpForm.setEmail form >> Session.SignUp >> SessionFormUpdated)
+                                        form.email
+                                     , DesignSystem.Input.password
+                                        "Password"
+                                        (Session.SignUpForm.setPassword form >> Session.SignUp >> SessionFormUpdated)
+                                        form.password
+                                     , DesignSystem.Input.password
+                                        "Confirm Password"
+                                        (Session.SignUpForm.setConfirmPassword form >> Session.SignUp >> SessionFormUpdated)
+                                        form.confirmPassword
+                                     ]
+                                        ++ viewErrors model.sessionFormErrors
+                                        ++ [ DesignSystem.View.linkButton
+                                                (model.sessionForm |> Session.switchForms |> SessionFormUpdated)
+                                                (text "Already have an account? Sign in instead.")
+                                           , DesignSystem.View.submitButton
+                                                (SignUpRequested form)
+                                                (text "Sign Up")
+                                           ]
+                                    )
+                        ]
+                    ]
+                ]
+
+        Session.SignedIn user ->
+            div
+                []
+                [ button
+                    [ css
+                        [ displayFlex
+                        , flexDirection row
+                        , alignItems center
+                        ]
+                    , type_ "button"
+                    , onClick ToggleSessionForm
+                    ]
+                    [ div [ css [ marginRight (px 10) ] ] [ user.name |> Maybe.withDefault user.username |> text ]
+                    , DesignSystem.View.avatar 30 user
+                    ]
+                , DesignSystem.View.dropdown model.sessionFormExpanded
+                    ToggleSessionForm
+                    [ a
+                        [ href (Router.url (Router.UserRoute user.username))
+                        ]
+                        [ text "Profile" ]
+                    , button [ onClick SignOutRequested ] [ text "Sign Out" ]
+                    ]
+                ]
+
+
+viewErrors : List String -> List (Html Msg)
+viewErrors errors =
+    List.map viewError errors
+
+
+viewError : String -> Html Msg
+viewError message =
+    div [ css [ color DesignSystem.Color.danger ] ]
+        [ DesignSystem.Text.bodyS (text message)
+        ]
+
+
+viewPage : Model -> Html Msg
+viewPage model =
+    Page.view model.page |> Html.map PageMsg

@@ -9,6 +9,7 @@ import (
 type User interface {
 	GetUsername() string
 	GetName() string
+	GetAvatarUrl() string
 }
 
 var UserInterface = graphql.NewInterface(graphql.InterfaceConfig{
@@ -18,6 +19,9 @@ var UserInterface = graphql.NewInterface(graphql.InterfaceConfig{
 			Type: graphql.NewNonNull(graphql.String),
 		},
 		"name": &graphql.Field{
+			Type: graphql.String,
+		},
+		"avatarUrl": &graphql.Field{
 			Type: graphql.String,
 		},
 	},
@@ -59,6 +63,16 @@ var NotMeObject = graphql.NewObject(graphql.ObjectConfig{
 				return name, nil
 			},
 		},
+		"avatarUrl": &graphql.Field{
+			Type: graphql.String,
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				name := p.Source.(User).GetAvatarUrl()
+				if name == "" {
+					return nil, nil
+				}
+				return name, nil
+			},
+		},
 	},
 	IsTypeOf: func(p graphql.IsTypeOfParams) bool {
 		return !isSignedIn(p.Context, p.Value)
@@ -84,6 +98,16 @@ var MeObject = graphql.NewObject(graphql.ObjectConfig{
 			Type: graphql.NewNonNull(graphql.String),
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				return p.Source.(Me).GetEmail(), nil
+			},
+		},
+		"avatarUrl": &graphql.Field{
+			Type: graphql.String,
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				name := p.Source.(Me).GetAvatarUrl()
+				if name == "" {
+					return nil, nil
+				}
+				return name, nil
 			},
 		},
 		"name": &graphql.Field{

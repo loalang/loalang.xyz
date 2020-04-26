@@ -93,7 +93,8 @@ Feature: Authentication
   Scenario: Sign Out
     Given I am logged in as "jane-doe" with email "jane@example.com" and password "my-password"
 
-    When I click "Sign Out"
+    When I click "jane-doe"
+    And I click "Sign Out"
 
     Then I expect to not be logged in
 
@@ -101,6 +102,7 @@ Feature: Authentication
     Given I am logged in as "jane-doe" with email "jane@example.com" and password "my-password"
 
     When I click "jane-doe"
+    And I click "Profile"
     And I enter "Jane Doe" in the "Name" field
     And I submit the form
 
@@ -110,6 +112,7 @@ Feature: Authentication
     Given I am logged in as "jane-doe" with email "jane@example.com" and password "my-password"
 
     When I click "jane-doe"
+    And I click "Profile"
     And I enter "jane" in the "Username" field
     And I submit the form
 

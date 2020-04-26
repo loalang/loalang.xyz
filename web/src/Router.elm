@@ -32,5 +32,6 @@ router =
 
 
 parse : Url -> Route
-parse u =
-    Maybe.withDefault NotFoundRoute (Url.Parser.parse router u)
+parse =
+    Url.Parser.parse router
+        >> Maybe.withDefault NotFoundRoute

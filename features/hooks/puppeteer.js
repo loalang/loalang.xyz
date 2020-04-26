@@ -16,7 +16,9 @@ exports.idle = idle;
 Before({ timeout: 10000 }, async () => {
   inflight = 0;
 
-  const browser = (exports.browser = await puppeteer.launch());
+  const browser = (exports.browser = await puppeteer.launch({
+    headless: process.env.RUN_CHROMIUM !== "yes",
+  }));
   const page = (exports.page = await browser.newPage());
   await page.setRequestInterception(true);
 
